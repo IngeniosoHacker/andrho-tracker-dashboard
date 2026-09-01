@@ -205,6 +205,7 @@
       else if (tab === 'traffic') await renderTraffic(panel);
       else if (tab === 'geo') await renderGeo(panel);
       else if (tab === 'ai') await renderAI(panel);
+      else if (tab === 'game') await renderGame(panel);
     } catch (err) {
       panel.innerHTML = `<p class="empty-state">Error cargando datos: ${esc(err.message)}</p>`;
     }
@@ -553,6 +554,73 @@
         body: JSON.stringify({ month, targetVisits: val })
       });
       renderAI(panel);
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Tab: Minijuego (color-scheme experiment — see andrho's AsteroidGame)
+  // ---------------------------------------------------------------------
+  async function renderGame(panel) {
+    const d = await fetchJSON(`/api/sites/${encodeURIComponent(activeSiteId)}/game`);
+    const s = d.summary;
+
+    panel.innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-card"><p class="kpi-label">Partidas jugadas</p><p class="kpi-value">${fmtNum(s.sessions_played)}</p></div>
+        <div class="kpi-card"><p class="kpi-label">Descuentos reclamados</p><p class="kpi-value">${fmtNum(s.discounts_claimed)}</p></div>
+        <div class="kpi-card"><p class="kpi-label">Asteroides destruidos (prom.)</p><p class="kpi-value">${s.avg_destroyed ?? '—'}</p></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Rendimiento por tema <span class="hint">asteroides destruidos por segundo</span></h2>
+          <canvas id="chartGameTheme" height="180"></canvas>
+        </div>
+        <div class="card">
+          <h2>Por tema y tipo de comercio</h2>
+          ${d.byThemeCommerce.length ? `
+          <table>
+            <thead><tr><th>Tema</th><th>Comercio</th><th class="num">Segmentos</th><th class="num">Destruidos/seg</th></tr></thead>
+            <tbody>
+              ${d.byThemeCommerce.map((r) => `
+                <tr><td class="mono">${esc(r.theme)}</td><td>${esc(r.commerce_type)}</td><td class="num">${fmtNum(r.segments)}</td><td class="num">${r.avg_destroy_rate ?? '—'}</td></tr>
+              `).join('')}
+            </tbody>
+          </table>` : '<p class="empty-state">Necesitamos más partidas con descuento reclamado para cruzar esto.</p>'}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Detalle por tema</h2>
+        ${d.byTheme.length ? `
+        <table>
+          <thead><tr><th>Tema</th><th class="num">Segmentos</th><th class="num">Destruidos</th><th class="num">Perdidos</th><th class="num">Destruidos/seg</th></tr></thead>
+          <tbody>
+            ${d.byTheme.map((r) => `
+              <tr><td class="mono">${esc(r.theme)}</td><td class="num">${fmtNum(r.segments)}</td><td class="num">${fmtNum(r.destroyed)}</td><td class="num">${fmtNum(r.missed)}</td><td class="num">${r.destroy_rate_per_sec ?? '—'}</td></tr>
+            `).join('')}
+          </tbody>
+        </table>` : '<p class="empty-state">Sin partidas registradas todavía</p>'}
+      </div>
+    `;
+
+    const ctx = document.getElementById('chartGameTheme');
+    if (charts.gameTheme) charts.gameTheme.destroy();
+    const rows = d.byTheme.length ? d.byTheme : [{ theme: 'sin datos', destroy_rate_per_sec: 0 }];
+    charts.gameTheme = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: rows.map((r) => r.theme),
+        datasets: [{ data: rows.map((r) => Number(r.destroy_rate_per_sec || 0)), backgroundColor: '#8b93f8', borderRadius: 3 }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#565d6b', font: { family: 'IBM Plex Mono', size: 10 } } },
+          y: { grid: { color: '#1e222b' }, ticks: { color: '#565d6b', font: { family: 'IBM Plex Mono', size: 10 } }, beginAtZero: true }
+        }
+      }
     });
   }
 

@@ -320,4 +320,89 @@ router.post('/sites/:siteId/ai-goal', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ---------------------------------------------------------------------------
+// Mini-game color-scheme experiment. The AndRho frontend's asteroid game
+// (see andrho/src/lib/gameStorage.js) reports through the tracker's normal
+// custom-event pipeline via window.atrk() — it has no table of its own,
+// it's just rows in `events` filtered by type. DISTINCT ON de-dupes in case
+// a queued/retried atrk() call ever double-sends the same session/segment.
+// ---------------------------------------------------------------------------
+
+router.get('/sites/:siteId/game', async (req, res, next) => {
+  const { siteId } = req.params;
+  try {
+    const [summary, byTheme, byThemeCommerce] = await Promise.all([
+      pool.query(
+        `WITH sessions_dedup AS (
+           SELECT DISTINCT ON (payload->>'id') payload
+           FROM events WHERE site_id = $1 AND type = 'game_session'
+           ORDER BY payload->>'id', occurred_at DESC
+         ),
+         registrations_dedup AS (
+           SELECT DISTINCT ON (payload->>'session_id') payload
+           FROM events WHERE site_id = $1 AND type = 'game_registration'
+           ORDER BY payload->>'session_id', occurred_at DESC
+         )
+         SELECT
+           (SELECT COUNT(*) FROM sessions_dedup) AS sessions_played,
+           (SELECT COUNT(*) FROM registrations_dedup) AS discounts_claimed,
+           (SELECT ROUND(AVG((payload->>'destroyed_count')::numeric), 1) FROM sessions_dedup) AS avg_destroyed`,
+        [siteId]
+      ),
+      pool.query(
+        `WITH segments_dedup AS (
+           SELECT DISTINCT ON (payload->>'session_id', payload->>'segment_order') payload
+           FROM events WHERE site_id = $1 AND type = 'game_theme_segment'
+           ORDER BY payload->>'session_id', payload->>'segment_order', occurred_at DESC
+         )
+         SELECT
+           payload->>'theme' AS theme,
+           COUNT(*) AS segments,
+           SUM((payload->>'destroyed')::int) AS destroyed,
+           SUM((payload->>'missed')::int) AS missed,
+           ROUND(
+             (SUM((payload->>'destroyed')::numeric) / NULLIF(SUM((payload->>'duration_ms')::numeric) / 1000, 0))::numeric,
+             3
+           ) AS destroy_rate_per_sec
+         FROM segments_dedup
+         GROUP BY payload->>'theme'
+         ORDER BY destroy_rate_per_sec DESC NULLS LAST`,
+        [siteId]
+      ),
+      pool.query(
+        `WITH segments_dedup AS (
+           SELECT DISTINCT ON (payload->>'session_id', payload->>'segment_order') payload
+           FROM events WHERE site_id = $1 AND type = 'game_theme_segment'
+           ORDER BY payload->>'session_id', payload->>'segment_order', occurred_at DESC
+         ),
+         registrations_dedup AS (
+           SELECT DISTINCT ON (payload->>'session_id')
+             payload->>'session_id' AS session_id, payload->>'commerce_type' AS commerce_type
+           FROM events WHERE site_id = $1 AND type = 'game_registration'
+           ORDER BY payload->>'session_id', occurred_at DESC
+         )
+         SELECT
+           seg.payload->>'theme' AS theme,
+           r.commerce_type,
+           COUNT(*) AS segments,
+           ROUND(
+             AVG((seg.payload->>'destroyed')::numeric / NULLIF((seg.payload->>'duration_ms')::numeric / 1000, 0))::numeric,
+             3
+           ) AS avg_destroy_rate
+         FROM segments_dedup seg
+         JOIN registrations_dedup r ON r.session_id = seg.payload->>'session_id'
+         GROUP BY seg.payload->>'theme', r.commerce_type
+         ORDER BY theme, commerce_type`,
+        [siteId]
+      )
+    ]);
+
+    res.json({
+      summary: summary.rows[0],
+      byTheme: byTheme.rows,
+      byThemeCommerce: byThemeCommerce.rows
+    });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;
