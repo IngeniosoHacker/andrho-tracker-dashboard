@@ -1,0 +1,22 @@
+{
+  "name": "andrho-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "gl-matrix": "^3.4.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  }
+}

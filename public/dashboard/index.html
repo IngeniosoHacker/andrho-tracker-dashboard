@@ -7,60 +7,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css" />
+<link rel="stylesheet" href="/dashboard/styles.css" />
 </head>
 <body>
 
 <div class="shell">
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-head">
-      <div class="brand">
-        <span class="brand-mark">◍</span>
-        <span class="brand-name">WebTracker</span>
-      </div>
-      <p class="brand-sub">panel de sitios</p>
-    </div>
-
-    <div class="site-list" id="siteList">
-      <!-- sites injected here -->
-    </div>
-
-    <button class="add-site-btn" id="addSiteBtn">
-      <span>+</span> Agregar sitio
-    </button>
-
-    <div class="sidebar-foot">
-      <span class="dot dot-ok"></span> conectado a la base de datos
-    </div>
-  </aside>
-
   <!-- Main -->
   <main class="main" id="main">
-    <!-- Gate: shown when no site is selected / none saved -->
-    <section class="gate" id="gate">
-      <div class="gate-card">
-        <p class="eyebrow">Acceso por Site ID</p>
-        <h1>Entra a tu panel</h1>
-        <p class="gate-copy">No usamos contraseña: si conoces el <code>site_id</code> del sitio, tienes acceso a sus métricas.</p>
-        <form id="gateForm" autocomplete="off">
-          <input id="gateInput" type="text" placeholder="ej. andrho" spellcheck="false" />
-          <button type="submit">Entrar</button>
-        </form>
-        <p class="gate-error" id="gateError"></p>
-      </div>
-    </section>
-
-    <!-- Dashboard (hidden until a site is active) -->
-    <section class="dash" id="dash" hidden>
+    <!-- Dashboard -->
+    <section class="dash" id="dash">
       <header class="dash-head">
         <div>
-          <p class="eyebrow" id="activeSiteEyebrow">sitio activo</p>
+          <p class="eyebrow" id="activeSiteEyebrow">cuenta</p>
           <h1 id="activeSiteName">—</h1>
         </div>
         <div class="dash-meta">
           <span id="lastActivity"></span>
+          <button class="logout-btn" id="logoutBtn" type="button">Cerrar sesión</button>
         </div>
       </header>
 
@@ -96,7 +60,13 @@
   </div>
 </div>
 
+<script>
+  // Injected server-side (see src/server.js) from the ANDRHO_API_URL env var,
+  // so app.js knows where to reach andrho-api for /auth/me, /auth/refresh
+  // and /auth/logout.
+  window.ANDRHO_API_URL = "__ANDRHO_API_URL__";
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script src="/app.js"></script>
+<script src="/dashboard/app.js"></script>
 </body>
 </html>

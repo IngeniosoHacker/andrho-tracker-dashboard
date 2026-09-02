@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+:root {
+  --c-void: #0b0a1a;
+  --c-nebula: #14112a;
+  --c-panel: #1d1938;
+  --c-panel-2: #241f45;
+  --c-solar: #ffc745;
+  --c-solar-dim: #d9a838;
+  --c-plasma: #ff2162;
+  --c-plasma-dim: #d91850;
+  --c-comet: #6ee7ff;
+  --c-stardust: #f5f2ff;
+  --c-mist: #9a93c2;
+  --c-line: rgba(245, 242, 255, 0.1);
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--c-void);
+  color: var(--c-stardust);
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+.font-display {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+.bg-starfield {
+  background-image: radial-gradient(1px 1px at 10% 20%, rgba(245, 242, 255, 0.55) 0, transparent 100%),
+    radial-gradient(1px 1px at 80% 10%, rgba(245, 242, 255, 0.4) 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 60% 70%, rgba(245, 242, 255, 0.5) 0, transparent 100%),
+    radial-gradient(1px 1px at 30% 85%, rgba(245, 242, 255, 0.35) 0, transparent 100%),
+    radial-gradient(1px 1px at 92% 55%, rgba(245, 242, 255, 0.4) 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 45% 40%, rgba(245, 242, 255, 0.3) 0, transparent 100%);
+  background-repeat: repeat;
+  background-size: 600px 600px;
+}
+
+.grid-overlay {
+  background-image: linear-gradient(to right, var(--c-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--c-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(0, -18px) rotate(8deg); }
+}
+@keyframes float-slower {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(14px, 10px) rotate(-10deg); }
+}
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 199, 69, 0.35); }
+  50% { box-shadow: 0 0 0 12px rgba(255, 199, 69, 0); }
+}
+@keyframes shine {
+  to { background-position: 200% center; }
+}
+@keyframes marquee-x {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
+.animate-float-slower { animation: float-slower 9s ease-in-out infinite; }
+.animate-marquee { animation: marquee-x 22s linear infinite; }
+.animate-marquee:hover { animation-play-state: paused; }
+.cursor-blink { animation: blink 1s step-start infinite; }
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--c-solar), var(--c-plasma));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.animate-shine {
+  animation-name: shine;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.shiny-text {
+  background: linear-gradient(
+    110deg,
+    var(--c-void) 40%,
+    var(--c-stardust) 50%,
+    var(--c-void) 60%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: var(--c-void);
+  animation: shine 2.6s linear infinite;
+}
+
+.glass-panel {
+  background: linear-gradient(180deg, rgba(245, 242, 255, 0.06), rgba(245, 242, 255, 0.02));
+  border: 1px solid rgba(245, 242, 255, 0.08);
+  backdrop-filter: blur(20px);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(100px);
+  pointer-events: none;
+}
+
+.card-hover {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease, background 0.35s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 199, 69, 0.45);
+}
+
+.btn-solar {
+  background: var(--c-solar);
+  color: var(--c-void);
+}
+.btn-solar:hover {
+  background: var(--c-solar-dim);
+}
+
+.shape {
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35));
+}
+
+::selection {
+  background: var(--c-plasma);
+  color: var(--c-stardust);
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--c-comet);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

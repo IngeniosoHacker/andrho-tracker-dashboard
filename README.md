@@ -1,120 +1,192 @@
-# webtracker-dashboard
+# andrho-tracker-dashboard
 
-A read-only analytics dashboard for [`analytics-tracker`](../analytics-tracker). It
-connects **directly to the same PostgreSQL database** (read-only queries) and gives
-you a sidebar of tracked sites plus a set of views (overview, sessions, navigation
-paths, pages, traffic/keywords, geo, AI visibility) to analyze the data collected by
-the tracker.
+This Express service now serves three things:
 
-This is a **separate Railway service** from `analytics-tracker` — it doesn't touch
-Redis, doesn't ingest tracking data, and never writes to the `sessions`/`pageviews`
-tables. The only writes it performs are to `ai_visibility_goals` (setting a monthly
-AI-crawler target), which is intentionally a dashboard-owned feature.
+- **`/`** — the official AndRho marketing landing page (built from `web/`, a
+  Vite + React + Tailwind v4 app ported from the `andrho` repo).
+- **`/login.html`** and **`/signup.html`** — real account auth, backed by
+  [`andrho-api`](../andrho-api) (a separate Go service that owns accounts and
+  issues JWTs).
+- **`/dashboard/`** — the read-only analytics dashboard for
+  [`analytics-tracker`](../analytics-tracker) (formerly served at `/`). It
+  connects **directly to the same PostgreSQL database** (read-only queries)
+  and shows one client's own data: overview, sessions, navigation paths,
+  pages, traffic/keywords, geo, AI visibility, and the minigame experiment.
 
----
-
-## 1. Access model: "login" by site_id, no password
-
-There is no user/password system. Knowing a site's `site_id` (the same string used
-in `data-site-id="..."` on the tracker script) is what grants access to that site's
-dashboard — the same trust model the tracker itself uses for ingesting data.
-
-- The gate screen asks for a `site_id`, verifies it exists in the `sites` table
-  (`GET /api/sites/:siteId/verify`), and if valid, adds it to a list kept in the
-  browser's `localStorage`.
-- The sidebar lists every site you've "logged into" this way. Click one to load its
-  dashboard; click the ✕ to remove it from your local list (this does not delete any
-  data, it just forgets it locally).
-- There's also a `GET /api/sites` endpoint listing every known site, used only to
-  help autocomplete/discover ids — nothing sensitive is exposed beyond the id, name,
-  and session count.
-
-**This is intentionally lightweight** for an internal/agency tool used by a small
-team. If you need real access control (e.g. giving each client only their own site,
-enforced server-side, not just "don't type other ids"), see §5.
+This is a **separate Railway service** from `analytics-tracker` — it doesn't
+touch Redis, doesn't ingest tracking data, and never writes to the
+`sessions`/`pageviews` tables. The only writes it performs are to
+`ai_visibility_goals` (setting a monthly AI-crawler target), which is
+intentionally a dashboard-owned feature.
 
 ---
 
-## 2. Views included
+## 1. Access model: real accounts, one site_id per account
 
-- **Resumen (Overview)** — KPI cards (sessions, pageviews, unique visitors, avg
-  session duration, avg max scroll), a traffic-type donut chart (human vs. AI crawler
-  vs. AI referral vs. search bot), and top landing pages.
-- **Sesiones (Sessions)** — paginated table of visits; click a row to open a detail
-  drawer with the full **navigation path** (ordered pageviews) and a small bar chart
-  of **time spent per scroll-depth level** for each page.
-- **Páginas (Pages)** — per-URL aggregates: pageviews, avg time on page, avg max
-  scroll.
-- **Tráfico & Keywords** — traffic sources breakdown and organic search keywords
-  (see the tracker's README for why most modern organic search keywords show up
-  empty — that's expected, not a bug).
-- **Geografía** — sessions grouped by country/city.
-- **Visibilidad IA (AI visibility)** — AI-crawler hits and AI-referral sessions this
-  month, broken down by bot/product, a daily trend chart, and a **goal ring** showing
-  progress against a configurable monthly target (the same `ai_visibility_goals`
-  feature from the tracker).
+The old "know the site_id, no password" gate is gone. Access now works like this:
+
+1. A user creates an account at `/signup.html` (email, password, company name)
+   or logs in at `/login.html`. Both pages call `andrho-api`'s `/auth/signup`
+   and `/auth/login` directly (client-side, via `VITE_ANDRHO_API_URL`).
+2. `andrho-api` issues a short-lived **access token** and a longer-lived
+   **refresh token** (both JWTs, HS256). The browser stores them in
+   `localStorage` under `andrho_access_token` / `andrho_refresh_token` and is
+   redirected to `/dashboard/`.
+3. `public/dashboard/app.js` reads the access token on load, calls
+   `GET {ANDRHO_API_URL}/auth/me` to resolve the account (email, company name,
+   and — critically — the account's `site_id`), and renders a single-site
+   dashboard for that account. No sidebar, no "add another site" flow.
+4. If `/auth/me` returns 401 (expired access token), the dashboard tries
+   `POST {ANDRHO_API_URL}/auth/refresh` once with the refresh token. If that
+   also fails, both tokens are cleared and the user is sent back to
+   `/login.html`.
+5. Every dashboard API call (`/api/sites/:siteId/*`) sends
+   `Authorization: Bearer <access_token>`. The Express backend verifies the
+   JWT with `JWT_SECRET` (the same secret `andrho-api` signs with) and checks
+   that the token's `site_id` matches the `:siteId` in the URL — a mismatch is
+   a `403`, not just a client-side inconvenience.
+6. "Cerrar sesión" calls `POST {ANDRHO_API_URL}/auth/logout` with the refresh
+   token, clears `localStorage`, and redirects to `/`.
+
+The JWT payload contract (owned by `andrho-api`, mirrored here in
+`src/middleware/auth.js`) is:
+
+```json
+{ "sub": "<account id>", "email": "...", "site_id": "...", "company_name": "...", "iat": 0, "exp": 0 }
+```
+
+**Removed as part of this change:** the unauthenticated `GET /api/sites`
+(listed every client's site — a security hole) and `GET /api/sites/:siteId/verify`
+(the old login screen's existence check). Neither is used anywhere anymore.
 
 ---
 
-## 3. Deployment on Railway (same project as analytics-tracker)
+## 2. Project layout
 
-1. Add this as a **new service in the same Railway project** where `analytics-tracker`
-   and its Postgres/Redis plugins already live (so they can all reference each other).
-2. Push this project to its own repo (or a `webtracker-dashboard/` folder if you keep
-   both in one repo — either works with Railway).
-3. Set the environment variable:
-   ```
-   DATABASE_URL=${{Postgres.DATABASE_URL}}
-   ```
-   pointing at the **same Postgres service** analytics-tracker uses (reuse the
-   reference, don't create a second database). If the internal reference doesn't
-   resolve for some reason, use `${{Postgres.DATABASE_PUBLIC_URL}}` as a fallback,
-   same as documented for analytics-tracker.
-4. This service never runs migrations — it assumes `analytics-tracker` has already
-   created the schema. Deploy `analytics-tracker` first (or at least once) before
-   this one.
-5. `ALLOWED_ORIGINS` can stay as `*` for this service in most setups, since the
-   dashboard's frontend calls its own backend same-origin (browser → this service),
-   not cross-site like the tracker does.
-6. Generate a public domain for this service (**Settings → Networking → Generate
-   Domain**) — that's the URL you'll open to use the dashboard.
+```
+web/                    Vite + React + Tailwind v4 app: landing + login + signup
+  index.html            AndRho marketing landing (ported from andrho/, "under
+                         construction" copy removed, LiveProgress dropped)
+  login.html            -> src/login.jsx
+  signup.html           -> src/signup.jsx
+  src/                  components ported from andrho/src/ (Features/InfiniteMenu
+                         kept as-is; Waitlist/MissionForm/MissionGame kept as-is)
+  dist/                 build output (gitignored), served at "/" by src/server.js
 
-### Running locally
+public/dashboard/       the analytics dashboard (formerly public/), now served
+                         under /dashboard/ and gated by JWT instead of site_id
+  index.html            gets `window.ANDRHO_API_URL` injected server-side
+  app.js                single-site dashboard, JWT auth flow, no more sidebar
+  styles.css
 
-```bash
-cp .env.example .env
-# point DATABASE_URL at the same Postgres analytics-tracker uses (or a local copy)
-npm install
-npm start
-# open http://localhost:3000
+src/
+  server.js             serves web/dist/ at "/", public/dashboard/ at "/dashboard",
+                         mounts /api, fails fast if JWT_SECRET is unset
+  middleware/auth.js     verifies andrho-api's JWTs, attaches req.account
+  routes/api.js          all /sites/:siteId/* routes require auth + site match
+  config/db.js           pg pool (unchanged)
 ```
 
 ---
 
-## 4. Architecture note: why connect directly to Postgres instead of calling analytics-tracker's API
+## 3. Environment variables
+
+Root `.env` (Express backend) — see `.env.example`:
+
+| Var | Purpose |
+|---|---|
+| `PORT` | HTTP port (default 3000) |
+| `DATABASE_URL` | same Postgres `analytics-tracker` uses |
+| `ALLOWED_ORIGINS` | CORS allowlist for `/api/*` |
+| `JWT_SECRET` | **must match** the secret `andrho-api` signs JWTs with. The server refuses to start without it. |
+| `ANDRHO_API_URL` | public/local URL of `andrho-api`. Injected into `public/dashboard/index.html` as `window.ANDRHO_API_URL`, and used to build the CSP `connect-src` allowance. |
+
+`web/.env` (Vite build-time) — see `web/.env.example`:
+
+| Var | Purpose |
+|---|---|
+| `VITE_ANDRHO_API_URL` | where `login.html`/`signup.html` call `/auth/login`, `/auth/signup` |
+
+---
+
+## 4. Running locally
+
+You need `andrho-api` running locally too (it owns accounts/JWTs) — see that
+repo's own README. Then:
+
+```bash
+# 1. Backend
+cp .env.example .env
+# point DATABASE_URL at a Postgres with analytics-tracker's schema,
+# set JWT_SECRET to the same value andrho-api uses locally,
+# set ANDRHO_API_URL to andrho-api's local URL (e.g. http://localhost:8080)
+npm install
+
+# 2. Landing/login/signup (built once, served statically by Express)
+cp web/.env.example web/.env
+# point VITE_ANDRHO_API_URL at the same andrho-api URL
+npm --prefix web install
+npm --prefix web run build
+
+# 3. Run
+npm start
+# open http://localhost:3000            -> landing
+# open http://localhost:3000/login.html -> login
+# open http://localhost:3000/dashboard/ -> analytics (requires a logged-in account)
+```
+
+During frontend development you can also run `npm --prefix web run dev` for
+hot-reload (Vite dev server), then rebuild (`npm --prefix web run build`)
+before relying on Express to serve the production bundle.
+
+---
+
+## 5. Deployment on Railway (same project as analytics-tracker)
+
+1. Add this as a **new service in the same Railway project** where
+   `analytics-tracker` and its Postgres/Redis plugins already live, and where
+   `andrho-api` is deployed.
+2. Set the environment variables from §3 above. `DATABASE_URL` should
+   reference the **same Postgres service** analytics-tracker uses
+   (`${{Postgres.DATABASE_URL}}`); `ANDRHO_API_URL` should point at
+   `andrho-api`'s Railway URL.
+3. `railway.json`'s build step runs `npm ci && npm --prefix web ci && npm --prefix web run build`
+   before `node src/server.js` starts, so `web/dist/` always exists in
+   production. `VITE_ANDRHO_API_URL` must be set as a **build-time** env var
+   (Vite inlines it at build time, not at runtime) for the build to point
+   login/signup at the right `andrho-api` URL.
+4. This service never runs migrations — it assumes `analytics-tracker` has
+   already created the schema.
+5. Generate a public domain for this service (**Settings → Networking →
+   Generate Domain**).
+
+---
+
+## 6. Architecture note: why connect directly to Postgres instead of calling analytics-tracker's API
 
 `analytics-tracker` already exposes very similar `/api/*` read endpoints. This
 dashboard duplicates that logic against the database directly (in
 `src/routes/api.js`) rather than proxying through the tracker's API, for two
-reasons: it keeps this service independently deployable/scalable without a hard
-runtime dependency on the tracker service being reachable, and it lets the dashboard
-evolve its own queries (e.g. the `/overview` KPI endpoint) without needing to change
-the tracker's API surface. The trade-off is that both projects now own similar SQL —
-if you change the schema, update both `analytics-tracker/src/db/schema.sql` and the
-queries in this project's `src/routes/api.js`.
+reasons: it keeps this service independently deployable/scalable without a
+hard runtime dependency on the tracker service being reachable, and it lets
+the dashboard evolve its own queries (e.g. the `/overview` KPI endpoint)
+without needing to change the tracker's API surface. The trade-off is that
+both projects now own similar SQL — if you change the schema, update both
+`analytics-tracker/src/db/schema.sql` and the queries in this project's
+`src/routes/api.js`.
 
 ---
 
-## 5. Known limitations / possible next steps
+## 7. Known limitations / possible next steps
 
-- No real authentication — access is "know the site_id". Fine for an internal tool
-  with a small trusted team; not fine if you ever hand a client a link expecting them
-  to only see their own data by URL alone (they could type/guess another site_id).
-  If you need that, add a proper auth layer (e.g. a login with per-client tokens
-  mapped to allowed `site_id`s) in front of the `/api/*` routes.
-  If you want, I can build this next: real accounts, one per client, each locked to
-  their own `site_id`.
-- Read queries run directly against the same Postgres analytics-tracker writes to;
-  at high traffic volumes consider a read replica so dashboard queries never
-  compete with the ingestion path.
+- `andrho-api`'s exact `/auth/me`, `/auth/refresh`, `/auth/logout` response
+  shapes were assumed (see `public/dashboard/app.js` and `web/src/lib/authApi.js`)
+  based on the JWT contract in §1 — verify against `andrho-api`'s actual
+  implementation once both services are deployed together and adjust if the
+  field names differ (`account_id` vs `id`, etc).
+- Read queries run directly against the same Postgres analytics-tracker
+  writes to; at high traffic volumes consider a read replica so dashboard
+  queries never compete with the ingestion path.
 - No CSV/export functionality yet on the sessions/pages tables.
+- No password reset / email verification flow yet — that lives entirely in
+  `andrho-api`'s scope.

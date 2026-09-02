@@ -45,53 +45,6 @@ code { font-family: var(--font-mono); }
    ========================================================================== */
 .shell { display: flex; min-height: 100vh; }
 
-.sidebar {
-  width: 268px;
-  flex-shrink: 0;
-  background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-soft);
-  display: flex;
-  flex-direction: column;
-  padding: 22px 16px;
-}
-.sidebar-head { padding: 0 6px 18px; border-bottom: 1px solid var(--border-soft); margin-bottom: 14px; }
-.brand { display: flex; align-items: center; gap: 8px; }
-.brand-mark { color: var(--accent-ai); font-size: 18px; line-height: 1; }
-.brand-name { font-weight: 600; letter-spacing: 0.01em; font-size: 15px; }
-.brand-sub { margin: 6px 0 0; color: var(--text-tertiary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
-
-.site-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
-.site-item {
-  display: flex; flex-direction: column; gap: 2px;
-  padding: 10px 12px; border-radius: var(--radius-sm);
-  cursor: pointer; border: 1px solid transparent;
-  color: var(--text-secondary);
-}
-.site-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
-.site-item.active { background: var(--bg-elevated-2); border-color: var(--border); color: var(--text-primary); }
-.site-item .site-id { font-family: var(--font-mono); font-size: 13px; font-weight: 500; }
-.site-item .site-meta { font-size: 11px; color: var(--text-tertiary); display: flex; gap: 6px; align-items: center; }
-.site-item.active .site-id { color: var(--accent-human); }
-.site-remove {
-  margin-left: auto; opacity: 0; background: none; border: none; color: var(--text-tertiary);
-  cursor: pointer; font-size: 12px; padding: 2px 4px;
-}
-.site-item:hover .site-remove { opacity: 1; }
-.site-remove:hover { color: var(--accent-danger); }
-.site-item-row { display: flex; align-items: center; }
-
-.add-site-btn {
-  margin-top: 12px; width: 100%; padding: 10px 12px;
-  background: transparent; border: 1px dashed var(--border);
-  color: var(--text-secondary); border-radius: var(--radius-sm);
-  cursor: pointer; font-family: var(--font-ui); font-size: 13px;
-  display: flex; align-items: center; gap: 8px;
-}
-.add-site-btn span { color: var(--accent-human); font-weight: 600; }
-.add-site-btn:hover { border-color: var(--accent-human); color: var(--text-primary); }
-
-.sidebar-foot { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-soft); font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; gap: 6px; }
-
 .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
 .dot-ok { background: var(--accent-human); box-shadow: 0 0 0 3px rgba(70,196,184,0.15); }
 .dot-ai { background: var(--accent-ai); box-shadow: 0 0 0 3px rgba(240,169,78,0.15); }
@@ -100,35 +53,20 @@ code { font-family: var(--font-mono); }
 
 .main { flex: 1; min-width: 0; padding: 32px 40px; }
 
-/* ==========================================================================
-   Gate (login by site_id)
-   ========================================================================== */
-.gate { min-height: 70vh; display: flex; align-items: center; justify-content: center; }
-.gate-card { max-width: 420px; text-align: left; }
 .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-ai); margin: 0 0 8px; }
-.gate-card h1 { margin: 0 0 10px; font-size: 26px; letter-spacing: -0.01em; }
-.gate-copy { color: var(--text-secondary); line-height: 1.6; margin: 0 0 22px; }
-.gate-copy code { background: var(--bg-elevated); padding: 1px 6px; border-radius: 4px; color: var(--accent-human); }
-#gateForm { display: flex; gap: 8px; }
-#gateInput {
-  flex: 1; background: var(--bg-elevated); border: 1px solid var(--border);
-  color: var(--text-primary); padding: 11px 14px; border-radius: var(--radius-sm);
-  font-family: var(--font-mono); font-size: 14px;
-}
-#gateInput:focus { border-color: var(--accent-human); }
-#gateForm button {
-  background: var(--accent-human); color: #0b1917; border: none; font-weight: 600;
-  padding: 11px 18px; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-ui);
-}
-#gateForm button:hover { filter: brightness(1.08); }
-.gate-error { color: var(--accent-danger); font-size: 13px; margin-top: 10px; min-height: 16px; }
 
 /* ==========================================================================
    Dashboard head + tabs
    ========================================================================== */
 .dash-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px; }
 .dash-head h1 { margin: 2px 0 0; font-size: 24px; font-family: var(--font-mono); letter-spacing: -0.01em; }
-.dash-meta { color: var(--text-tertiary); font-size: 12px; font-family: var(--font-mono); }
+.dash-meta { color: var(--text-tertiary); font-size: 12px; font-family: var(--font-mono); display: flex; align-items: center; gap: 14px; }
+.logout-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--text-secondary);
+  padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer;
+  font-family: var(--font-ui); font-size: 12px;
+}
+.logout-btn:hover { border-color: var(--accent-danger); color: var(--accent-danger); }
 
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border-soft); margin-bottom: 24px; }
 .tab {

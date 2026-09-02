@@ -3,35 +3,22 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { requireAuth } = require('../middleware/auth');
 
 router.use(express.json());
 
 // ---------------------------------------------------------------------------
-// Site access ("login" = knowing a valid site_id, no password)
+// Auth: every /sites/:siteId/* route below requires a valid JWT (issued by
+// andrho-api) AND that the token's site_id matches the :siteId in the URL.
+// This replaces the old "know the site_id" gate entirely -- there is no more
+// unauthenticated GET /api/sites (it listed every client's site) and no more
+// GET /api/sites/:siteId/verify (the old login screen's existence check).
 // ---------------------------------------------------------------------------
-
-// GET /api/sites -> list every site that has ever sent data (helps populate
-// the login/add-site screen without the person needing to remember exact ids)
-router.get('/sites', async (req, res, next) => {
-  try {
-    const { rows } = await pool.query(
-      `SELECT s.id, s.name, s.created_at,
-              (SELECT COUNT(*) FROM sessions ss WHERE ss.site_id = s.id) AS session_count,
-              (SELECT MAX(started_at) FROM sessions ss WHERE ss.site_id = s.id) AS last_activity
-       FROM sites s
-       ORDER BY last_activity DESC NULLS LAST`
-    );
-    res.json({ sites: rows });
-  } catch (err) { next(err); }
-});
-
-// GET /api/sites/:siteId/verify -> used by the login screen to confirm a site_id is real
-router.get('/sites/:siteId/verify', async (req, res, next) => {
-  try {
-    const { rows } = await pool.query('SELECT id, name FROM sites WHERE id = $1', [req.params.siteId]);
-    if (!rows.length) return res.status(404).json({ exists: false });
-    res.json({ exists: true, site: rows[0] });
-  } catch (err) { next(err); }
+router.use('/sites/:siteId', requireAuth, (req, res, next) => {
+  if (req.params.siteId !== req.account.siteId) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  next();
 });
 
 // ---------------------------------------------------------------------------

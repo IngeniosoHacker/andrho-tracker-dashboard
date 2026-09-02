@@ -2,27 +2,28 @@
   'use strict';
 
   // ---------------------------------------------------------------------
-  // State + persistence (localStorage acts as the "session" -- no server auth)
+  // Auth (real accounts, issued by andrho-api). Each account is locked to
+  // exactly one site_id -- there is no more "add a site" flow, no more
+  // localStorage list of sites. See README.md for the full auth flow.
   // ---------------------------------------------------------------------
-  const LS_SITES = 'wtd_sites';       // [{id, name}]
-  const LS_ACTIVE = 'wtd_active_site';
+  const LS_ACCESS = 'andrho_access_token';
+  const LS_REFRESH = 'andrho_refresh_token';
 
-  let sites = JSON.parse(localStorage.getItem(LS_SITES) || '[]');
-  let activeSiteId = localStorage.getItem(LS_ACTIVE) || null;
+  // Injected server-side by src/server.js from the ANDRHO_API_URL env var.
+  const ANDRHO_API_URL = window.ANDRHO_API_URL || '';
+
+  let account = null;      // { accountId, email, siteId, companyName } from /auth/me
+  let activeSiteId = null;
   let activeTab = 'overview';
   let charts = {}; // keep Chart.js instances so we can .destroy() before re-render
   let sessionsPage = { limit: 25, offset: 0, total: 0 };
 
   const els = {
-    siteList: document.getElementById('siteList'),
-    addSiteBtn: document.getElementById('addSiteBtn'),
-    gate: document.getElementById('gate'),
-    gateForm: document.getElementById('gateForm'),
-    gateInput: document.getElementById('gateInput'),
-    gateError: document.getElementById('gateError'),
     dash: document.getElementById('dash'),
+    activeSiteEyebrow: document.getElementById('activeSiteEyebrow'),
     activeSiteName: document.getElementById('activeSiteName'),
     lastActivity: document.getElementById('lastActivity'),
+    logoutBtn: document.getElementById('logoutBtn'),
     tabs: document.getElementById('tabs'),
     drawer: document.getElementById('drawer'),
     drawerBackdrop: document.getElementById('drawerBackdrop'),
@@ -30,18 +31,48 @@
     drawerContent: document.getElementById('drawerContent')
   };
 
+  function getAccessToken() { return localStorage.getItem(LS_ACCESS); }
+  function getRefreshToken() { return localStorage.getItem(LS_REFRESH); }
+  function storeTokens(tokens) {
+    if (!tokens) return;
+    if (tokens.access_token) localStorage.setItem(LS_ACCESS, tokens.access_token);
+    if (tokens.refresh_token) localStorage.setItem(LS_REFRESH, tokens.refresh_token);
+  }
+  function clearTokensAndRedirect(path) {
+    localStorage.removeItem(LS_ACCESS);
+    localStorage.removeItem(LS_REFRESH);
+    window.location.href = path;
+  }
+
   // ---------------------------------------------------------------------
   // Utils
   // ---------------------------------------------------------------------
   async function fetchJSON(url, opts) {
-    const res = await fetch(url, opts);
+    const headers = Object.assign({}, opts && opts.headers);
+    const token = getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(url, Object.assign({}, opts, { headers }));
     if (!res.ok) {
       let msg = res.statusText;
       try { const j = await res.json(); msg = j.error || msg; } catch {}
-      throw new Error(msg);
+      const err = new Error(msg);
+      err.status = res.status;
+      throw err;
     }
     if (res.status === 204) return null;
     return res.json();
+  }
+
+  async function andrhoApiFetch(path, opts) {
+    const res = await fetch(`${ANDRHO_API_URL}${path}`, opts);
+    let data = null;
+    try { data = await res.json(); } catch {}
+    if (!res.ok) {
+      const err = new Error((data && data.error) || res.statusText);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
   }
 
   function esc(str) {
@@ -82,107 +113,87 @@
   }
 
   // ---------------------------------------------------------------------
-  // Sidebar / site management ("login" = knowing a valid site_id)
+  // Boot: resolve the logged-in account against andrho-api before rendering
+  // anything. No access token -> straight to /login.html. An expired access
+  // token gets one refresh attempt; if that also fails, the local session is
+  // wiped and the user is sent back to /login.html.
   // ---------------------------------------------------------------------
-  function saveSites() { localStorage.setItem(LS_SITES, JSON.stringify(sites)); }
-  function saveActive() { localStorage.setItem(LS_ACTIVE, activeSiteId || ''); }
-
-  function renderSidebar() {
-    if (!sites.length) {
-      els.siteList.innerHTML = `<p class="empty-state" style="padding:20px 4px">Aún no agregaste ningún sitio.</p>`;
+  async function boot() {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      window.location.href = '/login.html';
       return;
     }
-    els.siteList.innerHTML = sites.map((s) => `
-      <div class="site-item ${s.id === activeSiteId ? 'active' : ''}" data-site="${esc(s.id)}">
-        <div class="site-item-row">
-          <span class="site-id">${esc(s.id)}</span>
-          <button class="site-remove" data-remove="${esc(s.id)}" title="Quitar">✕</button>
-        </div>
-        <span class="site-meta"><span class="dot ${s.id === activeSiteId ? 'dot-ok' : 'dot-muted'}"></span>${esc(s.name || 'sin nombre')}</span>
-      </div>
-    `).join('');
 
-    els.siteList.querySelectorAll('.site-item').forEach((el) => {
-      el.addEventListener('click', (e) => {
-        if (e.target.closest('.site-remove')) return;
-        selectSite(el.dataset.site);
-      });
-    });
-    els.siteList.querySelectorAll('.site-remove').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        removeSite(btn.dataset.remove);
-      });
-    });
-  }
-
-  function removeSite(id) {
-    sites = sites.filter((s) => s.id !== id);
-    saveSites();
-    if (activeSiteId === id) {
-      activeSiteId = sites[0] ? sites[0].id : null;
-      saveActive();
-    }
-    renderSidebar();
-    renderMain();
-  }
-
-  async function selectSite(id) {
-    activeSiteId = id;
-    saveActive();
-    renderSidebar();
-    await renderMain();
-  }
-
-  async function addSiteFlow(idRaw) {
-    const id = (idRaw || '').trim();
-    els.gateError.textContent = '';
-    if (!id) return;
     try {
-      const result = await fetchJSON(`/api/sites/${encodeURIComponent(id)}/verify`);
-      if (!result.exists) {
-        els.gateError.textContent = `No existe un sitio con id "${id}" en la base de datos.`;
+      account = await fetchMe();
+    } catch (err) {
+      if (err.status === 401) {
+        const refreshed = await tryRefresh();
+        if (!refreshed) { clearTokensAndRedirect('/login.html'); return; }
+        try {
+          account = await fetchMe();
+        } catch {
+          clearTokensAndRedirect('/login.html');
+          return;
+        }
+      } else {
+        clearTokensAndRedirect('/login.html');
         return;
       }
-      if (!sites.some((s) => s.id === id)) {
-        sites.push({ id: result.site.id, name: result.site.name });
-        saveSites();
-      }
-      els.gateInput.value = '';
-      await selectSite(id);
-    } catch (err) {
-      els.gateError.textContent = 'No se pudo verificar el sitio: ' + err.message;
     }
-  }
 
-  els.gateForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    addSiteFlow(els.gateInput.value);
-  });
-  els.addSiteBtn.addEventListener('click', () => {
-    els.gate.hidden = false;
-    els.dash.hidden = true;
-    els.gateInput.focus();
-  });
-
-  // ---------------------------------------------------------------------
-  // Main dashboard render
-  // ---------------------------------------------------------------------
-  async function renderMain() {
-    if (!activeSiteId) {
-      els.gate.hidden = false;
-      els.dash.hidden = true;
-      return;
-    }
-    els.gate.hidden = true;
-    els.dash.hidden = false;
-
-    const site = sites.find((s) => s.id === activeSiteId);
-    els.activeSiteName.textContent = site ? site.id : activeSiteId;
+    activeSiteId = account.siteId;
+    els.activeSiteEyebrow.textContent = account.companyName || 'cuenta';
+    els.activeSiteName.textContent = account.email || activeSiteId;
 
     sessionsPage = { limit: 25, offset: 0, total: 0 };
     await loadTab(activeTab, true);
   }
+
+  async function fetchMe() {
+    const data = await andrhoApiFetch('/auth/me', {
+      headers: { Authorization: `Bearer ${getAccessToken()}` }
+    });
+    return {
+      accountId: data.account_id || data.id,
+      email: data.email,
+      siteId: data.site_id,
+      companyName: data.company_name
+    };
+  }
+
+  async function tryRefresh() {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return false;
+    try {
+      const data = await andrhoApiFetch('/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+      storeTokens(data);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  els.logoutBtn.addEventListener('click', async () => {
+    const refreshToken = getRefreshToken();
+    try {
+      if (refreshToken) {
+        await andrhoApiFetch('/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refreshToken })
+        });
+      }
+    } catch {
+      // best-effort -- still clear the local session either way
+    }
+    clearTokensAndRedirect('/');
+  });
 
   els.tabs.addEventListener('click', (e) => {
     const btn = e.target.closest('.tab');
@@ -207,6 +218,7 @@
       else if (tab === 'ai') await renderAI(panel);
       else if (tab === 'game') await renderGame(panel);
     } catch (err) {
+      if (err.status === 401) { clearTokensAndRedirect('/login.html'); return; }
       panel.innerHTML = `<p class="empty-state">Error cargando datos: ${esc(err.message)}</p>`;
     }
   }
@@ -627,11 +639,5 @@
   // ---------------------------------------------------------------------
   // Boot
   // ---------------------------------------------------------------------
-  renderSidebar();
-  if (activeSiteId && sites.some((s) => s.id === activeSiteId)) {
-    renderMain();
-  } else {
-    els.gate.hidden = false;
-    els.dash.hidden = true;
-  }
+  boot();
 })();
