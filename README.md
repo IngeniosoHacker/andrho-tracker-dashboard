@@ -150,9 +150,12 @@ before relying on Express to serve the production bundle.
    reference the **same Postgres service** analytics-tracker uses
    (`${{Postgres.DATABASE_URL}}`); `ANDRHO_API_URL` should point at
    `andrho-api`'s Railway URL.
-3. `railway.json`'s build step runs `npm ci && npm --prefix web ci && npm --prefix web run build`
-   before `node src/server.js` starts, so `web/dist/` always exists in
-   production. `VITE_ANDRHO_API_URL` must be set as a **build-time** env var
+3. `nixpacks.toml` installs (`npm ci` + `npm --prefix web ci`) and builds
+   (`npm --prefix web run build`) in separate Nixpacks phases before
+   `node src/server.js` starts, so `web/dist/` always exists in production
+   (kept as two phases rather than one `railway.json` `buildCommand` to avoid
+   an `npm ci`-vs-cache-mount `EBUSY` failure — see the commit that added this
+   file). `VITE_ANDRHO_API_URL` must be set as a **build-time** env var
    (Vite inlines it at build time, not at runtime) for the build to point
    login/signup at the right `andrho-api` URL.
 4. This service never runs migrations — it assumes `analytics-tracker` has
