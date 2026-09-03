@@ -1,0 +1,14 @@
+# Split install/build into separate Nixpacks phases. Previously both ran as
+# one shell command via railway.json's build.buildCommand, which put `npm ci`
+# (root) in the same phase where Nixpacks mounts a Docker cache volume at
+# node_modules/.cache. npm ci deletes node_modules wholesale before
+# reinstalling, and rmdir can't remove that active mount point, so the build
+# failed with:
+#   npm error EBUSY: resource busy or locked, rmdir '/app/node_modules/.cache'
+# Running `npm ci` in the install phase (before that cache mount exists) and
+# only `vite build` in the build phase avoids the conflict.
+[phases.install]
+cmds = ["npm ci", "npm --prefix web ci"]
+
+[phases.build]
+cmds = ["npm --prefix web run build"]
