@@ -18,6 +18,7 @@ touch Redis, doesn't ingest tracking data, and never writes to the
 `sessions`/`pageviews` tables. The only writes it performs are to
 `ai_visibility_goals` (setting a monthly AI-crawler target), which is
 intentionally a dashboard-owned feature.
+this is bassically the final product interface
 
 ---
 
