@@ -32,7 +32,18 @@ const dashboardIndexTemplate = fs.readFileSync(path.join(DASHBOARD_DIR, 'index.h
 // reports events back to that origin. andrho-api (ANDRHO_API_URL) is where
 // login/signup/dashboard auth calls go -- both need explicit CSP allowances.
 const TRACKER_ORIGIN = 'https://webtracker-production-b8d7.up.railway.app';
-const andrhoApiOrigin = ANDRHO_API_URL ? new URL(ANDRHO_API_URL).origin : null;
+let andrhoApiOrigin = null;
+if (ANDRHO_API_URL) {
+  try {
+    andrhoApiOrigin = new URL(ANDRHO_API_URL).origin;
+  } catch (err) {
+    console.error(`[server] ANDRHO_API_URL is not a valid URL: "${ANDRHO_API_URL}". It must be ` +
+      'andrho-api\'s PUBLIC URL (e.g. https://andrho-api-production-xxxx.up.railway.app) -- browsers ' +
+      'call this directly, so a Railway private-network hostname (*.railway.internal) will not work ' +
+      'here even with a scheme prepended. Refusing to start.');
+    process.exit(1);
+  }
+}
 
 app.disable('x-powered-by');
 app.set('trust proxy', true);
