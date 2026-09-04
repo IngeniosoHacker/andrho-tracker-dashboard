@@ -1,7 +1,17 @@
 // Thin client for andrho-api's auth endpoints. Shared by login.jsx and
 // signup.jsx (and mirrored, conceptually, by public/dashboard/app.js on the
 // Express side — see that file's ANDRHO_API_URL usage).
-const API_URL = import.meta.env.VITE_ANDRHO_API_URL || ''
+//
+// Strip a trailing slash: VITE_ANDRHO_API_URL is often copy-pasted straight
+// from Railway's "Generate Domain" output, which includes one. Left in, every
+// call below becomes `${API_URL}/auth/login` = ".../api-domain//auth/login"
+// -- a double slash the Go router 404s on *before* it ever runs CORS
+// middleware, so the browser's preflight gets a response with no
+// Access-Control-Allow-Origin header and reports it to fetch() as a generic
+// network failure. That's indistinguishable from andrho-api being down and is
+// exactly what surfaces as "No se pudo conectar con el servidor" below, even
+// though a request to the correct (single-slash) path succeeds.
+const API_URL = (import.meta.env.VITE_ANDRHO_API_URL || '').replace(/\/+$/, '')
 
 export const TOKEN_KEYS = {
   access: 'andrho_access_token',

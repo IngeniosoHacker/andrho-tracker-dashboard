@@ -10,7 +10,9 @@
   const LS_REFRESH = 'andrho_refresh_token';
 
   // Injected server-side by src/server.js from the ANDRHO_API_URL env var.
-  const ANDRHO_API_URL = window.ANDRHO_API_URL || '';
+  // Trailing slash stripped -- see web/src/lib/authApi.js's API_URL comment
+  // for why a trailing slash here silently breaks every /auth/* call.
+  const ANDRHO_API_URL = (window.ANDRHO_API_URL || '').replace(/\/+$/, '');
 
   let account = null;      // { accountId, email, siteId, companyName } from /auth/me
   let activeSiteId = null;

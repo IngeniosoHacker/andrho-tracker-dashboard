@@ -22,8 +22,13 @@ const allowed = (process.env.ALLOWED_ORIGINS || '*').split(',').map((s) => s.tri
 
 // Public URL of andrho-api, injected into the analytics dashboard's HTML so
 // its client-side JS knows where to call /auth/me, /auth/refresh and
-// /auth/logout (see public/dashboard/index.html + app.js).
-const ANDRHO_API_URL = process.env.ANDRHO_API_URL || '';
+// /auth/logout (see public/dashboard/index.html + app.js). Trailing slash(es)
+// stripped -- Railway's "Generate Domain" output includes one, and left in,
+// `${ANDRHO_API_URL}/auth/me` becomes a double-slash path that andrho-api's
+// router 404s on before its CORS middleware ever runs, which the browser
+// then reports as a plain network failure (see authApi.js for the client
+// login.jsx/signup.jsx side of the same bug).
+const ANDRHO_API_URL = (process.env.ANDRHO_API_URL || '').replace(/\/+$/, '');
 const DASHBOARD_DIR = path.join(__dirname, '..', 'public', 'dashboard');
 const dashboardIndexTemplate = fs.readFileSync(path.join(DASHBOARD_DIR, 'index.html'), 'utf8');
 
