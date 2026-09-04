@@ -90,6 +90,32 @@ code { font-family: var(--font-mono); }
 .panel[hidden] { display: none; }
 
 /* ==========================================================================
+   Vertical sidebar sub-navigation (Resumen / Rendimiento) -- keeps the
+   top-level view switcher (topTabs) as the only horizontal tab strip;
+   sections within a view live in a sidebar instead of stacking more tabs.
+   ========================================================================== */
+.vtabs-layout { display: flex; gap: 28px; align-items: flex-start; }
+.vtabs-sidebar {
+  display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; width: 168px;
+  border-right: 1px solid var(--border-soft); padding-right: 4px;
+}
+.vtab {
+  background: none; border: none; border-left: 2px solid transparent; color: var(--text-secondary);
+  cursor: pointer; text-align: left; padding: 9px 14px; font-family: var(--font-ui); font-size: 13.5px; font-weight: 500;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.vtab:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.vtab.active { color: var(--text-primary); background: var(--bg-elevated); border-left-color: var(--accent-human); }
+.vtabs-content { flex: 1; min-width: 0; }
+
+@media (max-width: 760px) {
+  .vtabs-layout { flex-direction: column; }
+  .vtabs-sidebar { flex-direction: row; flex-wrap: wrap; width: 100%; border-right: none; border-bottom: 1px solid var(--border-soft); padding: 0 0 8px; }
+  .vtab { border-left: none; border-bottom: 2px solid transparent; border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+  .vtab.active { border-bottom-color: var(--accent-human); }
+}
+
+/* ==========================================================================
    Section header ("Sugerencias" button, top-right of every Resumen/
    Rendimiento sub-view)
    ========================================================================== */

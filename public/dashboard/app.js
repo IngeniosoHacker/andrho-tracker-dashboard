@@ -279,13 +279,16 @@
     loadTopTab(activeTopTab, false);
   });
 
+  // Works for both the horizontal top/inner tab strips (.tab) and the
+  // vertical sidebar sections (.vtab, see Resumen/Rendimiento) -- same
+  // click/active-toggle logic either way, only the CSS differs.
   function wireSubTabs(navEl, onSelect) {
     if (navEl.dataset.wired) return;
     navEl.dataset.wired = '1';
     navEl.addEventListener('click', (e) => {
-      const btn = e.target.closest('.tab');
+      const btn = e.target.closest('.tab, .vtab');
       if (!btn) return;
-      navEl.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+      navEl.querySelectorAll('.tab, .vtab').forEach((t) => t.classList.remove('active'));
       btn.classList.add('active');
       const key = btn.dataset.subtab || btn.dataset.innertab;
       onSelect(key);
@@ -321,16 +324,27 @@
   }
 
   // ---------------------------------------------------------------------
-  // Resumen (Visibilidad): Marketing | Ventas | Inventarios | KPIs
+  // Resumen (Visibilidad): a vertical sidebar (Marketing | Ventas |
+  // Inventarios | KPIs | Web) instead of the horizontal sub-tabs used
+  // before -- the horizontal strip is reserved for the top-level view
+  // switcher (topTabs) now. "Web" recovers every view the dashboard had
+  // before this reorganization (Resumen/Sesiones/Páginas/Tráfico/Geografía/
+  // Visibilidad IA/Minijuego) as its own horizontal tab strip inside --
+  // that content is a single cohesive "view" in itself, unlike the other
+  // sidebar entries, so it keeps the original tab-per-report layout.
   // ---------------------------------------------------------------------
   async function loadOverviewSubTab(key) {
-    document.querySelectorAll('#top-panel-overview > .panel').forEach((p) => (p.hidden = true));
+    document.querySelectorAll('#top-panel-overview > .vtabs-layout > .vtabs-content > .panel').forEach((p) => (p.hidden = true));
     const panel = document.getElementById(`panel-overview-${key}`);
     panel.hidden = false;
     if (key === 'marketing') await withPanel(panel, renderMarketing);
     else if (key === 'ventas') await withPanel(panel, (p) => renderErpPlaceholder(p, 'ventas', 'Ventas'));
     else if (key === 'inventarios') await withPanel(panel, (p) => renderErpPlaceholder(p, 'inventarios', 'Inventarios'));
     else if (key === 'kpis') await withPanel(panel, renderKpis);
+    else if (key === 'web') {
+      wireSubTabs(document.getElementById('webTabs'), (innerKey) => loadWebSubTab(innerKey));
+      await loadWebSubTab('resumen');
+    }
   }
 
   async function renderMarketing(panel) {
@@ -389,13 +403,20 @@
     bindSectionHeader(panel);
   }
 
-  async function renderKpis(panel) {
+  // Shared by the "KPIs" sidebar entry (Resumen) and "Web > Resumen" (its
+  // own copy of the same overview, recovered as part of consolidating the
+  // pre-reorg dashboard's tabs under Web) -- same fetch + markup + chart,
+  // the only difference is whether a section header/Sugerencias button
+  // wraps it.
+  async function fetchOverviewData() {
     const d = await fetchJSON(`/api/sites/${encodeURIComponent(activeSiteId)}/overview`);
     els.lastActivity.textContent = d.lastActivity ? `última actividad: ${fmtDate(d.lastActivity)}` : 'sin actividad aún';
+    return d;
+  }
 
+  function overviewContentHtml(d) {
     const t = d.totals;
-    panel.innerHTML = `
-      ${sectionHeader('kpis', 'KPIs', 'los números clave de tu sitio, de un vistazo')}
+    return `
       <div class="kpi-grid">
         <div class="kpi-card"><p class="kpi-label">Sesiones totales</p><p class="kpi-value">${fmtNum(t.total_sessions)}</p><p class="kpi-sub">${fmtNum(d.sessionsLast30d)} en los últimos 30 días</p></div>
         <div class="kpi-card"><p class="kpi-label">Pageviews totales</p><p class="kpi-value">${fmtNum(t.total_pageviews)}</p></div>
@@ -421,8 +442,9 @@
         </div>
       </div>
     `;
-    bindSectionHeader(panel);
+  }
 
+  function mountOverviewChart(d) {
     const ctx = document.getElementById('chartTraffic');
     if (charts.traffic) charts.traffic.destroy();
     const palette = {
@@ -448,20 +470,30 @@
     });
   }
 
+  async function renderKpis(panel) {
+    const d = await fetchOverviewData();
+    panel.innerHTML = sectionHeader('kpis', 'KPIs', 'los números clave de tu sitio, de un vistazo') + overviewContentHtml(d);
+    bindSectionHeader(panel);
+    mountOverviewChart(d);
+  }
+
+  async function renderWebOverview(panel) {
+    const d = await fetchOverviewData();
+    panel.innerHTML = overviewContentHtml(d);
+    mountOverviewChart(d);
+  }
+
   // ---------------------------------------------------------------------
-  // Rendimiento: Campañas | Ventas | Personal | AndRho
+  // Rendimiento: Campañas | Ventas | Personal (vertical sidebar, same
+  // pattern as Resumen above)
   // ---------------------------------------------------------------------
   async function loadPerformanceSubTab(key) {
-    document.querySelectorAll('#top-panel-performance > .panel').forEach((p) => (p.hidden = true));
+    document.querySelectorAll('#top-panel-performance > .vtabs-layout > .vtabs-content > .panel').forEach((p) => (p.hidden = true));
     const panel = document.getElementById(`panel-performance-${key}`);
     panel.hidden = false;
     if (key === 'campanas') await withPanel(panel, (p) => renderErpPlaceholder(p, 'campanas', 'Campañas'));
     else if (key === 'ventas') await withPanel(panel, (p) => renderErpPlaceholder(p, 'ventas', 'Ventas'));
     else if (key === 'personal') await withPanel(panel, renderPersonal);
-    else if (key === 'andrho') {
-      wireSubTabs(document.getElementById('andrhoTabs'), (innerKey) => loadAndrhoTab(innerKey));
-      await loadAndrhoTab('sessions');
-    }
   }
 
   async function renderPersonal(panel) {
@@ -490,14 +522,15 @@
 
   // ------- the "AndRho" sub-tab: the tracker's own analytics (formerly the
   // dashboard's top-level tabs) -------
-  async function loadAndrhoTab(key) {
-    document.querySelectorAll('#panel-performance-andrho > .panel').forEach((p) => (p.hidden = true));
-    const panel = document.getElementById(`panel-andrho-${key}`);
+  async function loadWebSubTab(key) {
+    document.querySelectorAll('#panel-overview-web > .panel').forEach((p) => (p.hidden = true));
+    const panel = document.getElementById(`panel-web-${key}`);
     panel.hidden = false;
     await withPanel(panel, (p) => {
+      if (key === 'resumen') return renderWebOverview(p);
       if (key === 'sessions') return renderSessions(p);
       if (key === 'pages') return renderPages(p);
-      if (key === 'traffic') return renderAndrhoTraffic(p);
+      if (key === 'traffic') return renderTrafficKeywords(p);
       if (key === 'geo') return renderGeo(p);
       if (key === 'ai') return renderAI(p);
       if (key === 'game') return renderGame(p);
@@ -633,7 +666,7 @@
     `;
   }
 
-  async function renderAndrhoTraffic(panel) {
+  async function renderTrafficKeywords(panel) {
     const [traffic, keywords] = await Promise.all([
       fetchJSON(`/api/sites/${encodeURIComponent(activeSiteId)}/traffic-sources`),
       fetchJSON(`/api/sites/${encodeURIComponent(activeSiteId)}/search-keywords`)
@@ -1138,6 +1171,16 @@
       }
     });
   }
+
+  // "Web"'s Sugerencias button is static markup (index.html), not re-rendered
+  // on every tab switch like the other sections' -- bind it once, up front,
+  // instead of relying on bindSectionHeader (which only runs after a panel's
+  // innerHTML is (re)written).
+  document.querySelectorAll('[data-suggestions-section]').forEach((btn) => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => openSuggestionsDrawer(btn.dataset.suggestionsSection));
+  });
 
   // ---------------------------------------------------------------------
   // Boot

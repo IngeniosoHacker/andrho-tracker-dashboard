@@ -42,44 +42,61 @@
 
         <!-- ============ Resumen (Visibilidad) ============ -->
         <div class="top-panel" id="top-panel-overview">
-          <nav class="tabs sub-tabs" id="overviewSubTabs">
-            <button class="tab active" data-subtab="marketing">Marketing</button>
-            <button class="tab" data-subtab="ventas">Ventas</button>
-            <button class="tab" data-subtab="inventarios">Inventarios</button>
-            <button class="tab" data-subtab="kpis">KPIs</button>
-          </nav>
-          <div class="panel" id="panel-overview-marketing"></div>
-          <div class="panel" id="panel-overview-ventas" hidden></div>
-          <div class="panel" id="panel-overview-inventarios" hidden></div>
-          <div class="panel" id="panel-overview-kpis" hidden></div>
+          <div class="vtabs-layout">
+            <nav class="vtabs-sidebar" id="overviewSubTabs">
+              <button class="vtab active" data-subtab="marketing">Marketing</button>
+              <button class="vtab" data-subtab="ventas">Ventas</button>
+              <button class="vtab" data-subtab="inventarios">Inventarios</button>
+              <button class="vtab" data-subtab="kpis">KPIs</button>
+              <button class="vtab" data-subtab="web">Web</button>
+            </nav>
+            <div class="vtabs-content">
+              <div class="panel" id="panel-overview-marketing"></div>
+              <div class="panel" id="panel-overview-ventas" hidden></div>
+              <div class="panel" id="panel-overview-inventarios" hidden></div>
+              <div class="panel" id="panel-overview-kpis" hidden></div>
+              <div class="panel" id="panel-overview-web" hidden>
+                <div class="section-head">
+                  <div>
+                    <h2 style="margin:0">Web</h2>
+                    <p class="hint" style="margin:4px 0 0">todas las vistas del rastreador de tu sitio -- sesiones, páginas, tráfico, geografía, IA y minijuego</p>
+                  </div>
+                  <button type="button" class="suggestions-btn" data-suggestions-section="web">💡 Sugerencias</button>
+                </div>
+                <nav class="tabs inner-tabs" id="webTabs">
+                  <button class="tab active" data-innertab="resumen">Resumen</button>
+                  <button class="tab" data-innertab="sessions">Sesiones</button>
+                  <button class="tab" data-innertab="pages">Páginas</button>
+                  <button class="tab" data-innertab="traffic">Tráfico &amp; Keywords</button>
+                  <button class="tab" data-innertab="geo">Geografía</button>
+                  <button class="tab" data-innertab="ai">Visibilidad IA</button>
+                  <button class="tab" data-innertab="game">Minijuego</button>
+                </nav>
+                <div class="panel" id="panel-web-resumen"></div>
+                <div class="panel" id="panel-web-sessions" hidden></div>
+                <div class="panel" id="panel-web-pages" hidden></div>
+                <div class="panel" id="panel-web-traffic" hidden></div>
+                <div class="panel" id="panel-web-geo" hidden></div>
+                <div class="panel" id="panel-web-ai" hidden></div>
+                <div class="panel" id="panel-web-game" hidden></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- ============ Rendimiento ============ -->
         <div class="top-panel" id="top-panel-performance" hidden>
-          <nav class="tabs sub-tabs" id="performanceSubTabs">
-            <button class="tab active" data-subtab="campanas">Campañas</button>
-            <button class="tab" data-subtab="ventas">Ventas</button>
-            <button class="tab" data-subtab="personal">Personal</button>
-            <button class="tab" data-subtab="andrho">AndRho</button>
-          </nav>
-          <div class="panel" id="panel-performance-campanas"></div>
-          <div class="panel" id="panel-performance-ventas" hidden></div>
-          <div class="panel" id="panel-performance-personal" hidden></div>
-          <div class="panel" id="panel-performance-andrho" hidden>
-            <nav class="tabs inner-tabs" id="andrhoTabs">
-              <button class="tab active" data-innertab="sessions">Sesiones</button>
-              <button class="tab" data-innertab="pages">Páginas</button>
-              <button class="tab" data-innertab="traffic">Tráfico &amp; Keywords</button>
-              <button class="tab" data-innertab="geo">Geografía</button>
-              <button class="tab" data-innertab="ai">Visibilidad IA</button>
-              <button class="tab" data-innertab="game">Minijuego</button>
+          <div class="vtabs-layout">
+            <nav class="vtabs-sidebar" id="performanceSubTabs">
+              <button class="vtab active" data-subtab="campanas">Campañas</button>
+              <button class="vtab" data-subtab="ventas">Ventas</button>
+              <button class="vtab" data-subtab="personal">Personal</button>
             </nav>
-            <div class="panel" id="panel-andrho-sessions"></div>
-            <div class="panel" id="panel-andrho-pages" hidden></div>
-            <div class="panel" id="panel-andrho-traffic" hidden></div>
-            <div class="panel" id="panel-andrho-geo" hidden></div>
-            <div class="panel" id="panel-andrho-ai" hidden></div>
-            <div class="panel" id="panel-andrho-game" hidden></div>
+            <div class="vtabs-content">
+              <div class="panel" id="panel-performance-campanas"></div>
+              <div class="panel" id="panel-performance-ventas" hidden></div>
+              <div class="panel" id="panel-performance-personal" hidden></div>
+            </div>
           </div>
         </div>
 
