@@ -61,6 +61,10 @@ code { font-family: var(--font-mono); }
 .dash-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px; }
 .dash-head h1 { margin: 2px 0 0; font-size: 24px; font-family: var(--font-mono); letter-spacing: -0.01em; }
 .dash-meta { color: var(--text-tertiary); font-size: 12px; font-family: var(--font-mono); display: flex; align-items: center; gap: 14px; }
+.role-badge {
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+  border: 1px solid var(--accent-ai-dim); color: var(--accent-ai); border-radius: 999px; padding: 3px 9px;
+}
 .logout-btn {
   background: transparent; border: 1px solid var(--border); color: var(--text-secondary);
   padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer;
@@ -68,7 +72,7 @@ code { font-family: var(--font-mono); }
 }
 .logout-btn:hover { border-color: var(--accent-danger); color: var(--accent-danger); }
 
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border-soft); margin-bottom: 24px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border-soft); margin-bottom: 24px; flex-wrap: wrap; }
 .tab {
   background: none; border: none; color: var(--text-secondary); cursor: pointer;
   padding: 10px 14px; font-family: var(--font-ui); font-size: 13.5px; font-weight: 500;
@@ -76,8 +80,84 @@ code { font-family: var(--font-mono); }
 }
 .tab:hover { color: var(--text-primary); }
 .tab.active { color: var(--text-primary); border-bottom-color: var(--accent-human); }
+.tab .tab-sub { margin-left: 5px; font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+.tab.active .tab-sub { color: var(--accent-human); }
 
+.sub-tabs, .inner-tabs { margin-bottom: 20px; }
+.inner-tabs .tab { font-size: 12.5px; padding: 8px 12px; }
+
+.top-panel[hidden] { display: none; }
 .panel[hidden] { display: none; }
+
+/* ==========================================================================
+   Section header ("Sugerencias" button, top-right of every Resumen/
+   Rendimiento sub-view)
+   ========================================================================== */
+.section-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.suggestions-btn {
+  flex-shrink: 0; background: var(--bg-elevated-2); border: 1px solid var(--accent-ai-dim); color: var(--accent-ai);
+  padding: 8px 14px; border-radius: 999px; cursor: pointer; font-family: var(--font-ui); font-size: 12.5px; font-weight: 600;
+  white-space: nowrap;
+}
+.suggestions-btn:hover { background: var(--accent-ai); color: #241605; }
+
+/* ==========================================================================
+   Honest empty-state card (ERP not connected / feature not built yet)
+   ========================================================================== */
+.empty-card { text-align: center; padding: 40px 24px; }
+.empty-card-icon { font-size: 26px; margin: 0 0 10px; }
+.empty-card h2 { margin: 0 0 8px; }
+.empty-card-body { color: var(--text-secondary); font-size: 13px; max-width: 46ch; margin: 0 auto; line-height: 1.6; }
+
+/* ==========================================================================
+   Suggestions (per-view drawer + global tab)
+   ========================================================================== */
+.quota-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
+.quota-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); }
+.suggestion-card { background: var(--bg); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 12px; }
+.suggestion-card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+.suggestion-body { margin: 0 0 8px; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+.suggestion-report { margin: 0 0 4px; font-size: 12.5px; color: var(--text-tertiary); font-style: italic; line-height: 1.5; }
+.suggestion-actions { display: flex; gap: 8px; margin-top: 10px; }
+.suggestion-actions button {
+  background: var(--bg-elevated-2); border: 1px solid var(--border); color: var(--text-secondary);
+  padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-family: var(--font-ui);
+}
+.suggestion-actions button:hover { color: var(--text-primary); border-color: var(--accent-human); }
+.suggestion-actions button.danger:hover { color: var(--accent-danger); border-color: var(--accent-danger); }
+
+.status-pill { font-family: var(--font-mono); font-size: 10.5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; }
+.status-sugerida { color: var(--accent-violet); border-color: var(--accent-violet); }
+.status-proceso { color: var(--accent-ai); border-color: var(--accent-ai-dim); }
+.status-terminada { color: var(--accent-human); border-color: var(--accent-human-dim); }
+.status-rechazada { color: var(--accent-danger); border-color: var(--accent-danger); }
+
+/* ==========================================================================
+   Configuración: team table + plan cards
+   ========================================================================== */
+.role-select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text-primary);
+  padding: 5px 8px; border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: 12.5px;
+}
+.danger-link { background: none; border: none; color: var(--accent-danger); cursor: pointer; font-size: 12.5px; padding: 0; }
+.danger-link:hover { text-decoration: underline; }
+
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 8px; }
+.plan-card { background: var(--bg); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
+.plan-card-active { border-color: var(--accent-ai); }
+.plan-card-name { margin: 0 0 12px; font-weight: 600; font-family: var(--font-mono); }
+
+.invite-form { display: flex; flex-direction: column; gap: 14px; }
+.invite-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; }
+.invite-form input, .invite-form select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text-primary);
+  padding: 9px 12px; border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: 13.5px; text-transform: none; letter-spacing: normal;
+}
+.invite-form button {
+  background: var(--accent-ai); color: #241605; border: none; font-weight: 600;
+  padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px;
+}
+.invite-form button:hover { filter: brightness(1.08); }
 
 /* ==========================================================================
    Cards / KPI grid

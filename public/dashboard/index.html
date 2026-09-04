@@ -23,35 +23,92 @@
           <h1 id="activeSiteName">—</h1>
         </div>
         <div class="dash-meta">
+          <span class="role-badge" id="roleBadge" hidden></span>
           <span id="lastActivity"></span>
           <button class="logout-btn" id="logoutBtn" type="button">Cerrar sesión</button>
         </div>
       </header>
 
-      <nav class="tabs" id="tabs">
-        <button class="tab active" data-tab="overview">Resumen</button>
-        <button class="tab" data-tab="sessions">Sesiones</button>
-        <button class="tab" data-tab="pages">Páginas</button>
-        <button class="tab" data-tab="traffic">Tráfico &amp; Keywords</button>
-        <button class="tab" data-tab="geo">Geografía</button>
-        <button class="tab" data-tab="ai">Visibilidad IA</button>
-        <button class="tab" data-tab="game">Minijuego</button>
+      <nav class="tabs top-tabs" id="topTabs">
+        <button class="tab active" data-toptab="overview">Resumen <span class="tab-sub">Visibilidad</span></button>
+        <button class="tab" data-toptab="performance">Rendimiento</button>
+        <button class="tab" data-toptab="suggestions">Sugerencias</button>
+        <button class="tab" data-toptab="updates">Actualizaciones</button>
+        <button class="tab" data-toptab="today">Hoy</button>
+        <button class="tab" data-toptab="settings">Configuración</button>
       </nav>
 
-      <div class="tab-panels" id="tabPanels">
-        <div class="panel" id="panel-overview"></div>
-        <div class="panel" id="panel-sessions" hidden></div>
-        <div class="panel" id="panel-pages" hidden></div>
-        <div class="panel" id="panel-traffic" hidden></div>
-        <div class="panel" id="panel-geo" hidden></div>
-        <div class="panel" id="panel-ai" hidden></div>
-        <div class="panel" id="panel-game" hidden></div>
+      <div class="top-panels" id="topPanels">
+
+        <!-- ============ Resumen (Visibilidad) ============ -->
+        <div class="top-panel" id="top-panel-overview">
+          <nav class="tabs sub-tabs" id="overviewSubTabs">
+            <button class="tab active" data-subtab="marketing">Marketing</button>
+            <button class="tab" data-subtab="ventas">Ventas</button>
+            <button class="tab" data-subtab="inventarios">Inventarios</button>
+            <button class="tab" data-subtab="kpis">KPIs</button>
+          </nav>
+          <div class="panel" id="panel-overview-marketing"></div>
+          <div class="panel" id="panel-overview-ventas" hidden></div>
+          <div class="panel" id="panel-overview-inventarios" hidden></div>
+          <div class="panel" id="panel-overview-kpis" hidden></div>
+        </div>
+
+        <!-- ============ Rendimiento ============ -->
+        <div class="top-panel" id="top-panel-performance" hidden>
+          <nav class="tabs sub-tabs" id="performanceSubTabs">
+            <button class="tab active" data-subtab="campanas">Campañas</button>
+            <button class="tab" data-subtab="ventas">Ventas</button>
+            <button class="tab" data-subtab="personal">Personal</button>
+            <button class="tab" data-subtab="andrho">AndRho</button>
+          </nav>
+          <div class="panel" id="panel-performance-campanas"></div>
+          <div class="panel" id="panel-performance-ventas" hidden></div>
+          <div class="panel" id="panel-performance-personal" hidden></div>
+          <div class="panel" id="panel-performance-andrho" hidden>
+            <nav class="tabs inner-tabs" id="andrhoTabs">
+              <button class="tab active" data-innertab="sessions">Sesiones</button>
+              <button class="tab" data-innertab="pages">Páginas</button>
+              <button class="tab" data-innertab="traffic">Tráfico &amp; Keywords</button>
+              <button class="tab" data-innertab="geo">Geografía</button>
+              <button class="tab" data-innertab="ai">Visibilidad IA</button>
+              <button class="tab" data-innertab="game">Minijuego</button>
+            </nav>
+            <div class="panel" id="panel-andrho-sessions"></div>
+            <div class="panel" id="panel-andrho-pages" hidden></div>
+            <div class="panel" id="panel-andrho-traffic" hidden></div>
+            <div class="panel" id="panel-andrho-geo" hidden></div>
+            <div class="panel" id="panel-andrho-ai" hidden></div>
+            <div class="panel" id="panel-andrho-game" hidden></div>
+          </div>
+        </div>
+
+        <!-- ============ Sugerencias (global) ============ -->
+        <div class="top-panel" id="top-panel-suggestions" hidden>
+          <div class="panel" id="panel-suggestions"></div>
+        </div>
+
+        <!-- ============ Actualizaciones ============ -->
+        <div class="top-panel" id="top-panel-updates" hidden>
+          <div class="panel" id="panel-updates"></div>
+        </div>
+
+        <!-- ============ Hoy ============ -->
+        <div class="top-panel" id="top-panel-today" hidden>
+          <div class="panel" id="panel-today"></div>
+        </div>
+
+        <!-- ============ Configuración ============ -->
+        <div class="top-panel" id="top-panel-settings" hidden>
+          <div class="panel" id="panel-settings"></div>
+        </div>
+
       </div>
     </section>
   </main>
 </div>
 
-<!-- Session detail drawer -->
+<!-- Generic side drawer (session detail, suggestions panel, invite link, ...) -->
 <div class="drawer" id="drawer">
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <div class="drawer-panel">
@@ -62,8 +119,8 @@
 
 <script>
   // Injected server-side (see src/server.js) from the ANDRHO_API_URL env var,
-  // so app.js knows where to reach andrho-api for /auth/me, /auth/refresh
-  // and /auth/logout.
+  // so app.js knows where to reach andrho-api for /auth/me, /auth/refresh,
+  // /auth/logout, and the new /account/* and /suggestions endpoints.
   window.ANDRHO_API_URL = "__ANDRHO_API_URL__";
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>

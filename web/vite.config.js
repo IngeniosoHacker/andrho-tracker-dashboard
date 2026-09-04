@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => {
           main: resolvePath('./index.html'),
           login: resolvePath('./login.html'),
           signup: resolvePath('./signup.html'),
+          acceptInvite: resolvePath('./accept-invite.html'),
         },
       },
     },
