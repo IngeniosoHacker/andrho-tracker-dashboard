@@ -16,8 +16,8 @@ export default function Footer() {
           <a href="https://www.instagram.com/andrho.gt/" target="_blank" rel="noreferrer" className="hover:text-[var(--c-stardust)]">
             Instagram
           </a>
-          <a href="#waitlist" className="hover:text-[var(--c-stardust)]">
-            Lista de espera
+          <a href="#pricing" className="hover:text-[var(--c-stardust)]">
+            Precios
           </a>
         </div>
         <p className="mt-4 text-xs text-[var(--c-mist)]">

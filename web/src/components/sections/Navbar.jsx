@@ -13,6 +13,9 @@ export default function Navbar() {
           <a href="#proyecto" className="transition-colors hover:text-[var(--c-stardust)]">
             El proyecto
           </a>
+          <a href="#pricing" className="transition-colors hover:text-[var(--c-stardust)]">
+            Precios
+          </a>
           <a href="/login.html" className="transition-colors hover:text-[var(--c-stardust)]">
             Iniciar sesión
           </a>

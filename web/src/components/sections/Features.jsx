@@ -42,7 +42,7 @@ const FEATURES = [
 // title/description.
 const MENU_ITEMS = FEATURES.map((feature, i) => ({
   image: makeTileImage({ label: feature.title, index: i }),
-  link: '#waitlist',
+  link: '#pricing',
   title: feature.title,
   description: feature.body,
 }))
