@@ -99,6 +99,72 @@
     return Number(n).toLocaleString('es');
   }
 
+  // The exact snippet a customer pastes into their own site (see WebTracker's
+  // public/tracker.js header comment). data-site-id is the account's site_id
+  // -- a slug generated at signup (see andrho-api's auth.GenerateSiteID),
+  // never the account's internal database id -- so it's safe to expose here
+  // and in page source on the customer's own site.
+  const TRACKER_SCRIPT_ORIGIN = 'https://webtracker-production-b8d7.up.railway.app';
+  function trackerSnippet(siteId) {
+    return `<!-- TRACKER -->\n<script src="${TRACKER_SCRIPT_ORIGIN}/tracker.js"\n        data-site-id="${siteId}"\n        defer></script>`;
+  }
+
+  async function copyToClipboard(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Fallback for browsers/contexts without the async Clipboard API.
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch {}
+      document.body.removeChild(ta);
+    }
+    if (!btn) return;
+    const original = btn.textContent;
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1600);
+  }
+
+  function openTrackerDrawer() {
+    els.drawer.classList.add('open');
+    const snippet = trackerSnippet(activeSiteId);
+    els.drawerContent.innerHTML = `
+      <p class="eyebrow">Código de seguimiento</p>
+      <h1 style="margin:0 0 8px;font-size:20px">Instala el rastreador en tu sitio</h1>
+      <p style="margin:0 0 20px;color:var(--text-secondary);font-size:13px;line-height:1.6">
+        Pega este bloque justo antes de <code>&lt;/body&gt;</code> en cada página de tu sitio.
+        Empezarás a ver sesiones en este panel apenas alguien lo visite.
+      </p>
+
+      <div class="tracker-id-row">
+        <div>
+          <p class="kpi-label" style="margin:0 0 4px">Tu ID de sitio</p>
+          <code class="mono tracker-id-value">${esc(activeSiteId)}</code>
+        </div>
+        <button type="button" class="copy-btn" data-copy="${esc(activeSiteId)}">Copiar ID</button>
+      </div>
+
+      <pre class="snippet-box"><code>${esc(snippet)}</code></pre>
+      <button type="button" class="copy-btn copy-btn-full" data-copy-snippet="1">Copiar código completo</button>
+
+      <p style="margin:20px 0 0;color:var(--text-tertiary);font-size:12px;line-height:1.6">
+        Este ID identifica tu sitio ante el rastreador — no es el identificador interno de tu cuenta,
+        así que es seguro que aparezca en el código fuente público de tu página.
+      </p>
+    `;
+    els.drawerContent.querySelector('[data-copy]').addEventListener('click', (e) => {
+      copyToClipboard(activeSiteId, e.currentTarget);
+    });
+    els.drawerContent.querySelector('[data-copy-snippet]').addEventListener('click', (e) => {
+      copyToClipboard(snippet, e.currentTarget);
+    });
+  }
+
   function sourceBadge(type) {
     const map = {
       ai_crawler: ['badge-ai', '◆ AI crawler'],
@@ -235,6 +301,15 @@
 
     const t = d.totals;
     panel.innerHTML = `
+      <button type="button" class="tracker-card" id="trackerCardBtn">
+        <div class="tracker-card-text">
+          <p class="eyebrow" style="margin:0 0 6px">Código de seguimiento</p>
+          <p class="tracker-card-title">Tu ID de sitio: <code class="mono">${esc(activeSiteId)}</code></p>
+          <p class="kpi-sub" style="margin-top:4px">Clic para ver cómo instalarlo en tu sitio</p>
+        </div>
+        <span class="tracker-card-cta">Ver instrucciones →</span>
+      </button>
+
       <div class="kpi-grid">
         <div class="kpi-card"><p class="kpi-label">Sesiones totales</p><p class="kpi-value">${fmtNum(t.total_sessions)}</p><p class="kpi-sub">${fmtNum(d.sessionsLast30d)} en los últimos 30 días</p></div>
         <div class="kpi-card"><p class="kpi-label">Pageviews totales</p><p class="kpi-value">${fmtNum(t.total_pageviews)}</p></div>
@@ -261,6 +336,8 @@
         </div>
       </div>
     `;
+
+    document.getElementById('trackerCardBtn').addEventListener('click', openTrackerDrawer);
 
     const ctx = document.getElementById('chartTraffic');
     if (charts.traffic) charts.traffic.destroy();

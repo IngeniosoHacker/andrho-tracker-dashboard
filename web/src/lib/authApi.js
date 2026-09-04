@@ -22,7 +22,17 @@ export async function apiPost(path, body) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-  } catch {
+  } catch (cause) {
+    // fetch() only throws for network-level failures: DNS/connection refused,
+    // a CORS rejection, or a CSP connect-src violation -- never for a real
+    // HTTP error response (that falls through to the !res.ok branch below).
+    // Logging the exact URL + underlying error here is the fastest way to
+    // tell those apart from devtools: an empty API_URL or a *.railway.internal
+    // host means VITE_ANDRHO_API_URL/ANDRHO_API_URL is misconfigured (see
+    // vite.config.js and src/server.js); a CORS/CSP message in the console
+    // next to this means andrho-api's ALLOWED_ORIGINS or this app's
+    // ANDRHO_API_URL don't match the domain the browser is actually on.
+    console.error(`[auth] could not reach ${API_URL}${path} (VITE_ANDRHO_API_URL="${API_URL}")`, cause)
     const error = new Error('No se pudo conectar con el servidor. Intenta de nuevo en un momento.')
     error.status = 0
     throw error

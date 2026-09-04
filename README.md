@@ -56,6 +56,22 @@ The JWT payload contract (owned by `andrho-api`, mirrored here in
 { "sub": "<account id>", "email": "...", "site_id": "...", "company_name": "...", "iat": 0, "exp": 0 }
 ```
 
+**`site_id` vs. the account's database id:** `sub`/the account row's `id`
+column is an internal UUID (the primary key) and is never exposed to the
+tracker script or to the site the customer embeds it on. The value that
+*does* get embedded publicly — as `data-site-id` on the WebTracker
+`<script>` tag — is `site_id`, a separate slug `andrho-api` generates at
+signup (`auth.GenerateSiteID`, from the company name + a random suffix on
+collision; see that repo's `internal/auth/siteid.go`) and stores on the
+`accounts` row alongside, not instead of, the UUID `id`. It's already
+returned by `/auth/me` and carried in the JWT (`site_id` above), so it's
+deliberately fine to publish — it names which site's data a hit belongs to,
+nothing about the account. The dashboard's Overview tab (`panel-overview`,
+see `public/dashboard/app.js`'s `openTrackerDrawer`) surfaces this `site_id`
+plus the exact `<!-- TRACKER -->` embed snippet (with that account's real id
+in place of a hardcoded one) so customers don't have to go dig it out of a
+network request.
+
 **Removed as part of this change:** the unauthenticated `GET /api/sites`
 (listed every client's site — a security hole) and `GET /api/sites/:siteId/verify`
 (the old login screen's existence check). Neither is used anywhere anymore.
@@ -107,6 +123,24 @@ Root `.env` (Express backend) — see `.env.example`:
 | Var | Purpose |
 |---|---|
 | `VITE_ANDRHO_API_URL` | where `login.html`/`signup.html` call `/auth/login`, `/auth/signup` |
+
+> **Both of the above must be `andrho-api`'s PUBLIC Railway URL, never its
+> `*.railway.internal` private hostname.** `ANDRHO_API_URL` and
+> `VITE_ANDRHO_API_URL` are both consumed by code that runs *in the user's
+> browser* (login.jsx/signup.jsx's fetch calls, and the CSP `connect-src`
+> header this server sets on every response) — a private-network hostname
+> resolves fine service-to-service inside Railway but is unreachable from a
+> browser. That specific misconfiguration is the most common cause of
+> "No se pudo conectar con el servidor. Intenta de nuevo en un momento." on
+> `/login.html`/`/signup.html`: the request never leaves the browser (DNS
+> failure or a CSP violation), so `andrho-api`'s own logs stay empty and its
+> health check stays green, which makes it look like nothing is wrong
+> server-side. Both `src/server.js` (at startup) and `web/vite.config.js` (at
+> build time) now refuse to start/build if either var contains
+> `.railway.internal`, and `web/src/lib/authApi.js` logs the exact URL it
+> tried and the underlying browser error to the console on every failure —
+> check devtools' Console/Network tabs first (a CORS or CSP rejection prints
+> there even though `fetch()` itself just reports a generic network error).
 
 ---
 

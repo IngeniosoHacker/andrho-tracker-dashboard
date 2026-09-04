@@ -32,10 +32,17 @@ const dashboardIndexTemplate = fs.readFileSync(path.join(DASHBOARD_DIR, 'index.h
 // reports events back to that origin. andrho-api (ANDRHO_API_URL) is where
 // login/signup/dashboard auth calls go -- both need explicit CSP allowances.
 const TRACKER_ORIGIN = 'https://webtracker-production-b8d7.up.railway.app';
+if (!ANDRHO_API_URL) {
+  console.warn('[server] ANDRHO_API_URL is not set. window.ANDRHO_API_URL will be "" and the CSP ' +
+    'connect-src for login.html/signup.html/dashboard will NOT allow calls to andrho-api -- every ' +
+    'login/signup/refresh attempt will fail client-side with "No se pudo conectar con el servidor" ' +
+    'even if andrho-api itself is healthy. Set ANDRHO_API_URL to andrho-api\'s public Railway URL.');
+}
 let andrhoApiOrigin = null;
 if (ANDRHO_API_URL) {
+  let parsed;
   try {
-    andrhoApiOrigin = new URL(ANDRHO_API_URL).origin;
+    parsed = new URL(ANDRHO_API_URL);
   } catch (err) {
     console.error(`[server] ANDRHO_API_URL is not a valid URL: "${ANDRHO_API_URL}". It must be ` +
       'andrho-api\'s PUBLIC URL (e.g. https://andrho-api-production-xxxx.up.railway.app) -- browsers ' +
@@ -43,6 +50,23 @@ if (ANDRHO_API_URL) {
       'here even with a scheme prepended. Refusing to start.');
     process.exit(1);
   }
+  // A syntactically valid URL can still be unreachable from the browser: a
+  // Railway private-network hostname (e.g. https://andrho-api.railway.internal)
+  // parses fine but only resolves *inside* Railway's internal network, never
+  // from a user's browser. That mismatch is invisible here (this check runs
+  // server-side) but shows up client-side as login.html/signup.html failing
+  // every request with "No se pudo conectar con el servidor" -- catch it now
+  // with an actionable message instead of a confusing runtime symptom.
+  if (parsed.hostname.endsWith('.railway.internal')) {
+    console.error(`[server] ANDRHO_API_URL ("${ANDRHO_API_URL}") is a Railway *private*-network ` +
+      'hostname (*.railway.internal). It resolves fine service-to-service inside Railway, but ' +
+      'login.html/signup.html/app.js call it directly from the user\'s browser, which cannot resolve ' +
+      '.railway.internal at all -- every auth request will fail immediately with a network error. Use ' +
+      'andrho-api\'s PUBLIC domain instead (Settings -> Networking -> Generate Domain on that service). ' +
+      'Refusing to start.');
+    process.exit(1);
+  }
+  andrhoApiOrigin = parsed.origin;
 }
 
 app.disable('x-powered-by');
