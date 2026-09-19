@@ -1,7 +1,7 @@
 import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import Logo from './components/ui/Logo.jsx'
+import Navbar from './components/sections/Navbar.jsx'
 import Field from './components/ui/form/Field.jsx'
 import { TextInput, PasswordInput } from './components/ui/form/inputs.jsx'
 import { BuildingIcon, MailIcon, LockIcon, AlertIcon, SpinnerIcon } from './components/ui/icons.jsx'
@@ -45,14 +45,12 @@ function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)] px-6 py-16">
-      <div className="mx-auto grid min-h-[calc(100vh-8rem)] max-w-5xl items-center gap-14 lg:grid-cols-2 lg:gap-10">
+    <div className="min-h-screen bg-[var(--color-canvas)] px-6 pb-16 pt-32">
+      <Navbar page="signup" />
+      <div className="mx-auto grid min-h-[calc(100vh-12rem)] max-w-5xl items-center gap-14 lg:grid-cols-2 lg:gap-10">
         {/* Brand panel — desktop only, form stays identical on mobile */}
         <div className="hidden lg:block">
-          <a href="/">
-            <Logo />
-          </a>
-          <p className="mt-10 font-mono text-xs uppercase tracking-[0.3em] text-[var(--blue)]">Crear cuenta</p>
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--blue)]">Crear cuenta</p>
           <h1 className="mt-4 font-display text-4xl font-bold leading-tight tracking-tight text-[var(--color-ink)] sm:text-5xl">
             Empieza a conectar tu negocio.
           </h1>
@@ -74,10 +72,6 @@ function SignupPage() {
 
         {/* Form panel */}
         <div className="relative w-full max-w-md justify-self-center lg:justify-self-end">
-          <a href="/" className="mb-8 flex justify-center lg:hidden">
-            <Logo />
-          </a>
-
           <form onSubmit={handleSubmit} className="card-surface space-y-6 rounded-3xl p-6 sm:p-10">
             <div className="text-center">
               <h1 className="font-display text-3xl font-bold tracking-tight text-[var(--color-ink)]">Crear cuenta</h1>

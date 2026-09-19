@@ -8,10 +8,12 @@ import { illustrations } from '../../lib/assets.js'
 // PLACEHOLDER PRICES — swap these for the real numbers before this goes
 // live. Names ("Base" -> "Galáctico", most basic to most pro) are final;
 // `price`/`period` are round placeholders and `highlight` marks the plan
-// called out as recommended.
+// called out as recommended. `accent` traces the brand's mint->violet
+// gradient across the tiers — a literal launch sequence, matching the names.
 const TIERS = [
   {
     name: 'Base',
+    accent: 'var(--mint)',
     price: 'Q299',
     period: '/mes',
     tagline: 'Para arrancar con un canal digital bajo control.',
@@ -24,6 +26,7 @@ const TIERS = [
   },
   {
     name: 'Despegue',
+    accent: 'var(--cyan)',
     price: 'Q599',
     period: '/mes',
     tagline: 'Cuando ya necesitas conectar tu ERP.',
@@ -37,6 +40,7 @@ const TIERS = [
   },
   {
     name: 'En Órbita',
+    accent: 'var(--blue)',
     price: 'Q999',
     period: '/mes',
     tagline: 'Para equipos que ya operan con AndRho todos los días.',
@@ -50,6 +54,7 @@ const TIERS = [
   },
   {
     name: 'Galáctico',
+    accent: 'var(--violet)',
     price: 'Contáctanos',
     period: '',
     tagline: 'Integraciones a medida y un gestor de cuenta dedicado.',
@@ -76,15 +81,22 @@ export default function Pricing() {
           </p>
         </Reveal>
 
-        <div className="mx-auto mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:items-start">
           {TIERS.map((tier, i) => (
-            <Reveal key={tier.name} delay={i * 90}>
-              <Card className={`relative flex h-full flex-col p-6 ${tier.highlight ? 'border-[var(--mint)]' : ''}`}>
+            <Reveal key={tier.name} delay={i * 90} className="h-full">
+              <Card
+                className={`relative flex h-full flex-col overflow-hidden p-6 ${
+                  tier.highlight ? 'card-highlight shadow-xl' : ''
+                }`}
+                style={tier.highlight ? { borderColor: tier.accent } : undefined}
+              >
+                <span className="-mx-6 -mt-6 mb-6 block h-1.5" style={{ background: tier.accent }} aria-hidden="true" />
+
                 {tier.highlight && (
                   <Illustration
                     src={illustrations.ufoSmall}
                     alt=""
-                    className="absolute -right-3 -top-6 h-12 w-16 animate-float-slower"
+                    className="absolute -right-3 top-2 h-12 w-16 animate-float-slower"
                   />
                 )}
                 {tier.highlight && (
@@ -103,7 +115,11 @@ export default function Pricing() {
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-[var(--color-ink-soft)]">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--blue)]" aria-hidden="true" />
+                      <span
+                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{ background: tier.accent }}
+                        aria-hidden="true"
+                      />
                       {feature}
                     </li>
                   ))}

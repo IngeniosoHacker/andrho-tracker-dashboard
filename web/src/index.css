@@ -63,11 +63,16 @@ body {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
 .animate-float-slower { animation: float-slower 9s ease-in-out infinite; }
 .animate-marquee { animation: marquee-x 26s linear infinite; }
 .animate-marquee:hover { animation-play-state: paused; }
+.animate-fade-up { animation: fade-up 0.35s ease-out; }
 .cursor-blink { animation: blink 1s step-start infinite; }
 
 .text-gradient {
@@ -94,6 +99,18 @@ body {
   transform: translateY(-4px);
   border-color: var(--mint);
   box-shadow: 0 24px 48px -28px rgba(11, 16, 32, 0.18);
+}
+
+/* The highlighted pricing tier stays visually "launched" above the rest —
+   a plain class (rather than a Tailwind translate utility) so it doesn't
+   get clobbered by .card-surface:hover's own transform. */
+@media (min-width: 1024px) {
+  .card-highlight {
+    transform: translateY(-1rem);
+  }
+  .card-highlight:hover {
+    transform: translateY(-1.25rem);
+  }
 }
 
 .btn-primary {
