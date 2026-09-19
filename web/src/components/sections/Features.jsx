@@ -1,10 +1,10 @@
 import GradientText from '../ui/GradientText.jsx'
-import ShinyText from '../ui/ShinyText.jsx'
 import Reveal from '../ui/Reveal.jsx'
-import SpotlightCard from '../ui/SpotlightCard.jsx'
+import Card from '../ui/Card.jsx'
 import Carousel from '../ui/Carousel.jsx'
-import ParallaxLayer from '../ui/ParallaxLayer.jsx'
 import InfiniteMenu from '../ui/InfiniteMenu.jsx'
+import Illustration from '../ui/Illustration.jsx'
+import { illustrations } from '../../lib/assets.js'
 import { makeTileImage } from '../../lib/tileImage.js'
 
 // High-level, customer-facing description of what AndRho does. Deliberately
@@ -77,15 +77,11 @@ const USE_CASES = [
 export default function Features() {
   return (
     <section id="proyecto" className="relative mx-auto max-w-6xl px-6 py-28 lg:px-10 lg:py-40">
-      <ParallaxLayer speed={0.1} className="pointer-events-none absolute inset-0">
-        <div className="glow-orb -right-32 top-24 h-96 w-96 bg-[var(--c-comet)]/10" aria-hidden="true" />
-      </ParallaxLayer>
-
       <Reveal className="mx-auto max-w-2xl text-center">
-        <h2 className="font-display text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+        <h2 className="font-display text-4xl font-bold tracking-tight text-[var(--color-ink)] sm:text-5xl lg:text-6xl">
           Una plataforma. <GradientText>Toda tu operación.</GradientText>
         </h2>
-        <p className="mt-6 text-lg leading-relaxed text-[var(--c-mist)]">
+        <p className="mt-6 text-lg leading-relaxed text-[var(--color-ink-soft)]">
           AndRho combina ciencia de datos, inteligencia artificial e infraestructura en la nube en
           un solo panel administrativo. No sustituye tu ERP ni tu CRM: los conecta, los entiende, y
           convierte lo que encuentra en decisiones que cualquier persona del equipo puede usar.
@@ -93,45 +89,43 @@ export default function Features() {
       </Reveal>
 
       <Reveal delay={100} className="relative mt-14 overflow-hidden">
-        <div className="flex w-max gap-10 animate-marquee py-2 font-mono text-sm uppercase tracking-[0.2em] text-[var(--c-mist)]">
+        <div className="flex w-max gap-10 animate-marquee py-2 font-mono text-sm uppercase tracking-[0.2em] text-[var(--color-muted)]">
           {[...CAPABILITIES, ...CAPABILITIES].map((tag, i) => (
             <span key={i} className="flex items-center gap-3 whitespace-nowrap">
               {tag}
-              <span className="h-1 w-1 rounded-full bg-[var(--c-line)]" />
+              <span className="h-1 w-1 rounded-full bg-[var(--mint)]" />
             </span>
           ))}
         </div>
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[var(--c-void)] to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[var(--c-void)] to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[var(--color-canvas)] to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[var(--color-canvas)] to-transparent" />
       </Reveal>
 
-      <Reveal delay={100} className="mt-16">
-        <p className="mb-4 text-center font-mono text-xs uppercase tracking-[0.3em] text-[var(--c-mist)]">
+      <Reveal delay={100} className="relative mt-20">
+        <p className="mb-4 flex items-center justify-center gap-2 text-center font-mono text-xs uppercase tracking-[0.3em] text-[var(--color-faint)]">
           Arrastra la esfera para explorar
+          <Illustration src={illustrations.satellite} alt="" className="h-6 w-9 opacity-80" />
         </p>
-        <div
-          style={{ height: '620px', position: 'relative' }}
-          className="overflow-hidden rounded-3xl border border-[var(--c-line)] bg-black/40"
-        >
+        <div className="sm:h-[520px] lg:h-[620px]">
           <InfiniteMenu items={MENU_ITEMS} scale={1} />
         </div>
       </Reveal>
 
       <Reveal delay={150} className="mx-auto mt-28 max-w-2xl text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--c-comet)]">Un vistazo por sector</p>
-        <h3 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          <ShinyText text="Se adapta a cómo ya trabajas." speed={4} />
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--blue)]">Un vistazo por sector</p>
+        <h3 className="mt-4 font-display text-3xl font-bold tracking-tight text-[var(--color-ink)] sm:text-4xl">
+          Se adapta a cómo ya trabajas.
         </h3>
       </Reveal>
 
       <Reveal delay={220} className="mx-auto mt-12 max-w-3xl">
         <Carousel
           items={USE_CASES.map((useCase) => (
-            <SpotlightCard key={useCase.title} className="p-10 text-center sm:p-14">
-              <span className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--c-solar)]">{useCase.sector}</span>
-              <h4 className="mt-4 font-display text-2xl font-bold tracking-tight sm:text-3xl">{useCase.title}</h4>
-              <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-[var(--c-mist)]">{useCase.body}</p>
-            </SpotlightCard>
+            <Card key={useCase.title} className="p-10 text-center sm:p-14">
+              <span className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--blue)]">{useCase.sector}</span>
+              <h4 className="mt-4 font-display text-2xl font-bold tracking-tight text-[var(--color-ink)] sm:text-3xl">{useCase.title}</h4>
+              <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-[var(--color-ink-soft)]">{useCase.body}</p>
+            </Card>
           ))}
         />
       </Reveal>

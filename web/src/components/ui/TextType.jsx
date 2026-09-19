@@ -9,7 +9,7 @@ export default function TextType({
   pauseDuration = 1400,
   loop = true,
   className = '',
-  cursorClassName = 'text-[var(--c-comet)]',
+  cursorClassName = 'text-[var(--blue)]',
 }) {
   const [display, setDisplay] = useState('')
   const indexRef = useRef(0)

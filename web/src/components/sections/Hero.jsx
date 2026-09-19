@@ -1,31 +1,31 @@
-import ParticleField from '../ui/ParticleField.jsx'
 import TextType from '../ui/TextType.jsx'
 import MagnetButton from '../ui/MagnetButton.jsx'
 import ScrambleLogo from '../ui/ScrambleLogo.jsx'
 import ParallaxLayer from '../ui/ParallaxLayer.jsx'
+import Illustration from '../ui/Illustration.jsx'
+import { illustrations } from '../../lib/assets.js'
 
 export default function Hero() {
   return (
-    <section id="top" className="relative overflow-hidden bg-starfield pt-40 pb-28 lg:pt-52 lg:pb-40">
-      <ParticleField density={70} />
-      <div className="absolute inset-0 grid-overlay opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]" />
-      <ParallaxLayer speed={0.12} className="pointer-events-none absolute inset-x-0 top-0">
-        <div
-          className="glow-orb -top-24 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 bg-[var(--c-plasma)]/20"
-          aria-hidden="true"
+    <section id="top" className="relative overflow-hidden bg-[var(--color-canvas)] pt-40 pb-28 lg:pt-52 lg:pb-32">
+      <ParallaxLayer speed={0.08} className="pointer-events-none absolute inset-0 hidden sm:block">
+        <Illustration
+          src={illustrations.alienWave}
+          alt=""
+          className="absolute right-[8%] top-36 h-14 w-14 animate-float-slow opacity-90 lg:right-[14%] lg:h-20 lg:w-20"
         />
       </ParallaxLayer>
 
       <div className="relative mx-auto max-w-4xl px-6 text-center lg:px-10">
-        <h1 className="font-display text-7xl font-bold leading-none tracking-tight sm:text-8xl lg:text-9xl">
+        <h1 className="font-display text-6xl font-bold leading-none tracking-tight text-[var(--color-ink)] sm:text-8xl lg:text-9xl">
           <ScrambleLogo />
         </h1>
 
-        <p className="mt-10 font-display text-3xl font-semibold tracking-tight text-[var(--c-stardust)] sm:text-4xl">
+        <p className="mt-10 font-display text-3xl font-semibold tracking-tight text-[var(--color-ink)] sm:text-4xl">
           Conecta y entiende tu negocio
         </p>
 
-        <div className="mt-6 min-h-[3.5rem] font-mono text-sm text-[var(--c-mist)] sm:text-base">
+        <div className="mt-6 min-h-[3.5rem] font-mono text-sm text-[var(--color-muted)] sm:text-base">
           <TextType
             text={[
               '> conectando tu ERP...',
@@ -33,10 +33,11 @@ export default function Hero() {
               '> unificando WhatsApp y web-tracker...',
               '> traduciendo datos en decisiones...',
             ]}
+            cursorClassName="text-[var(--blue)]"
           />
         </div>
 
-        <p className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-[var(--c-mist)]">
+        <p className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-[var(--color-ink-soft)]">
           AndRho es el centro de control que unifica tu ERP, tus canales digitales y tu equipo —
           y lo traduce en decisiones, no en más pestañas.
         </p>
@@ -50,7 +51,7 @@ export default function Hero() {
           </MagnetButton>
         </div>
 
-        <p className="mt-10 font-mono text-xs text-[var(--c-mist)]">
+        <p className="mt-10 font-mono text-xs text-[var(--color-faint)]">
           Sin humo. Con progreso público en GitHub.
         </p>
       </div>

@@ -4,12 +4,12 @@
 // canvas-tainting/CORS issues that external images would otherwise hit when
 // read back into a WebGL texture.
 const PLANETS = [
-  { base: '#FFC745', shade: '#FF2162', variant: 'ring' },
-  { base: '#6EE7FF', shade: '#2C6E8F', variant: 'bands' },
-  { base: '#FF7A9C', shade: '#FF2162', variant: 'craters' },
-  { base: '#6EE7FF', shade: '#241F45', variant: 'glow' },
-  { base: '#FFC745', shade: '#241F45', variant: 'moon' },
-  { base: '#B98BFF', shade: '#241F45', variant: 'terminator' },
+  { base: '#00E6B8', shade: '#0B1020', variant: 'ring' },
+  { base: '#00B4FF', shade: '#12306B', variant: 'bands' },
+  { base: '#8B5CF6', shade: '#3B0764', variant: 'craters' },
+  { base: '#3B82F6', shade: '#0B1020', variant: 'glow' },
+  { base: '#38D9FF', shade: '#0B1020', variant: 'moon' },
+  { base: '#C084FC', shade: '#3B0764', variant: 'terminator' },
 ]
 
 const CX = 320
@@ -23,7 +23,7 @@ function starsMarkup(seed) {
     const y = (i * 131 + seed * 29) % 640
     const r = (i % 3) * 0.6 + 0.6
     const o = (0.25 + ((i * 17) % 40) / 100).toFixed(2)
-    stars += `<circle cx="${x}" cy="${y}" r="${r}" fill="#f5f2ff" opacity="${o}" />`
+    stars += `<circle cx="${x}" cy="${y}" r="${r}" fill="#F8FAFC" opacity="${o}" />`
   }
   return stars
 }
@@ -64,7 +64,7 @@ function frontOverlay(variant, shade) {
     case 'terminator':
       return `
         <g clip-path="url(#clip)">
-          <rect x="${CX}" y="${CY - R}" width="${R}" height="${R * 2}" fill="#0b0a1a" opacity="0.4" />
+          <rect x="${CX}" y="${CY - R}" width="${R}" height="${R * 2}" fill="#0B1020" opacity="0.4" />
         </g>`
     default:
       return ''
@@ -78,10 +78,10 @@ export function makeTileImage({ label, index = 0 }) {
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
   <defs>
     <radialGradient id="sphere" cx="35%" cy="32%" r="75%">
-      <stop offset="0%" stop-color="#f5f2ff" stop-opacity="0.9" />
+      <stop offset="0%" stop-color="#F8FAFC" stop-opacity="0.9" />
       <stop offset="35%" stop-color="${base}" />
       <stop offset="75%" stop-color="${shade}" />
-      <stop offset="100%" stop-color="#0b0a1a" />
+      <stop offset="100%" stop-color="#0B1020" />
     </radialGradient>
     <clipPath id="clip">
       <circle cx="${CX}" cy="${CY}" r="${R}" />
@@ -91,13 +91,13 @@ export function makeTileImage({ label, index = 0 }) {
     </filter>
   </defs>
 
-  <rect width="640" height="640" fill="#0b0a1a" />
+  <rect width="640" height="640" fill="#0B1020" />
   ${starsMarkup(index)}
   ${behindOverlay(variant, base)}
   <circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#sphere)" />
   ${frontOverlay(variant, shade)}
-  <circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#f5f2ff" stroke-width="1.5" opacity="0.25" />
-  <text x="320" y="512" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="32" fill="#f5f2ff">${label}</text>
+  <circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#F8FAFC" stroke-width="1.5" opacity="0.25" />
+  <text x="320" y="512" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="32" fill="#F8FAFC">${label}</text>
 </svg>`.trim()
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`

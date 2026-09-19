@@ -44,7 +44,7 @@ void main() {
 
     gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
 
-    vAlpha = smoothstep(0.5, 1., normalize(worldPosition.xyz).z) * .9 + .1;
+    vAlpha = smoothstep(0.5, 1., normalize(worldPosition.xyz).z);
     vUvs = aModelUvs;
     vInstanceId = gl_InstanceID;
 }
@@ -892,13 +892,20 @@ export default function InfiniteMenu({ items = [], scale = 1.0, backgroundColor 
     }
   }
 
+  // Below `sm`, the container is too narrow to fit the circle plus side
+  // margins for the title/description (that layout assumes a wide
+  // rectangle) — so the sphere gets a fixed, comfortably-inset size and the
+  // text stacks underneath in normal flow instead of overlapping it. From
+  // `sm` up, both switch back to the original absolute, side-by-side layout.
   return (
-    <div className="relative h-full w-full" style={{ backgroundColor }}>
-      <canvas
-        id="infinite-grid-menu-canvas"
-        ref={canvasRef}
-        className="relative h-full w-full cursor-grab overflow-hidden outline-none active:cursor-grabbing"
-      />
+    <div className="relative flex flex-col items-center sm:h-full sm:w-full" style={{ backgroundColor }}>
+      <div className="relative h-[260px] w-[260px] sm:absolute sm:left-1/2 sm:top-1/2 sm:aspect-square sm:h-full sm:w-auto sm:-translate-x-1/2 sm:-translate-y-1/2">
+        <canvas
+          id="infinite-grid-menu-canvas"
+          ref={canvasRef}
+          className="h-full w-full cursor-grab overflow-hidden outline-none active:cursor-grabbing"
+        />
+      </div>
 
       {activeItem && (
         <>
@@ -906,18 +913,16 @@ export default function InfiniteMenu({ items = [], scale = 1.0, backgroundColor 
             <button
               type="button"
               onClick={handleButtonClick}
-              className={`absolute left-[6%] top-1/2 max-w-[13ch] -translate-y-1/2 select-none text-left font-display text-3xl font-bold leading-tight tracking-tight text-[var(--c-stardust)] transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:text-[var(--c-comet)] sm:text-4xl ${
-                isMoving
-                  ? 'pointer-events-none translate-x-[-10%] opacity-0 duration-100'
-                  : 'pointer-events-auto translate-x-0 opacity-100 duration-500'
+              className={`mt-6 max-w-[26ch] select-none text-center font-display text-2xl font-bold leading-tight tracking-tight text-[var(--color-ink)] transition-opacity duration-300 ease-out hover:text-[var(--blue)] sm:absolute sm:left-[6%] sm:top-1/2 sm:mt-0 sm:max-w-[13ch] sm:-translate-y-1/2 sm:text-left sm:text-3xl lg:text-4xl ${
+                isMoving ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'
               }`}
             >
               {activeItem.title} <span aria-hidden="true">↗</span>
             </button>
           ) : (
             <h2
-              className={`pointer-events-none absolute left-[6%] top-1/2 max-w-[13ch] -translate-y-1/2 select-none font-display text-3xl font-bold leading-tight tracking-tight text-[var(--c-stardust)] transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)] sm:text-4xl ${
-                isMoving ? 'translate-x-[-10%] opacity-0 duration-100' : 'translate-x-0 opacity-100 duration-500'
+              className={`mt-6 max-w-[26ch] select-none text-center font-display text-2xl font-bold leading-tight tracking-tight text-[var(--color-ink)] transition-opacity duration-300 ease-out sm:absolute sm:left-[6%] sm:top-1/2 sm:mt-0 sm:max-w-[13ch] sm:-translate-y-1/2 sm:text-left sm:text-3xl lg:text-4xl ${
+                isMoving ? 'opacity-0' : 'opacity-100'
               }`}
             >
               {activeItem.title}
@@ -925,8 +930,8 @@ export default function InfiniteMenu({ items = [], scale = 1.0, backgroundColor 
           )}
 
           <p
-            className={`pointer-events-none absolute right-[6%] top-1/2 max-w-[22ch] -translate-y-1/2 select-none text-right text-sm leading-relaxed text-[var(--c-mist)] transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)] sm:text-base ${
-              isMoving ? 'translate-x-[10%] opacity-0 duration-100' : 'translate-x-0 opacity-100 duration-500'
+            className={`mt-2 max-w-xs select-none text-center text-sm leading-relaxed text-[var(--color-muted)] transition-opacity duration-300 ease-out sm:absolute sm:right-[6%] sm:top-1/2 sm:mt-0 sm:max-w-[22ch] sm:-translate-y-1/2 sm:text-right sm:text-base ${
+              isMoving ? 'opacity-0' : 'opacity-100'
             }`}
           >
             {activeItem.description}

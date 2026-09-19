@@ -4,7 +4,7 @@ import { EyeIcon, EyeOffIcon } from '../icons.jsx'
 // originkit.dev-style form primitives: minimal, high-contrast inputs that
 // share one focus/border language. Used by the login/signup forms.
 const baseControl =
-  'w-full rounded-lg border border-[var(--c-line)] bg-[var(--c-nebula)] py-2.5 text-sm text-[var(--c-stardust)] placeholder:text-[var(--c-mist)] transition-colors focus-visible:outline-none focus:border-[var(--c-comet)]/60'
+  'w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-canvas)] py-2.5 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-faint)] transition-colors focus-visible:outline-none focus:border-[var(--blue)]'
 
 // `icon` is optional — plain inputs (no icon) render as before. Passing one
 // renders it inline on the left, inside the same bordered control.
@@ -14,7 +14,7 @@ export function TextInput({ icon, className = '', ...props }) {
   }
   return (
     <div className="relative flex items-center">
-      <span className="pointer-events-none absolute left-3.5 text-[var(--c-mist)]" aria-hidden="true">
+      <span className="pointer-events-none absolute left-3.5 text-[var(--color-faint)]" aria-hidden="true">
         {icon}
       </span>
       <input {...props} className={`${baseControl} pl-10 pr-4 ${className}`} />
@@ -28,7 +28,7 @@ export function PasswordInput({ icon, className = '', ...props }) {
   return (
     <div className="relative flex items-center">
       {icon && (
-        <span className="pointer-events-none absolute left-3.5 text-[var(--c-mist)]" aria-hidden="true">
+        <span className="pointer-events-none absolute left-3.5 text-[var(--color-faint)]" aria-hidden="true">
           {icon}
         </span>
       )}
@@ -42,7 +42,7 @@ export function PasswordInput({ icon, className = '', ...props }) {
         tabIndex={-1}
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-        className="absolute right-3 text-[var(--c-mist)] transition-colors hover:text-[var(--c-stardust)]"
+        className="absolute right-3 text-[var(--color-faint)] transition-colors hover:text-[var(--color-ink)]"
       >
         {visible ? <EyeOffIcon /> : <EyeIcon />}
       </button>

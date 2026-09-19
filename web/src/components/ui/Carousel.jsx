@@ -59,7 +59,7 @@ export default function Carousel({ items, autoPlay = 5500, className = '' }) {
           type="button"
           onClick={() => goTo(index - 1)}
           aria-label="Anterior"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--c-line)] text-[var(--c-mist)] transition-colors hover:border-[var(--c-comet)]/50 hover:text-[var(--c-comet)]"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-muted)] transition-colors hover:border-[var(--blue)]/50 hover:text-[var(--blue)]"
         >
           ‹
         </button>
@@ -72,7 +72,7 @@ export default function Carousel({ items, autoPlay = 5500, className = '' }) {
               aria-label={`Ir a la diapositiva ${i + 1}`}
               aria-current={i === index}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === index ? 'w-6 bg-[var(--c-solar)]' : 'w-1.5 bg-[var(--c-line)]'
+                i === index ? 'w-6 bg-[var(--mint)]' : 'w-1.5 bg-[var(--color-border-strong)]'
               }`}
             />
           ))}
@@ -81,7 +81,7 @@ export default function Carousel({ items, autoPlay = 5500, className = '' }) {
           type="button"
           onClick={() => goTo(index + 1)}
           aria-label="Siguiente"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--c-line)] text-[var(--c-mist)] transition-colors hover:border-[var(--c-comet)]/50 hover:text-[var(--c-comet)]"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-muted)] transition-colors hover:border-[var(--blue)]/50 hover:text-[var(--blue)]"
         >
           ›
         </button>
