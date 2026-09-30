@@ -15,7 +15,6 @@
     "vite": "^7.1.7"
   },
   "dependencies": {
-    "gl-matrix": "^3.4.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   }

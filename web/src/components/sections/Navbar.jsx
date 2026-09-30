@@ -15,11 +15,11 @@ export default function Navbar({ page = 'home' }) {
         </a>
 
         <div className="hidden items-center gap-8 font-mono text-xs uppercase tracking-widest text-[var(--color-muted)] md:flex">
-          <a href="/#proyecto" className="transition-colors hover:text-[var(--color-ink)]">
+          <a href="/#relajate" className="transition-colors hover:text-[var(--color-ink)]">
             El proyecto
           </a>
-          <a href="/#pricing" className="transition-colors hover:text-[var(--color-ink)]">
-            Precios
+          <a href="/waitlist.html" className="transition-colors hover:text-[var(--color-ink)]">
+            Lista de espera
           </a>
         </div>
 
@@ -65,11 +65,11 @@ export default function Navbar({ page = 'home' }) {
         className={`overflow-hidden border-t border-[var(--color-border)] transition-[max-height] duration-300 ease-out md:hidden ${open ? 'max-h-72' : 'max-h-0 border-t-0'}`}
       >
         <div className="flex flex-col gap-1 bg-[var(--color-canvas)] px-6 py-4 font-mono text-sm uppercase tracking-widest text-[var(--color-muted)]">
-          <a href="/#proyecto" onClick={() => setOpen(false)} className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">
+          <a href="/#relajate" onClick={() => setOpen(false)} className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">
             El proyecto
           </a>
-          <a href="/#pricing" onClick={() => setOpen(false)} className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">
-            Precios
+          <a href="/waitlist.html" onClick={() => setOpen(false)} className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">
+            Lista de espera
           </a>
           {page !== 'login' && (
             <a href="/login.html" className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">

@@ -6,6 +6,8 @@ const ILLUSTRATIONS_DIR = '/images/illustrations'
 
 export const illustrations = {
   alienWave: `${ILLUSTRATIONS_DIR}/alien-wave.svg`,
+  alienRelax: `${ILLUSTRATIONS_DIR}/alien-relax.webp`,
+  astronautPuzzle: `${ILLUSTRATIONS_DIR}/astronaut-puzzle.webp`,
   alienThinking: `${ILLUSTRATIONS_DIR}/alien-thinking.svg`,
   alienHello: `${ILLUSTRATIONS_DIR}/alien-hello.svg`,
   alienWorking: `${ILLUSTRATIONS_DIR}/alien-working.svg`,

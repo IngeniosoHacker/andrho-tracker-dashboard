@@ -7,21 +7,26 @@ function randomCase(str) {
     .join('')
 }
 
+const DEFAULT_SEGMENTS = [
+  { letters: 'And', symbol: '&' },
+  { letters: 'Rho', symbol: 'ρ' },
+]
+
 // The original AndRho glitch: each word-segment independently flickers
-// between its letters (randomized case) and a single symbol.
+// between its letters (randomized case) and a single symbol. `paused` settles
+// it on the plain wordmark (used while the hero title flies into the navbar).
 export default function ScrambleLogo({
-  segments = [
-    { letters: 'And', symbol: '&' },
-    { letters: 'Rho', symbol: 'ρ' },
-  ],
+  segments = DEFAULT_SEGMENTS,
   interval = 450,
   toggleChance = 0.12,
+  paused = false,
   className = '',
 }) {
   const isSymbolRef = useRef(segments.map(() => false))
   const [display, setDisplay] = useState(() => segments.map((s) => randomCase(s.letters)))
 
   useEffect(() => {
+    if (paused) return
     const id = setInterval(() => {
       const next = segments.map((s, i) => {
         if (Math.random() < toggleChance) isSymbolRef.current[i] = !isSymbolRef.current[i]
@@ -30,11 +35,11 @@ export default function ScrambleLogo({
       setDisplay(next)
     }, interval)
     return () => clearInterval(id)
-  }, [segments, interval, toggleChance])
+  }, [segments, interval, toggleChance, paused])
 
   return (
     <span className={className}>
-      {display.map((text, i) => (
+      {(paused ? segments.map((s) => s.letters) : display).map((text, i) => (
         <span key={i}>{text}</span>
       ))}
     </span>

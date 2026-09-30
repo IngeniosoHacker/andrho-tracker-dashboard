@@ -49,3 +49,22 @@ export function PasswordInput({ icon, className = '', ...props }) {
     </div>
   )
 }
+
+// Native <select> in the same control style. `options` = [{ value, label }].
+export function SelectField({ options, placeholder = 'Elige…', className = '', ...props }) {
+  return (
+    <select {...props} className={`${baseControl} appearance-none bg-[length:12px] bg-[right_1rem_center] bg-no-repeat px-4 pr-10 ${className}`} style={{ backgroundImage: SELECT_CHEVRON }}>
+      <option value="" disabled>
+        {placeholder}
+      </option>
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+const SELECT_CHEVRON =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2364748b' stroke-width='1.5'/%3E%3C/svg%3E\")"

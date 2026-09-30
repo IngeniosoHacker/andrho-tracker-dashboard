@@ -34,6 +34,7 @@ export default defineConfig(({ mode }) => {
           login: resolvePath('./login.html'),
           signup: resolvePath('./signup.html'),
           acceptInvite: resolvePath('./accept-invite.html'),
+          waitlist: resolvePath('./waitlist.html'),
         },
       },
     },

@@ -4,6 +4,7 @@ This Express service now serves three things:
 
 - **`/`** — the official AndRho marketing landing page (built from `web/`, a
   Vite + React + Tailwind v4 app ported from the `andrho` repo).
+- **`/waitlist.html`** — the pre-launch waitlist form (andrho-api `POST /waitlist`).
 - **`/login.html`** and **`/signup.html`** — real account auth, backed by
   [`andrho-api`](../andrho-api) (a separate Go service that owns accounts and
   issues JWTs).
@@ -81,13 +82,17 @@ network request.
 ## 2. Project layout
 
 ```
-web/                    Vite + React + Tailwind v4 app: landing + login + signup
-  index.html            AndRho marketing landing (ported from andrho/, "under
-                         construction" copy removed, LiveProgress dropped)
+web/                    Vite + React + Tailwind v4 app: landing + login + signup + waitlist
+  index.html            AndRho landing: a scroll-driven stage (white hero that
+                         folds into the navbar, then section "windows" over a
+                         space wallpaper -- timeline in src/lib/landing.js),
+                         then the full-bleed asteroids mini-game and footer
   login.html            -> src/login.jsx
   signup.html           -> src/signup.jsx
-  src/                  components ported from andrho/src/ (Features/InfiniteMenu
-                         kept as-is; Waitlist/MissionForm/MissionGame kept as-is)
+  waitlist.html         -> src/waitlist.jsx (POST andrho-api /waitlist; also
+                         sends the game's `game_registration` when arriving
+                         from a won discount)
+  src/                  components (landing/ = stage, header, window chrome)
   dist/                 build output (gitignored), served at "/" by src/server.js
 
 public/dashboard/       the analytics dashboard (formerly public/), now served
