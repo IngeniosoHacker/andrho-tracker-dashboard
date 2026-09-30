@@ -109,6 +109,27 @@ src/
   config/db.js           pg pool (unchanged)
 ```
 
+### SEO / GEO (search + AI search)
+
+The landing is client-rendered, and most AI crawlers don't run JavaScript, so
+`web/src/lib/seo.js` is the single source for the searchable content: the
+meta tags, Open Graph, JSON-LD (Organization, WebSite, SoftwareApplication,
+FAQPage) and a static semantic copy of the page are injected into
+`index.html` at build time by `landingSeo()` in `web/vite.config.js`. The
+visible FAQ in the footer reads the same data, so the FAQPage schema always
+matches the page. `web/public/` also ships `robots.txt` (AI crawlers
+allowed, `/dashboard/` blocked), `sitemap.xml`, `llms.txt` and the OG image.
+Canonical domain: `https://andrho.com`.
+
+The dashboard's **Visibilidad IA** tab has the product-side counterpart:
+`GET /api/sites/:siteId/seo-audit` (`src/lib/seoAudit.js`) audits the
+customer's public site the way a crawler without JavaScript sees it — title,
+description, h1, canonical, Open Graph, JSON-LD, words readable without JS,
+robots.txt access for Google/Bing and each AI crawler, sitemap, llms.txt —
+and scores it. The origin comes from the site's own tracked sessions, never
+from the request; every fetch is SSRF-guarded (public IPs only, ports 80/443,
+redirects re-checked, 6 s / 1 MB caps) and results are cached 15 min.
+
 ---
 
 ## 3. Environment variables

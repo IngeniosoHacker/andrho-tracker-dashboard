@@ -2,8 +2,42 @@ import { defineConfig, loadEnv } from 'vite'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { SITE, jsonLd, staticLandingHtml } from './src/lib/seo.js'
 
 const resolvePath = (p) => fileURLToPath(new URL(p, import.meta.url))
+
+// Fills the <!--seo:*--> markers in index.html from src/lib/seo.js: meta
+// tags, JSON-LD and a static copy of the page for crawlers that don't run JS
+// (see the comment at the top of seo.js).
+function landingSeo() {
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+  return {
+    name: 'andrho-landing-seo',
+    transformIndexHtml(html) {
+      if (!html.includes('<!--seo:head-->')) return html
+      const head = [
+        `<title>${esc(SITE.title)}</title>`,
+        `<meta name="description" content="${esc(SITE.description)}" />`,
+        `<link rel="canonical" href="${SITE.url}/" />`,
+        `<meta property="og:type" content="website" />`,
+        `<meta property="og:site_name" content="${SITE.name}" />`,
+        `<meta property="og:locale" content="${SITE.locale}" />`,
+        `<meta property="og:url" content="${SITE.url}/" />`,
+        `<meta property="og:title" content="${esc(SITE.title)}" />`,
+        `<meta property="og:description" content="${esc(SITE.description)}" />`,
+        `<meta property="og:image" content="${SITE.ogImage}" />`,
+        `<meta property="og:image:width" content="1200" />`,
+        `<meta property="og:image:height" content="630" />`,
+        `<meta name="twitter:card" content="summary_large_image" />`,
+        `<meta name="twitter:title" content="${esc(SITE.title)}" />`,
+        `<meta name="twitter:description" content="${esc(SITE.description)}" />`,
+        `<meta name="twitter:image" content="${SITE.ogImage}" />`,
+        `<script type="application/ld+json">${JSON.stringify(jsonLd()).replace(/</g, '\\u003c')}</script>`,
+      ].join('\n')
+      return html.replace('<!--seo:head-->', head).replace('<!--seo:body-->', staticLandingHtml())
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -26,7 +60,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), landingSeo()],
     build: {
       rollupOptions: {
         input: {

@@ -24,6 +24,11 @@
   let activeSiteId = null;
   let activeTopTab = 'overview';
   let charts = {}; // keep Chart.js instances so we can .destroy() before re-render
+
+  // Chart/SVG colors come from the CSS tokens in styles.css, so the charts
+  // follow the dashboard theme instead of hardcoding it twice.
+  const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const axisTicks = () => ({ color: cssVar('--text-tertiary'), font: { family: 'JetBrains Mono', size: 10 } });
   let sessionsPage = { limit: 25, offset: 0, total: 0 };
   let cachedSessions = null; // reused by the "Hoy" tab so it doesn't re-fetch
 
@@ -448,8 +453,8 @@
     const ctx = document.getElementById('chartTraffic');
     if (charts.traffic) charts.traffic.destroy();
     const palette = {
-      ai_crawler: '#f0a94e', ai_referral: '#e0c07a', search_bot: '#565d6b',
-      organic_search: '#46c4b8', direct: '#2c6f68', referral: '#8b93f8'
+      ai_crawler: cssVar('--accent-ai'), ai_referral: cssVar('--accent-ai-dim'), search_bot: cssVar('--text-tertiary'),
+      organic_search: cssVar('--accent-human'), direct: cssVar('--accent-human-dim'), referral: cssVar('--accent-violet')
     };
     const rows = d.trafficBreakdown.length ? d.trafficBreakdown : [{ traffic_source_type: 'sin datos', sessions: 1 }];
     charts.traffic = new Chart(ctx, {
@@ -458,13 +463,13 @@
         labels: rows.map((r) => r.traffic_source_type),
         datasets: [{
           data: rows.map((r) => Number(r.sessions)),
-          backgroundColor: rows.map((r) => palette[r.traffic_source_type] || '#3a4152'),
-          borderColor: '#1a1e26', borderWidth: 2
+          backgroundColor: rows.map((r) => palette[r.traffic_source_type] || cssVar('--border')),
+          borderColor: cssVar('--bg-elevated'), borderWidth: 2
         }]
       },
       options: {
         responsive: true,
-        plugins: { legend: { position: 'bottom', labels: { color: '#8b93a3', font: { family: 'IBM Plex Mono', size: 11 }, boxWidth: 10, padding: 12 } } },
+        plugins: { legend: { position: 'bottom', labels: { color: cssVar('--text-secondary'), font: { family: 'JetBrains Mono', size: 11 }, boxWidth: 10, padding: 12 } } },
         cutout: '65%'
       }
     });
@@ -737,8 +742,8 @@
             <div class="goal-ring-wrap">
               <div class="goal-ring">
                 <svg width="116" height="116" viewBox="0 0 116 116">
-                  <circle cx="58" cy="58" r="50" fill="none" stroke="#262b36" stroke-width="10" />
-                  <circle cx="58" cy="58" r="50" fill="none" stroke="#f0a94e" stroke-width="10"
+                  <circle cx="58" cy="58" r="50" fill="none" stroke="${cssVar('--border')}" stroke-width="10" />
+                  <circle cx="58" cy="58" r="50" fill="none" stroke="${cssVar('--accent-ai')}" stroke-width="10"
                     stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round" />
                 </svg>
                 <div class="goal-ring-value"><strong>${progress}%</strong><span>de la meta</span></div>
@@ -771,7 +776,13 @@
         <h2>Tendencia diaria de hits de AI crawlers</h2>
         <canvas id="chartAiTrend" height="90"></canvas>
       </div>
+
+      <div class="card seo-audit" id="seoAuditCard">
+        <h2>Preparación para buscadores e IA</h2>
+        <p class="loading-state">Revisando tu sitio como lo ve un rastreador…</p>
+      </div>
     `;
+    renderSeoAudit(document.getElementById('seoAuditCard'));
 
     const ctx = document.getElementById('chartAiTrend');
     if (charts.aiTrend) charts.aiTrend.destroy();
@@ -779,14 +790,14 @@
       type: 'bar',
       data: {
         labels: d.dailyTrend.map((r) => new Date(r.day).toLocaleDateString('es', { day: '2-digit', month: 'short' })),
-        datasets: [{ data: d.dailyTrend.map((r) => Number(r.hits)), backgroundColor: '#f0a94e', borderRadius: 3 }]
+        datasets: [{ data: d.dailyTrend.map((r) => Number(r.hits)), backgroundColor: cssVar('--accent-ai'), borderRadius: 3 }]
       },
       options: {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#565d6b', font: { family: 'IBM Plex Mono', size: 10 } } },
-          y: { grid: { color: '#1e222b' }, ticks: { color: '#565d6b', font: { family: 'IBM Plex Mono', size: 10 } }, beginAtZero: true }
+          x: { grid: { display: false }, ticks: axisTicks() },
+          y: { grid: { color: cssVar('--border-soft') }, ticks: axisTicks(), beginAtZero: true }
         }
       }
     });
@@ -801,6 +812,53 @@
         body: JSON.stringify({ month, targetVisits: val })
       });
       renderAI(panel);
+    });
+  }
+
+  // SEO/GEO readiness: what search engines and AI crawlers can read (and are
+  // allowed to read) on the site's public origin. Loaded on its own so a
+  // slow third-party site never blocks the rest of the AI tab.
+  async function renderSeoAudit(card, refresh) {
+    const title = '<h2>Preparación para buscadores e IA <span class="hint">cómo te ve un rastreador sin JavaScript</span></h2>';
+    let d;
+    try {
+      d = await fetchJSON(`/api/sites/${encodeURIComponent(activeSiteId)}/seo-audit${refresh ? '?refresh=1' : ''}`);
+    } catch (err) {
+      card.innerHTML = `${title}<p class="empty-state">No se pudo revisar tu sitio ahora.</p>`;
+      return;
+    }
+    if (!d.origin) {
+      card.innerHTML = `${title}<p class="empty-state">${esc(d.reason || 'Sin datos todavía')}</p>`;
+      return;
+    }
+    const label = { ok: 'Bien', warn: 'Mejorable', fail: 'Falta' };
+    card.innerHTML = `
+      ${title}
+      <div class="seo-audit-head">
+        <div class="seo-score"><strong>${d.score}</strong><span>/100</span></div>
+        <div>
+          <p class="mono" style="margin:0">${esc(d.origin)}</p>
+          <p class="kpi-sub" style="margin:4px 0 0">Revisado ${esc(new Date(d.checkedAt).toLocaleString('es'))}</p>
+        </div>
+        <button type="button" class="copy-btn" id="seoAuditRefresh">Volver a revisar</button>
+      </div>
+      <ul class="seo-checks">
+        ${d.checks.map((c) => `
+          <li class="seo-check seo-${c.status}">
+            <span class="status-pill seo-pill-${c.status}">${label[c.status]}</span>
+            <div>
+              <p class="seo-check-label">${esc(c.label)}</p>
+              <p class="seo-check-detail">${esc(c.detail)}</p>
+              ${c.fix ? `<p class="seo-check-fix">${esc(c.fix)}</p>` : ''}
+            </div>
+          </li>`).join('')}
+      </ul>
+      ${d.crawlers ? `
+        <p class="seo-crawlers">${d.crawlers.map((c) => `<span class="badge ${c.allowed ? 'badge-human' : 'badge-muted'}">${c.allowed ? '✓' : '✕'} ${esc(c.label)}</span>`).join(' ')}</p>` : ''}
+    `;
+    document.getElementById('seoAuditRefresh').addEventListener('click', () => {
+      card.querySelector('.seo-checks').style.opacity = '0.5';
+      renderSeoAudit(card, true);
     });
   }
 
@@ -855,14 +913,14 @@
       type: 'bar',
       data: {
         labels: rows.map((r) => r.theme),
-        datasets: [{ data: rows.map((r) => Number(r.destroy_rate_per_sec || 0)), backgroundColor: '#8b93f8', borderRadius: 3 }]
+        datasets: [{ data: rows.map((r) => Number(r.destroy_rate_per_sec || 0)), backgroundColor: cssVar('--accent-violet'), borderRadius: 3 }]
       },
       options: {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#565d6b', font: { family: 'IBM Plex Mono', size: 10 } } },
-          y: { grid: { color: '#1e222b' }, ticks: { color: '#565d6b', font: { family: 'IBM Plex Mono', size: 10 } }, beginAtZero: true }
+          x: { grid: { display: false }, ticks: axisTicks() },
+          y: { grid: { color: cssVar('--border-soft') }, ticks: axisTicks(), beginAtZero: true }
         }
       }
     });

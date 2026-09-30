@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-GT">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" type="image/png" href="/images/logo/andrho-mark.png" />
-<title>&ρ AndRho — Conecta y entiende tu negocio</title>
-<meta name="description" content="AndRho conecta tu ERP, tus canales digitales y tu equipo en un solo centro de control, y traduce todos esos datos en decisiones claras para tu negocio." />
+<meta name="theme-color" content="#ffffff" />
+<!-- Title, description, canonical, Open Graph and JSON-LD: injected at build
+     time from src/lib/seo.js (see landingSeo() in vite.config.js). -->
+<!--seo:head-->
 
 <!-- TRACKER -->
 <script src="https://webtracker-production-b8d7.up.railway.app/tracker.js"
@@ -15,10 +17,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- The static copy in #root is for crawlers/no-JS; JS browsers hide it
+     until React replaces it, so there's no flash of unstyled text. -->
+<script>document.documentElement.classList.add('js')</script>
+<style>.js .seo-fallback { visibility: hidden; }</style>
 </head>
 
 <body class="antialiased overflow-x-hidden">
-  <div id="root"></div>
+  <div id="root"><!--seo:body--></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

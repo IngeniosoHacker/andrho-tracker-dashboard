@@ -3,23 +3,23 @@
 // "relájate" link stays highlighted, see `nav` in lib/landing.js).
 const STEPS = [
   {
-    title: 'Conecta',
-    body: 'Enlaza tu ERP, WhatsApp y tu sitio web en minutos. Sin migraciones ni proyectos eternos.',
+    title: 'Unifica',
+    body: 'Juntamos los datos de tu ERP y de tu marketing — ventas, inventario, sitio web, campañas — en un solo lugar.',
   },
   {
-    title: 'Deja que trabaje',
-    body: 'Los agentes de IA ordenan, cruzan y vigilan tus datos todo el día, sin que tengas que pedirlo.',
+    title: 'Analiza',
+    body: 'Modelos estadísticos y matemáticos revisan tus datos de forma constante para encontrar tendencias, patrones y alertas.',
   },
   {
-    title: 'Decide',
-    body: 'Recibe lo importante en claro: qué se vende, qué falta y qué conviene hacer después.',
+    title: 'Entiende',
+    body: 'La inteligencia artificial traduce esos resultados a lenguaje claro: qué se vende, qué falta y qué conviene hacer.',
   },
 ]
 
 export default function ComoFunciona() {
   return (
     <div className="p-6 sm:p-10 md:p-12 lg:p-14">
-      <p className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-ink-soft)]">Cómo funciona</p>
+      <p className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-ink-soft)]">Cómo funciona AndRho</p>
       <h2
         id="como-funciona-title"
         className="mt-4 max-w-4xl text-5xl font-extrabold leading-[0.95] tracking-[-0.05em] sm:text-6xl lg:text-7xl"

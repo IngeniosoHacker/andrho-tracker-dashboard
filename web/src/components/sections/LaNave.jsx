@@ -14,8 +14,8 @@ export default function LaNave() {
           Que no te deje <span className="text-[var(--window-teal)]">la nave</span>
         </h2>
         <p className="mt-5 max-w-lg text-lg leading-snug sm:text-xl lg:text-2xl">
-          Estamos por despegar. Anótate en la lista de espera y asegura tu lugar a bordo antes de que cerremos las
-          compuertas.
+          Estamos por despegar. Anótate en la lista de espera de AndRho y asegura tu lugar a bordo antes de que
+          cerremos las compuertas.
         </p>
         <div className="mt-8 flex max-w-sm flex-col gap-3 sm:mt-10">
           <a href="/waitlist.html" className="btn-solid">

@@ -1,0 +1,25 @@
+# AndRho
+
+> AndRho es una plataforma de análisis de datos para pequeñas y medianas empresas (pymes) en Guatemala. Unifica los datos de las distintas áreas de la empresa —principalmente el ERP y el marketing—, los analiza de forma constante con modelos estadísticos y matemáticos, y usa inteligencia artificial para interpretar los resultados y explicarlos en lenguaje claro.
+
+AndRho no usa agentes autónomos de IA. El análisis lo hacen modelos estadísticos y matemáticos; la inteligencia artificial actúa como traductora entre esos resultados y el usuario final, y también permite hacer cambios visuales dentro del sistema. AndRho se adapta a la operación de cada negocio: se conecta a las herramientas que la empresa ya usa en lugar de obligarla a migrar. Está pensado para comercios y retail, restaurantes, empresas de servicios, manufactura, logística y salud.
+
+## Qué hace
+
+- Unifica los datos del ERP y del marketing (ventas, inventario, sitio web, campañas) en un solo panel.
+- Análisis constante con modelos estadísticos y matemáticos: tendencias, patrones y alertas.
+- La IA interpreta los resultados y los explica en lenguaje claro; también asiste en cambios visuales del sistema.
+- Reportes de marketing, ventas, inventarios y KPIs.
+- Tráfico de buscadores y palabras clave orgánicas.
+- Visibilidad en IA: visitas de rastreadores de IA, visitas que llegan desde asistentes como ChatGPT o Perplexity, tendencia diaria y meta mensual, y una revisión de qué tan preparado está el sitio para buscadores e IA.
+
+## Páginas
+
+- [Inicio](https://andrho.com/): qué es AndRho y cómo funciona.
+- [Lista de espera](https://andrho.com/waitlist.html): reservar un lugar antes del lanzamiento.
+- [Crear cuenta](https://andrho.com/signup.html): registro para usar el panel.
+
+## Contacto
+
+- Instagram: https://www.instagram.com/andrho.gt/
+- GitHub: https://github.com/IngeniosoHacker/andrho

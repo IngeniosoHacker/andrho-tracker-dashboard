@@ -3,13 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WebTracker · Panel</title>
+<title>AndRho · Panel</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/png" href="/images/logo/andrho-mark.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/dashboard/styles.css" />
 </head>
 <body>
+
+<canvas class="starfield" id="starfield" aria-hidden="true"></canvas>
 
 <div class="shell">
 
@@ -17,6 +21,10 @@
   <main class="main" id="main">
     <!-- Dashboard -->
     <section class="dash" id="dash">
+      <a class="brand" href="/" aria-label="AndRho — inicio">
+        <img src="/images/logo/andrho-mark.png" alt="" />
+        <span>AndRho</span>
+      </a>
       <header class="dash-head">
         <div>
           <p class="eyebrow" id="activeSiteEyebrow">cuenta</p>
@@ -141,6 +149,7 @@
   window.ANDRHO_API_URL = "__ANDRHO_API_URL__";
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="/dashboard/starfield.js"></script>
 <script src="/dashboard/app.js"></script>
 </body>
 </html>

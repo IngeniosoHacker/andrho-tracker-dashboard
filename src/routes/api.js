@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { requireAuth } = require('../middleware/auth');
+const { auditSite } = require('../lib/seoAudit');
 
 router.use(express.json());
 
@@ -275,6 +276,46 @@ router.get('/sites/:siteId/ai-visibility', async (req, res, next) => {
         ? { targetVisits: target, achieved: totalCrawlerHits, progressPercent: Math.round((totalCrawlerHits / target) * 100) }
         : null
     });
+  } catch (err) { next(err); }
+});
+
+// ---------------------------------------------------------------------------
+// SEO / GEO readiness ("Preparación para buscadores e IA"). Audits the site's
+// public origin the way a crawler sees it (see src/lib/seoAudit.js). The
+// origin is the most-tracked one in the site's own sessions -- never taken
+// from the request. Cached per site; ?refresh=1 re-runs it at most once a
+// minute so the button can't be used to hammer a third-party site.
+// ---------------------------------------------------------------------------
+const seoAuditCache = new Map(); // siteId -> { at, result }
+const SEO_AUDIT_TTL_MS = 15 * 60 * 1000;
+const SEO_AUDIT_MIN_REFRESH_MS = 60 * 1000;
+
+router.get('/sites/:siteId/seo-audit', async (req, res, next) => {
+  const { siteId } = req.params;
+  const cached = seoAuditCache.get(siteId);
+  const age = cached ? Date.now() - cached.at : Infinity;
+  const wantsRefresh = req.query.refresh === '1';
+  if (cached && (age < SEO_AUDIT_MIN_REFRESH_MS || (!wantsRefresh && age < SEO_AUDIT_TTL_MS))) {
+    return res.json(cached.result);
+  }
+  try {
+    const { rows } = await pool.query(
+      `SELECT substring(landing_page from '^(https?://[^/?#]+)') AS origin, COUNT(*) AS n
+       FROM sessions
+       WHERE site_id = $1 AND started_at >= now() - interval '30 days'
+         AND landing_page ~* '^https?://'
+       GROUP BY 1 ORDER BY n DESC LIMIT 5`,
+      [siteId]
+    );
+    const origin = rows
+      .map((r) => r.origin && r.origin.toLowerCase())
+      .find((o) => o && !/\/\/(localhost|127\.|0\.0\.0\.0|\[::1\])|\.local(:|$)/.test(o));
+    if (!origin) {
+      return res.json({ origin: null, checks: [], score: null, reason: 'Aún no hay visitas registradas desde un dominio público.' });
+    }
+    const result = await auditSite(origin);
+    seoAuditCache.set(siteId, { at: Date.now(), result });
+    res.json(result);
   } catch (err) { next(err); }
 });
 

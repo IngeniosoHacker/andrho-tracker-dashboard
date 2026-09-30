@@ -1,0 +1,34 @@
+# AndRho — andrho.com
+# Search engines and AI assistants are welcome on the public site (GEO:
+# being quotable by ChatGPT, Claude, Perplexity, Gemini...). The analytics
+# dashboard and invite links are private.
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /accept-invite.html
+
+User-agent: GPTBot
+Allow: /
+Disallow: /dashboard/
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /dashboard/
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://andrho.com/sitemap.xml

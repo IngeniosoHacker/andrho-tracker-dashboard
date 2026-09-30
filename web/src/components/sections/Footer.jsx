@@ -1,4 +1,5 @@
 import Logo from '../ui/Logo.jsx'
+import { FAQ } from '../../lib/seo.js'
 
 const LINK_GROUPS = [
   {
@@ -27,16 +28,37 @@ const LINK_GROUPS = [
   },
 ]
 
-// Dark, to carry on from the (black) game section right above it.
+// Dark, to carry on from the (black) game section right above it. The FAQ is
+// the visible counterpart of the FAQPage JSON-LD (same data, lib/seo.js).
 export default function Footer() {
   return (
     <footer className="relative z-10 border-t border-white/10 bg-black text-white">
+      <section aria-labelledby="faq-title" className="mx-auto max-w-4xl px-6 pt-20 lg:px-10">
+        <h2 id="faq-title" className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          Preguntas frecuentes
+        </h2>
+        <div className="mt-8 divide-y divide-white/10 border-y border-white/10">
+          {FAQ.map(({ q, a }) => (
+            <details key={q} className="group py-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-lg font-semibold [&::-webkit-details-marker]:hidden">
+                <h3>{q}</h3>
+                <span aria-hidden="true" className="font-mono text-[var(--mint)] transition-transform group-open:rotate-45">
+                  +
+                </span>
+              </summary>
+              <p className="mt-3 max-w-3xl leading-relaxed text-white/65">{a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm text-white/55">
-              El departamento de Big Data que tu empresa no sabía que necesitaba.
+              Análisis de datos con inteligencia artificial para pymes en Guatemala. El departamento de Big Data que tu
+              empresa no sabía que necesitaba.
             </p>
           </div>
 

@@ -13,6 +13,9 @@ export default function Adapta() {
         className="order-2 mx-auto max-h-[24svh] w-auto md:order-1 md:max-h-none md:w-full"
       />
       <div className="order-1 text-center md:order-2">
+        <p className="mb-5 font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-ink-soft)]">
+          Software a la medida de tu negocio
+        </p>
         <p className="mx-auto max-w-lg text-lg leading-snug sm:text-xl lg:text-2xl">
           Hemos pasado por esto, sincronizar la vida real con el sistema a veces es imposible. Por eso hemos creado un
           Software que se

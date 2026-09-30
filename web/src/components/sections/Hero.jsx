@@ -6,7 +6,7 @@ import { seg } from '../../lib/motion.js'
 // Module-level so re-rendering on every scroll frame doesn't restart TextType.
 const TYPE_LINES = [
   '> conectando tu ERP...',
-  '> entrenando a los agentes de IA...',
+  '> aplicando modelos estadísticos...',
   '> unificando WhatsApp y web-tracker...',
   '> traduciendo datos en decisiones...',
 ]
@@ -34,9 +34,12 @@ export default function Hero({ morph: t, titleRef, wordRefs }) {
     >
       <div className="mx-auto max-w-4xl text-center">
         <h1 className="font-display text-6xl font-bold leading-none tracking-tight text-[var(--color-ink)] sm:text-8xl lg:text-9xl">
-          <span ref={titleRef} className="inline-block whitespace-nowrap" style={{ visibility: moving ? 'hidden' : 'visible' }}>
+          {/* The scramble is decorative; crawlers and screen readers get the
+              real name + what it is. */}
+          <span ref={titleRef} aria-hidden="true" className="inline-block whitespace-nowrap" style={{ visibility: moving ? 'hidden' : 'visible' }}>
             <ScrambleLogo paused={moving} />
           </span>
+          <span className="sr-only">AndRho: análisis de datos con inteligencia artificial para pymes en Guatemala</span>
         </h1>
 
         <p style={rest} className="mt-10 font-display text-3xl font-semibold tracking-tight text-[var(--color-ink)] sm:text-4xl">
@@ -50,8 +53,8 @@ export default function Hero({ morph: t, titleRef, wordRefs }) {
         {/* Opacity only (no translate): the bold words' in-flow position is
             the measured start point of their flight into the navbar. */}
         <p style={{ opacity: rest.opacity }} className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-[var(--color-ink-soft)]">
-          AndRho es el centro de control que unifica tu ERP, tus canales digitales y tu equipo — y lo traduce en
-          decisiones, no en más pestañas. Así que {word('relajate', 'relájate')}: la plataforma se {word('adapta', 'adapta')} a
+          AndRho es el centro de control que unifica tu ERP, tu marketing y tu equipo, lo analiza con modelos
+          estadísticos y, con inteligencia artificial, te lo traduce en decisiones — no en más pestañas. Así que {word('relajate', 'relájate')}: la plataforma se {word('adapta', 'adapta')} a
           tu operación.
         </p>
 
