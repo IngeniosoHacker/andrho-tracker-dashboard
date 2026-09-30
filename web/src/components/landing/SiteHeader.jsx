@@ -1,20 +1,20 @@
-import { MORPH_END, NAV_LINKS } from '../../lib/landing.js'
+import { NAV_LINKS } from '../../lib/landing.js'
 import { easeOutBack, mixColor, seg } from '../../lib/motion.js'
 import { logo } from '../../lib/assets.js'
 
-// The landing's "taskbar". At t=0 only the login button exists (top-right of
-// the white hero); as the hero folds up (0 → MORPH_END) the bar's glass
+// The landing's "taskbar". At morph=0 only the login button exists (top-right of
+// the white hero); as the hero folds up (`morph` 0 → 1) the bar's glass
 // fades in around it, the hero title lands as the wordmark, the logo pops in
 // and the bold hero words land as links (the flying copies live in
 // Stage.jsx — this component only owns their final resting place, measured
 // through `refs`). Once formed it stays for the rest of the site.
 //
 // `base` prefixes the section links, so pages other than the landing (e.g.
-// waitlist.html, rendered with t = Infinity) link back into it.
-export default function SiteHeader({ t = Infinity, sky = 1, activeId = null, refs, base = '' }) {
-  const formed = t >= MORPH_END
-  const bar = seg(t, 0.62, MORPH_END)
-  const logoPop = formed ? 1 : Math.max(0, easeOutBack(seg(t, 0.78, 0.92)))
+// waitlist.html, rendered with morph = Infinity) link back into it.
+export default function SiteHeader({ morph = Infinity, sky = 1, activeId = null, refs, base = '' }) {
+  const formed = morph >= 1
+  const bar = seg(morph, 0.62, 1)
+  const logoPop = formed ? 1 : Math.max(0, easeOutBack(seg(morph, 0.78, 0.92)))
   const ink = mixColor('#0b1020', '#ffffff', sky)
 
   return (
@@ -57,13 +57,13 @@ export default function SiteHeader({ t = Infinity, sky = 1, activeId = null, ref
           </a>
 
           <ul
-            inert={t < 0.9}
+            inert={morph < 0.9}
             className="order-3 flex h-10 w-full items-center justify-center gap-5 border-t md:order-2 md:h-14 md:w-auto md:flex-1 md:gap-9 md:border-t-0"
             style={{ borderColor: `rgba(255, 255, 255, ${0.08 * bar})` }}
           >
             {NAV_LINKS.map((link) => {
               const active = link.id === activeId
-              const opacity = formed ? 1 : link.fromHero ? 0 : seg(t, 0.84, MORPH_END)
+              const opacity = formed ? 1 : link.fromHero ? 0 : seg(morph, 0.84, 1)
               return (
                 <li key={link.id} className="relative">
                   <a

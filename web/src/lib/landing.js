@@ -3,20 +3,24 @@
 // The landing is one long "stage" (see Stage.jsx) pinned to the viewport while
 // the visitor scrolls. `t` = viewport-heights scrolled into it:
 //
-//   0 → 1     the white hero folds itself into the navbar (MORPH_END)
-//   ~0.85 →   windows open over the space wallpaper, one at a time, fading
-//             between each other
-//   STAGE_LENGTH  the stage releases and the game section scrolls in
+//   0 → MORPH_LENGTH   the white hero folds itself into the navbar. Kept short
+//                      so it takes only a few wheel ticks; the morph code works
+//                      on `morph` = t / MORPH_LENGTH (0 → 1).
+//   ~0.5 →             windows open over the space wallpaper, one at a time,
+//                      fading between each other
+//   STAGE_LENGTH       the stage releases and the game section scrolls in
 //
-// Each window's `anchor` is the `t` where it's fully open; the nav links jump
-// straight there (plain #hash anchors placed at that scroll offset).
-export const MORPH_END = 1
-export const STAGE_LENGTH = 4
+// Each window's `anchor` is the `t` where it's fully open; its #id is a plain
+// anchor placed at that scroll offset. `nav` = the navbar link that stays
+// highlighted while the window is open (windows without their own link).
+export const MORPH_LENGTH = 0.6
+export const STAGE_LENGTH = 4.55
 
 export const WINDOWS = [
-  { id: 'relajate', fadeIn: [0.85, 1.2], fadeOut: [1.95, 2.12], anchor: 1.3 },
-  { id: 'adapta', fadeIn: [2.12, 2.3], fadeOut: [2.9, 3.07], anchor: 2.4 },
-  { id: 'nave', fadeIn: [3.07, 3.25], fadeOut: [3.75, 4], anchor: 3.35 },
+  { id: 'relajate', fadeIn: [0.5, 0.8], fadeOut: [1.5, 1.65], anchor: 0.9 },
+  { id: 'como-funciona', nav: 'relajate', fadeIn: [1.65, 1.8], fadeOut: [2.45, 2.6], anchor: 1.9 },
+  { id: 'adapta', fadeIn: [2.6, 2.75], fadeOut: [3.4, 3.55], anchor: 2.85 },
+  { id: 'nave', fadeIn: [3.55, 3.7], fadeOut: [4.3, 4.55], anchor: 3.8 },
 ]
 
 // Navbar entries, in order. `fromHero` ones are the bold words in the hero

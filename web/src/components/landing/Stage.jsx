@@ -2,19 +2,21 @@ import { createRef, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Hero from '../sections/Hero.jsx'
 import Relajate from '../sections/Relajate.jsx'
+import ComoFunciona from '../sections/ComoFunciona.jsx'
 import Adapta from '../sections/Adapta.jsx'
 import LaNave from '../sections/LaNave.jsx'
 import ScrambleLogo from '../ui/ScrambleLogo.jsx'
 import { DesktopWindow } from './WindowFrame.jsx'
-import { MORPH_END, NAV_LINKS, STAGE_LENGTH, WINDOWS } from '../../lib/landing.js'
+import { MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH, WINDOWS } from '../../lib/landing.js'
 import { easeInOutCubic, easeOutBack, easeOutCubic, lerp, mixColor, seg } from '../../lib/motion.js'
 
 const HERO_WORDS = NAV_LINKS.filter((l) => l.fromHero)
 
 const WINDOW_CONTENT = {
-  relajate: { title: 'relajate — AndRho', Body: Relajate },
-  adapta: { title: 'adapta-a-tu-operacion — AndRho', Body: Adapta },
-  nave: { title: 'la-nave — lista de espera', Body: LaNave },
+  relajate: Relajate,
+  'como-funciona': ComoFunciona,
+  adapta: Adapta,
+  nave: LaNave,
 }
 
 // 0..1 visibility of a window at `t`, plus its "opening" progress for scale.
@@ -77,7 +79,8 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
     return () => window.removeEventListener('resize', measure)
   }, [navRefs, wordRefs])
 
-  const morphing = geo && t > 0.001 && t < MORPH_END
+  const morph = t / MORPH_LENGTH
+  const morphing = geo && morph > 0.001 && morph < 1
 
   return (
     <div
@@ -87,17 +90,16 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
       style={{ height: `calc(${STAGE_LENGTH} * 100vh + 100svh)` }}
     >
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
-        <Hero t={t} titleRef={titleRef} wordRefs={wordRefs} />
+        <Hero morph={morph} titleRef={titleRef} wordRefs={wordRefs} />
 
         {/* The desktop: windows over the wallpaper, below the taskbar. */}
-        <div className="absolute inset-x-0 bottom-3 top-[120px] px-3 sm:bottom-6 sm:px-6 md:top-[92px]">
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 top-[116px] px-3 sm:bottom-5 sm:px-6 md:top-[84px]">
           {WINDOWS.map((win) => {
             const { opacity, opening, closing } = windowOpacity(win, t)
-            const { title, Body } = WINDOW_CONTENT[win.id]
+            const Body = WINDOW_CONTENT[win.id]
             return (
               <DesktopWindow
                 key={win.id}
-                title={title}
                 labelledBy={`${win.id}-title`}
                 opacity={opacity}
                 scale={0.94 + 0.06 * opening - 0.02 * closing}
@@ -121,7 +123,7 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
         />
       ))}
 
-      {morphing && createPortal(<FlyingLayer t={t} sky={sky} geo={geo} />, document.body)}
+      {morphing && createPortal(<FlyingLayer morph={morph} sky={sky} geo={geo} />, document.body)}
     </div>
   )
 }
@@ -129,7 +131,7 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
 // Copies of the hero title and bold words that travel into the navbar.
 // Portaled to <body> and fixed above the header (z-50), so they're drawn on
 // top of the forming bar instead of inside the stage's stacking context.
-function FlyingLayer({ t, sky, geo }) {
+function FlyingLayer({ morph: t, sky, geo }) {
   const { title } = geo
 
   // Title: shrink while rising to the center of the bar, slide left until it

@@ -69,7 +69,7 @@ function WaitlistPage() {
       <SiteHeader base="/" />
 
       <main className="relative z-10 flex min-h-[calc(100svh-10rem)] items-center justify-center">
-        <WindowFrame title="lista-de-espera — AndRho">
+        <WindowFrame>
           <div className="grid gap-10 p-6 sm:p-10 md:grid-cols-[1fr_1.05fr] md:p-14">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-ink-soft)]">

@@ -16,7 +16,7 @@ const TYPE_LINES = [
 // copies that travel into the navbar — here they just leave an invisible
 // placeholder behind (`titleRef` / `wordRefs` mark where they start) — and
 // everything else fades out.
-export default function Hero({ t, titleRef, wordRefs }) {
+export default function Hero({ morph: t, titleRef, wordRefs }) {
   const moving = t > 0.001
   const fade = seg(t, 0, 0.3)
   const rest = { opacity: 1 - fade, transform: `translateY(${-fade * 24}px)` }
