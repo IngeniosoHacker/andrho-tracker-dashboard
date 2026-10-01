@@ -32,10 +32,10 @@ export const STAGE_LENGTH = 6.4
 
 // Creators timeline (Creators.jsx): its own pinned section after the stage.
 // The first CREATORS_TRACK viewport-heights of scroll slide the horizontal
-// track; the rest zoom into the last card, which turns into the closing
-// promo post.
+// track; the rest zoom into the last card, out of which the closing window
+// grows.
 export const CREATORS_TRACK = 3.6
-export const CREATORS_LENGTH = 5.2
+export const CREATORS_LENGTH = 5.4
 
 // Navbar entries, in order. `fromHero` ones are the bold words in the hero
 // copy — they physically fly up into the navbar during the morph. The rest

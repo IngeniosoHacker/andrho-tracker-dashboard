@@ -17,22 +17,6 @@ const FACTS = [
   { value: '100%', label: 'de las sugerencias pasan por tu aprobación' },
 ]
 
-// Small print along the bottom of the scene: what an AndRho account covers,
-// as plain text (decorative for people, useful for search).
-const COVERAGE = [
-  'ERP Odoo',
-  'Meta Business',
-  'WhatsApp Business',
-  'Instagram y Facebook',
-  'Sitio web',
-  'SEO y visibilidad en IA',
-  'Inventario',
-  'Punto de venta',
-  'Modelos estadísticos',
-  'Creators verificados',
-  'Hardware especializado',
-]
-
 // Bare scene (no window, straight on the wallpaper): how AndRho uses AI — on
 // purpose, in one step of the flow, instead of everywhere. The last step's
 // card ("Ejecuta") is lit in the window color: the next window grows out of
@@ -91,30 +75,6 @@ export default function IaConCriterio() {
             </div>
           ))}
         </dl>
-      </div>
-
-      <CoverageStrip />
-    </div>
-  )
-}
-
-function CoverageStrip() {
-  const items = (hidden) => (
-    <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-center">
-      {COVERAGE.map((item) => (
-        <li key={item} className="flex items-center gap-4 pr-4 whitespace-nowrap">
-          <span aria-hidden="true" className="h-1 w-1 bg-[var(--mint)]" />
-          {item}
-        </li>
-      ))}
-    </ul>
-  )
-  return (
-    <div className="flex h-10 shrink-0 items-center overflow-hidden border-t border-white/10 font-mono text-[10px] tracking-[0.2em] text-white/45 uppercase">
-      <p className="sr-only">Una cuenta de AndRho incluye:</p>
-      <div className="animate-marquee flex w-max">
-        {items(false)}
-        {items(true)}
       </div>
     </div>
   )

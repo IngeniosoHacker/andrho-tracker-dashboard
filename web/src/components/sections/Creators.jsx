@@ -1,14 +1,14 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { AndRhoBadge, BlipAvatar, PALETTE, VegaAvatar, YellowAd, ZorbAvatar } from '../ui/Avatars.jsx'
+import { AndRhoBadge, BlipAvatar, IceCreamArt, PALETTE, VegaAvatar, YellowAd, ZorbAvatar } from '../ui/Avatars.jsx'
+import WindowFrame from '../landing/WindowFrame.jsx'
 import { logo } from '../../lib/assets.js'
 import { CREATORS_LENGTH, CREATORS_TRACK } from '../../lib/landing.js'
 import { easeInOutCubic, easeOutCubic, lerp, seg } from '../../lib/motion.js'
-import { sessionVisitor } from '../../lib/visitor.js'
 import { CREATOR_TERMS } from '../../lib/seo.js'
 
 // Track geometry, in unscaled track pixels. The track is scaled down to fit
 // short viewports (see `scale` below), so these never change.
-const TRACK_W = 2720
+const TRACK_W = 2400
 const DESIGN_H = 620
 
 // Lanes = who acts (AndRho, client, creator, creator), as fractions of the
@@ -26,7 +26,6 @@ const EVENTS = {
   vega: { x: 1610, y: 0.6, rot: 5, w: 252 },
   blip: { x: 1720, y: 0.86, rot: -5, w: 252 },
   ad: { x: 2090, y: 0.7, rot: 3, w: 222 },
-  result: { x: 2460, y: 0.24, rot: -6, w: 236 },
 }
 
 const LINKS = [
@@ -36,7 +35,6 @@ const LINKS = [
   ['task', 'vega'],
   ['task', 'blip'],
   ['blip', 'ad'],
-  ['ad', 'result'],
 ]
 
 // Scroll-driven horizontal timeline: a suggestion born in AndRho's analysis
@@ -44,13 +42,14 @@ const LINKS = [
 // two matching Creators — one declines and fades away, the other accepts and
 // publishes. Pinned like the stage: `progress` = viewport-heights scrolled
 // into the section — slides the track right to left for the first
-// CREATORS_TRACK, then zooms into the last card, which turns into a promo
-// post (PromoPost) that closes the section.
+// CREATORS_TRACK, then zooms into the last card (the published ad), out of
+// which a window like the landing's grows: the closing call to sign up.
 export default function Creators({ progress, sectionRef }) {
   const stickyRef = useRef(null)
   const trackBoxRef = useRef(null)
   const [box, setBox] = useState({ w: 1280, h: DESIGN_H, left: 0, top: 0, vw: 1280, vh: 800, pad: 96 })
-  const [visitor] = useState(sessionVisitor)
+  const adRef = useRef(null)
+  const [adH, setAdH] = useState(240)
 
   useLayoutEffect(() => {
     const el = trackBoxRef.current
@@ -77,24 +76,28 @@ export default function Creators({ progress, sectionRef }) {
   const visibleW = box.w / scale
   // From "track starts mid-screen" to "last card well inside the screen".
   const p = Math.min(Math.max(progress / CREATORS_TRACK, 0), 1)
-  const scroll = lerp(-visibleW * 0.45, TRACK_W - visibleW * 0.9, p)
+  // Ends with the ad just past the play line, so it's published on arrival.
+  const scroll = lerp(-visibleW * 0.45, EVENTS.ad.x + 220 - visibleW * 0.62, p)
   // Things happen as they cross this line (track coordinates).
   const play = scroll + visibleW * 0.62
 
   const at = (id, from, to) => seg(play, EVENTS[id].x + from, EVENTS[id].x + to)
   const declined = at('vega', 220, 400)
 
-  // Finale: the result card flies to the center and grows into the post.
-  const zoom = easeInOutCubic(seg(progress, CREATORS_TRACK + 0.1, CREATORS_TRACK + 1.1))
+  // Finale, in two beats (like the "Adapta" window growing out of the AI
+  // scene): the ad flies to the center, straightens and grows; then a window
+  // grows out of it to fill the screen.
+  const zoom = easeInOutCubic(seg(progress, CREATORS_TRACK + 0.1, CREATORS_TRACK + 0.8))
+  const grow = easeInOutCubic(seg(progress, CREATORS_TRACK + 0.8, CREATORS_TRACK + 1.5))
   const fadeRest = 1 - seg(zoom, 0, 0.55)
-  const result = EVENTS.result
-  const postW = Math.max(240, Math.min(420, box.vw - 32, box.vh - box.pad - 250))
-  const from = {
-    x: box.left + (result.x - scroll) * scale,
-    y: box.top + result.y * H * scale,
-    s: (result.w * scale) / postW,
+  const ad = EVENTS.ad
+  const adW = Math.min(340, box.vw * 0.5, ((box.vh - box.pad) * 0.6 * ad.w) / adH)
+  const card = {
+    x: lerp(box.left + (ad.x - scroll) * scale, box.vw / 2, zoom),
+    y: lerp(box.top + ad.y * H * scale, box.pad + (box.vh - box.pad) / 2, zoom),
+    s: lerp(scale, adW / ad.w, zoom),
+    rot: lerp(ad.rot, 0, zoom),
   }
-  const to = { x: box.vw / 2, y: box.pad + (box.vh - box.pad) / 2, s: 1 }
 
   return (
     <section ref={sectionRef} id="creators" aria-labelledby="creators-title" className="relative z-10" style={{ height: `calc(${CREATORS_LENGTH} * 100vh + 100svh)` }}>
@@ -163,11 +166,8 @@ export default function Creators({ progress, sectionRef }) {
                     stamp={at('blip', 60, 140)}
                   />
                 </Card>
-                <Card ev="ad" H={H} show={at('ad', -300, -110)}>
+                <Card ev="ad" H={H} show={zoom > 0 ? 0 : at('ad', -300, -110)}>
                   <AdCard published={at('ad', 0, 80)} />
-                </Card>
-                <Card ev="result" H={H} show={zoom > 0 ? 0 : at('result', -300, -110)}>
-                  <ResultCard />
                 </Card>
               </ol>
             </div>
@@ -184,17 +184,7 @@ export default function Creators({ progress, sectionRef }) {
           ))}
         </dl>
 
-        {zoom > 0 && (
-          <Finale
-            zoom={zoom}
-            width={postW}
-            x={lerp(from.x, to.x, zoom)}
-            y={lerp(from.y, to.y, zoom)}
-            scale={lerp(from.s, to.s, zoom)}
-            rot={lerp(result.rot, 0, zoom)}
-            handle={visitor?.handle}
-          />
-        )}
+        {zoom > 0 && <Finale card={card} grow={grow} adRef={adRef} onAdHeight={setAdH} box={box} />}
       </div>
     </section>
   )
@@ -428,136 +418,85 @@ function AdCard({ published }) {
   )
 }
 
-function ResultCard() {
-  return (
-    <div className="p-4">
-      <div className="flex items-center justify-between">
-        <Meta>AndRho · Jue 09:00</Meta>
-        <img src={logo.mark} alt="" className="h-5 w-5 object-contain" />
-      </div>
-      <h3 className="mt-2 text-base leading-tight font-extrabold tracking-tight">Entregada 2 días antes</h3>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-lg bg-[var(--color-surface)] p-2">
-          <p className="font-display text-xl font-bold">12.4k</p>
-          <p className="text-[10px] text-[var(--color-muted)]">personas alcanzadas</p>
-        </div>
-        <div className="rounded-lg bg-[#d1f2e8] p-2">
-          <p className="font-display text-xl font-bold text-[#21705e]">+23%</p>
-          <p className="text-[10px] text-[#21705e]">visitas a la tienda</p>
-        </div>
-      </div>
-      <p className="mt-2.5 text-xs text-[var(--color-ink-soft)]">Y el ciclo vuelve a empezar: AndRho sigue midiendo.</p>
-    </div>
-  )
-}
 
-// The zooming card: the result card (scaled to the post's width) cross-fades
-// into the promo post as it flies to the center of the screen.
-function Finale({ zoom, width, x, y, scale, rot, handle }) {
-  const card = 1 - seg(zoom, 0.3, 0.6)
-  const post = seg(zoom, 0.3, 0.65)
-  const k = width / EVENTS.result.w
+// The finale: a copy of the ad card that flies to the center (`card`), then
+// the closing window growing out of it (`grow`, 0 → 1) — clipped to the
+// card's box at first, then to the whole stage like the landing's windows.
+function Finale({ card, grow, adRef, onAdHeight, box }) {
+  useLayoutEffect(() => {
+    if (adRef.current) onAdHeight(adRef.current.offsetHeight)
+  }, [adRef, onAdHeight, box.vw])
+
+  const ad = EVENTS.ad
+  const w = ad.w * card.s
+  const h = (adRef.current?.offsetHeight ?? 240) * card.s
+  // The window's box in the sticky viewport (same insets as the stage's
+  // desktop area), and the card's box as clip insets relative to it.
+  const side = box.vw >= 640 ? 24 : 12
+  const frame = { top: box.pad - 12, left: side, right: side, bottom: box.vw >= 640 ? 20 : 12 }
+  const fw = box.vw - frame.left - frame.right
+  const fh = box.vh - frame.top - frame.bottom
+  const from = [
+    card.y - h / 2 - frame.top,
+    frame.left + fw - (card.x + w / 2),
+    frame.top + fh - (card.y + h / 2),
+    card.x - w / 2 - frame.left,
+  ]
+  const clip = `inset(${from.map((v) => `${lerp(v, 0, grow)}px`).join(' ')} round ${lerp(16, 24, grow)}px)`
+
   return (
     <>
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{ opacity: zoom, background: 'radial-gradient(60% 55% at 50% 58%, rgba(127,220,195,0.22), transparent 70%)' }}
-      />
-      <div
         className="absolute top-0 left-0"
-        style={{ width, transform: `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${rot}deg) scale(${scale})` }}
+        style={{ width: ad.w, transform: `translate(${card.x}px, ${card.y}px) translate(-50%, -50%) rotate(${card.rot}deg) scale(${card.s})` }}
       >
-        <div inert={zoom < 0.9} style={{ opacity: post }}>
-          <PromoPost handle={handle} width={width} />
+        <div ref={adRef} className="overflow-hidden rounded-2xl border border-black/5 bg-white text-[var(--color-ink)] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.65)]">
+          <AdCard published={1} />
         </div>
-        {card > 0 && (
-          <div
-            aria-hidden="true"
-            className="absolute top-1/2 left-1/2 overflow-hidden rounded-2xl border border-black/5 bg-white text-[var(--color-ink)]"
-            style={{ width: EVENTS.result.w, opacity: card, transform: `translate(-50%, -50%) scale(${k})`, boxShadow: '0 30px 60px -20px rgba(0,0,0,0.65)' }}
-          >
-            <ResultCard />
-          </div>
-        )}
       </div>
+
+      {grow > 0 && (
+        <div
+          className="absolute flex"
+          style={{ top: frame.top, left: frame.left, width: fw, height: fh, clipPath: clip, WebkitClipPath: clip }}
+        >
+          <WindowFrame className="h-full" style={{ maxWidth: 'none', backgroundColor: PALETTE.yellow }} contentStyle={{ opacity: seg(grow, 0.35, 0.9) }}>
+            <CrecerWindow active={grow > 0.9} />
+          </WindowFrame>
+        </div>
+      )}
     </>
   )
 }
 
-// AndRho's own ad, dressed as an Instagram post — posted by the visitor when
-// we know who they are (their session, lib/visitor.js), by AndRho otherwise.
-function PromoPost({ handle, width }) {
-  const own = Boolean(handle)
-  const name = handle || 'andrho'
-  const cta = own ? { label: 'Ir a mi panel', href: '/dashboard/' } : { label: 'Crear mi cuenta', href: '/signup.html' }
+// The closing window: the ad from the example, blown up and rewritten for
+// the visitor.
+function CrecerWindow({ active }) {
   return (
-    <article aria-labelledby="crecer-title" className="overflow-hidden rounded-2xl bg-white text-[var(--color-ink)] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.8)]">
-      <header className="flex items-center gap-3 px-3.5 py-2.5">
-        {own ? (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--window-teal)] font-display text-sm font-bold text-white uppercase">
-            {name[0]}
-          </span>
-        ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface)]">
-            <img src={logo.mark} alt="" className="h-5 w-5 object-contain" />
-          </span>
-        )}
-        <div className="min-w-0 flex-1 leading-tight">
-          <p className="truncate text-sm font-bold">{name}</p>
-          <p className="text-[11px] text-[var(--color-muted)]">Patrocinado · con AndRho</p>
-        </div>
-        <span aria-hidden="true" className="font-bold tracking-widest text-[var(--color-muted)]">···</span>
-      </header>
-
-      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: PALETTE.mintSoft }}>
-        <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full" aria-hidden="true">
-          <circle cx="350" cy="60" r="90" fill={PALETTE.yellow} />
-          <circle cx="40" cy="380" r="70" fill={PALETTE.coral} opacity="0.9" />
-          <path d="M24 42l14-14 14 14 14-14 14 14" stroke={PALETTE.ink} strokeWidth="4" fill="none" strokeLinejoin="round" />
-          <polygon points="330,300 372,370 288,370" fill={PALETTE.violet} />
-          {[0, 1, 2, 3, 4].map((i) => (
-            <rect key={i} x={150 + i * 40} y={330 - (i + 1) * 30} width="26" height={(i + 1) * 30 + 40} rx="5" fill={i === 4 ? PALETTE.teal : '#ffffff'} />
-          ))}
-          <path d="M150 290 L190 262 L230 270 L270 222 L320 176" stroke={PALETTE.ink} strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          <polygon points="320,160 332,186 306,182" fill={PALETTE.ink} />
-        </svg>
-        <div className="absolute inset-0 flex flex-col p-[7%]">
-          <span className="flex w-fit items-center gap-1.5 rounded-full bg-white/85 px-2.5 py-1 font-mono text-[10px] font-bold tracking-[0.2em] uppercase">
-            <img src={logo.mark} alt="" className="h-3.5 w-3.5 object-contain" />
-            AndRho
-          </span>
-          <h2
-            id="crecer-title"
-            className="mt-[6%] max-w-[85%] font-display leading-[0.95] font-bold tracking-tight"
-            style={{ fontSize: Math.round(width * 0.105) }}
-          >
-            ¿Estás listo para empezar a crecer?
+    <div inert={!active} className="relative flex h-full min-h-full items-center overflow-hidden" style={{ backgroundColor: PALETTE.yellow }}>
+      <svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+        <circle cx="88" cy="8" r="26" fill="#ffe27a" />
+      </svg>
+      <svg aria-hidden="true" viewBox="0 0 120 20" className="absolute bottom-[7%] left-[5%] w-[18%] max-w-40">
+        <path d="M2 18l12-12 12 12 12-12 12 12 12-12 12 12 12-12 12 12" stroke={PALETTE.ink} strokeWidth="3" fill="none" strokeLinejoin="round" />
+      </svg>
+      <div className="relative grid w-full items-center gap-6 p-6 sm:p-10 md:grid-cols-[1.3fr_1fr] md:p-14 lg:p-16">
+        <div>
+          <h2 id="crecer-title" className="font-display text-5xl leading-[0.92] font-bold tracking-tight text-[var(--color-ink)] sm:text-7xl lg:text-8xl">
+            Estancado y sin crecer.
           </h2>
-        </div>
-      </div>
-
-      <a href={cta.href} className="flex items-center justify-between bg-[var(--color-ink)] px-3.5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1f2937]">
-        {cta.label}
-        <span aria-hidden="true">→</span>
-      </a>
-
-      <div className="px-3.5 pt-2.5 pb-3.5">
-        <div aria-hidden="true" className="flex items-center gap-3.5 text-lg">
-          <span className="text-[#ef4444]">♥</span>
-          <span>💬</span>
-          <span>↗</span>
-          <span className="ml-auto">⌑</span>
-        </div>
-        <p className="mt-1.5 text-xs font-bold">1,204 Me gusta</p>
-        <p className="mt-1 text-xs leading-snug">
-          <span className="font-bold">{name}</span> Sitio web, redes, Odoo y Creators en una sola cuenta. Tú apruebas, nosotros
-          lo hacemos crecer.{' '}
-          <a href="/waitlist.html" className="font-semibold text-[var(--window-teal)] underline-offset-2 hover:underline">
-            #ListaDeEspera
+          <p className="mt-5 text-xl font-semibold text-[var(--color-ink)]/75 sm:text-2xl lg:text-3xl">No en tu caso.</p>
+          <a
+            href="/signup.html"
+            className="mt-8 inline-flex h-12 items-center rounded-full bg-[var(--color-ink)] px-8 text-sm font-bold tracking-[0.15em] uppercase transition-colors hover:bg-[#1f2937] lg:h-14 lg:px-10"
+            style={{ color: PALETTE.yellow }}
+          >
+            Regístrate
           </a>
-        </p>
+        </div>
+        <IceCreamArt className="mx-auto max-h-[30svh] w-auto md:max-h-[60svh]" />
       </div>
-    </article>
+    </div>
   )
 }

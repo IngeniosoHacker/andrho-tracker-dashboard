@@ -148,3 +148,17 @@ export function YellowAd({ className = '' }) {
     </svg>
   )
 }
+
+// Just the cone from the ad, big — for the closing window (Creators.jsx).
+export function IceCreamArt({ className = '' }) {
+  return (
+    <svg viewBox="128 44 84 116" className={className} aria-hidden="true">
+      <polygon points="150,92 186,92 168,150" fill="#e0a458" />
+      <path d="M156 100l20 20M162 94l20 20M152 110l14 14M172 96l-16 30M182 96l-22 40" stroke="#b97a2f" strokeWidth="1.5" />
+      <circle cx="168" cy="80" r="21" fill="#fffdf5" />
+      <circle cx="152" cy="90" r="8" fill="#fffdf5" />
+      <circle cx="184" cy="90" r="8" fill="#fffdf5" />
+      <circle cx="161" cy="72" r="4" fill="#fff" />
+    </svg>
+  )
+}
