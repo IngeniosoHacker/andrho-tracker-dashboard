@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { AndRhoBadge, BlipAvatar, PALETTE, VegaAvatar, YellowAd, ZorbAvatar } from '../ui/Avatars.jsx'
 import { logo } from '../../lib/assets.js'
-import { CREATORS_LENGTH } from '../../lib/landing.js'
-import { easeOutCubic, lerp, seg } from '../../lib/motion.js'
+import { CREATORS_LENGTH, CREATORS_TRACK } from '../../lib/landing.js'
+import { easeInOutCubic, easeOutCubic, lerp, seg } from '../../lib/motion.js'
+import { sessionVisitor } from '../../lib/visitor.js'
 import { CREATOR_TERMS } from '../../lib/seo.js'
 
 // Track geometry, in unscaled track pixels. The track is scaled down to fit
@@ -42,17 +43,32 @@ const LINKS = [
 // travels to the client, gets accepted (with a note), becomes a task shown to
 // two matching Creators — one declines and fades away, the other accepts and
 // publishes. Pinned like the stage: `progress` = viewport-heights scrolled
-// into the section (0 → CREATORS_LENGTH) slides the track right to left.
+// into the section — slides the track right to left for the first
+// CREATORS_TRACK, then zooms into the last card, which turns into a promo
+// post (PromoPost) that closes the section.
 export default function Creators({ progress, sectionRef }) {
+  const stickyRef = useRef(null)
   const trackBoxRef = useRef(null)
-  const [box, setBox] = useState({ w: 1280, h: DESIGN_H })
+  const [box, setBox] = useState({ w: 1280, h: DESIGN_H, left: 0, top: 0, vw: 1280, vh: 800, pad: 96 })
+  const [visitor] = useState(sessionVisitor)
 
   useLayoutEffect(() => {
     const el = trackBoxRef.current
-    const measure = () => setBox({ w: el.clientWidth, h: el.clientHeight })
+    const sticky = stickyRef.current
+    const measure = () =>
+      setBox({
+        w: el.clientWidth,
+        h: el.clientHeight,
+        left: el.offsetLeft,
+        top: el.offsetTop,
+        vw: sticky.clientWidth,
+        vh: sticky.clientHeight,
+        pad: parseFloat(getComputedStyle(sticky).paddingTop),
+      })
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(el)
+    ro.observe(sticky)
     return () => ro.disconnect()
   }, [])
 
@@ -60,7 +76,7 @@ export default function Creators({ progress, sectionRef }) {
   const H = box.h / scale
   const visibleW = box.w / scale
   // From "track starts mid-screen" to "last card well inside the screen".
-  const p = Math.min(Math.max(progress / CREATORS_LENGTH, 0), 1)
+  const p = Math.min(Math.max(progress / CREATORS_TRACK, 0), 1)
   const scroll = lerp(-visibleW * 0.45, TRACK_W - visibleW * 0.9, p)
   // Things happen as they cross this line (track coordinates).
   const play = scroll + visibleW * 0.62
@@ -68,10 +84,22 @@ export default function Creators({ progress, sectionRef }) {
   const at = (id, from, to) => seg(play, EVENTS[id].x + from, EVENTS[id].x + to)
   const declined = at('vega', 220, 400)
 
+  // Finale: the result card flies to the center and grows into the post.
+  const zoom = easeInOutCubic(seg(progress, CREATORS_TRACK + 0.1, CREATORS_TRACK + 1.1))
+  const fadeRest = 1 - seg(zoom, 0, 0.55)
+  const result = EVENTS.result
+  const postW = Math.max(240, Math.min(420, box.vw - 32, box.vh - box.pad - 250))
+  const from = {
+    x: box.left + (result.x - scroll) * scale,
+    y: box.top + result.y * H * scale,
+    s: (result.w * scale) / postW,
+  }
+  const to = { x: box.vw / 2, y: box.pad + (box.vh - box.pad) / 2, s: 1 }
+
   return (
     <section ref={sectionRef} id="creators" aria-labelledby="creators-title" className="relative z-10" style={{ height: `calc(${CREATORS_LENGTH} * 100vh + 100svh)` }}>
-      <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden pt-[124px] pb-4 text-white md:pt-[96px]">
-        <header className="mx-auto flex w-full max-w-[83rem] flex-wrap items-end justify-between gap-x-10 gap-y-3 px-5 sm:px-8">
+      <div ref={stickyRef} className="sticky top-0 flex h-[100svh] flex-col overflow-hidden pt-[124px] pb-4 text-white md:pt-[96px]">
+        <header inert={zoom > 0.5} style={{ opacity: fadeRest }} className="mx-auto flex w-full max-w-[83rem] flex-wrap items-end justify-between gap-x-10 gap-y-3 px-5 sm:px-8">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[var(--mint)]">Creators · la red de AndRho</p>
             <h2 id="creators-title" className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -87,7 +115,7 @@ export default function Creators({ progress, sectionRef }) {
           </p>
         </header>
 
-        <div ref={trackBoxRef} className="relative mt-4 min-h-0 flex-1">
+        <div ref={trackBoxRef} inert={zoom > 0.5} className="relative mt-4 min-h-0 flex-1" style={{ opacity: fadeRest }}>
           <div
             className="absolute inset-0"
             style={{
@@ -138,7 +166,7 @@ export default function Creators({ progress, sectionRef }) {
                 <Card ev="ad" H={H} show={at('ad', -300, -110)}>
                   <AdCard published={at('ad', 0, 80)} />
                 </Card>
-                <Card ev="result" H={H} show={at('result', -300, -110)}>
+                <Card ev="result" H={H} show={zoom > 0 ? 0 : at('result', -300, -110)}>
                   <ResultCard />
                 </Card>
               </ol>
@@ -147,7 +175,7 @@ export default function Creators({ progress, sectionRef }) {
 
         </div>
 
-        <dl className="mx-auto mt-4 hidden w-full max-w-[83rem] grid-cols-2 gap-x-8 gap-y-3 px-5 sm:grid sm:px-8 lg:grid-cols-4">
+        <dl style={{ opacity: fadeRest }} className="mx-auto mt-4 hidden w-full max-w-[83rem] grid-cols-2 gap-x-8 gap-y-3 px-5 sm:grid sm:px-8 lg:grid-cols-4">
           {CREATOR_TERMS.map((item) => (
             <div key={item.term} className="border-l-2 border-[var(--mint)]/60 pl-3">
               <dt className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-white">{item.term}</dt>
@@ -155,6 +183,18 @@ export default function Creators({ progress, sectionRef }) {
             </div>
           ))}
         </dl>
+
+        {zoom > 0 && (
+          <Finale
+            zoom={zoom}
+            width={postW}
+            x={lerp(from.x, to.x, zoom)}
+            y={lerp(from.y, to.y, zoom)}
+            scale={lerp(from.s, to.s, zoom)}
+            rot={lerp(result.rot, 0, zoom)}
+            handle={visitor?.handle}
+          />
+        )}
       </div>
     </section>
   )
@@ -408,5 +448,116 @@ function ResultCard() {
       </div>
       <p className="mt-2.5 text-xs text-[var(--color-ink-soft)]">Y el ciclo vuelve a empezar: AndRho sigue midiendo.</p>
     </div>
+  )
+}
+
+// The zooming card: the result card (scaled to the post's width) cross-fades
+// into the promo post as it flies to the center of the screen.
+function Finale({ zoom, width, x, y, scale, rot, handle }) {
+  const card = 1 - seg(zoom, 0.3, 0.6)
+  const post = seg(zoom, 0.3, 0.65)
+  const k = width / EVENTS.result.w
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ opacity: zoom, background: 'radial-gradient(60% 55% at 50% 58%, rgba(127,220,195,0.22), transparent 70%)' }}
+      />
+      <div
+        className="absolute top-0 left-0"
+        style={{ width, transform: `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${rot}deg) scale(${scale})` }}
+      >
+        <div inert={zoom < 0.9} style={{ opacity: post }}>
+          <PromoPost handle={handle} width={width} />
+        </div>
+        {card > 0 && (
+          <div
+            aria-hidden="true"
+            className="absolute top-1/2 left-1/2 overflow-hidden rounded-2xl border border-black/5 bg-white text-[var(--color-ink)]"
+            style={{ width: EVENTS.result.w, opacity: card, transform: `translate(-50%, -50%) scale(${k})`, boxShadow: '0 30px 60px -20px rgba(0,0,0,0.65)' }}
+          >
+            <ResultCard />
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+// AndRho's own ad, dressed as an Instagram post — posted by the visitor when
+// we know who they are (their session, lib/visitor.js), by AndRho otherwise.
+function PromoPost({ handle, width }) {
+  const own = Boolean(handle)
+  const name = handle || 'andrho'
+  const cta = own ? { label: 'Ir a mi panel', href: '/dashboard/' } : { label: 'Crear mi cuenta', href: '/signup.html' }
+  return (
+    <article aria-labelledby="crecer-title" className="overflow-hidden rounded-2xl bg-white text-[var(--color-ink)] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.8)]">
+      <header className="flex items-center gap-3 px-3.5 py-2.5">
+        {own ? (
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--window-teal)] font-display text-sm font-bold text-white uppercase">
+            {name[0]}
+          </span>
+        ) : (
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface)]">
+            <img src={logo.mark} alt="" className="h-5 w-5 object-contain" />
+          </span>
+        )}
+        <div className="min-w-0 flex-1 leading-tight">
+          <p className="truncate text-sm font-bold">{name}</p>
+          <p className="text-[11px] text-[var(--color-muted)]">Patrocinado · con AndRho</p>
+        </div>
+        <span aria-hidden="true" className="font-bold tracking-widest text-[var(--color-muted)]">···</span>
+      </header>
+
+      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: PALETTE.mintSoft }}>
+        <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full" aria-hidden="true">
+          <circle cx="350" cy="60" r="90" fill={PALETTE.yellow} />
+          <circle cx="40" cy="380" r="70" fill={PALETTE.coral} opacity="0.9" />
+          <path d="M24 42l14-14 14 14 14-14 14 14" stroke={PALETTE.ink} strokeWidth="4" fill="none" strokeLinejoin="round" />
+          <polygon points="330,300 372,370 288,370" fill={PALETTE.violet} />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <rect key={i} x={150 + i * 40} y={330 - (i + 1) * 30} width="26" height={(i + 1) * 30 + 40} rx="5" fill={i === 4 ? PALETTE.teal : '#ffffff'} />
+          ))}
+          <path d="M150 290 L190 262 L230 270 L270 222 L320 176" stroke={PALETTE.ink} strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <polygon points="320,160 332,186 306,182" fill={PALETTE.ink} />
+        </svg>
+        <div className="absolute inset-0 flex flex-col p-[7%]">
+          <span className="flex w-fit items-center gap-1.5 rounded-full bg-white/85 px-2.5 py-1 font-mono text-[10px] font-bold tracking-[0.2em] uppercase">
+            <img src={logo.mark} alt="" className="h-3.5 w-3.5 object-contain" />
+            AndRho
+          </span>
+          <h2
+            id="crecer-title"
+            className="mt-[6%] max-w-[85%] font-display leading-[0.95] font-bold tracking-tight"
+            style={{ fontSize: Math.round(width * 0.105) }}
+          >
+            ¿Estás listo para empezar a crecer?
+          </h2>
+        </div>
+      </div>
+
+      <a href={cta.href} className="flex items-center justify-between bg-[var(--color-ink)] px-3.5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1f2937]">
+        {cta.label}
+        <span aria-hidden="true">→</span>
+      </a>
+
+      <div className="px-3.5 pt-2.5 pb-3.5">
+        <div aria-hidden="true" className="flex items-center gap-3.5 text-lg">
+          <span className="text-[#ef4444]">♥</span>
+          <span>💬</span>
+          <span>↗</span>
+          <span className="ml-auto">⌑</span>
+        </div>
+        <p className="mt-1.5 text-xs font-bold">1,204 Me gusta</p>
+        <p className="mt-1 text-xs leading-snug">
+          <span className="font-bold">{name}</span> Sitio web, redes, Odoo y Creators en una sola cuenta. Tú apruebas, nosotros
+          lo hacemos crecer.{' '}
+          <a href="/waitlist.html" className="font-semibold text-[var(--window-teal)] underline-offset-2 hover:underline">
+            #ListaDeEspera
+          </a>
+        </p>
+      </div>
+    </article>
   )
 }
