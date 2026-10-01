@@ -46,10 +46,6 @@ export default function Hero({ morph: t, titleRef, wordRefs }) {
           Conecta y entiende tu negocio
         </p>
 
-        <div style={rest} className="mt-6 min-h-[3.5rem] font-mono text-sm text-[var(--color-muted)] sm:text-base">
-          <TextType text={TYPE_LINES} cursorClassName="text-[var(--blue)]" />
-        </div>
-
         {/* Opacity only (no translate): the bold words' in-flow position is
             the measured start point of their flight into the navbar. */}
         <p style={{ opacity: rest.opacity }} className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-[var(--color-ink-soft)]">
@@ -66,10 +62,6 @@ export default function Hero({ morph: t, titleRef, wordRefs }) {
             Saber más ↓
           </MagnetButton>
         </div>
-
-        <p style={rest} className="mt-10 font-mono text-xs text-[var(--color-faint)]">
-          Sin humo. Con progreso público en GitHub.
-        </p>
       </div>
     </div>
   )
