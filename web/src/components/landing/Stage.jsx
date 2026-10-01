@@ -140,7 +140,7 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
             className="pointer-events-none absolute inset-0"
             style={{
               opacity: easeOutCubic(seg(t, 0.35, 0.65)),
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(226, 232, 240, 0.76) 55%, rgba(214, 240, 232, 0.8))',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03) 55%, rgba(127, 220, 195, 0.06))',
               backdropFilter: 'blur(24px) saturate(150%)',
               WebkitBackdropFilter: 'blur(24px) saturate(150%)',
             }}
@@ -151,8 +151,8 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
         {WINDOWS.filter((w) => w.bare).map((win) => {
           const Body = WINDOW_CONTENT[win.id]
           return (
-            <BareScene key={win.id} labelledBy={`${win.id}-title`} opacity={windowOpacity(win, t).opacity} light={GLASS}>
-              <Body light={GLASS} />
+            <BareScene key={win.id} labelledBy={`${win.id}-title`} opacity={windowOpacity(win, t).opacity}>
+              <Body />
             </BareScene>
           )
         })}
