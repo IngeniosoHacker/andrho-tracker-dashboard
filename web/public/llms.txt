@@ -2,6 +2,8 @@
 
 > AndRho es una plataforma de análisis de datos para pequeñas y medianas empresas (pymes) en Guatemala. Unifica los datos de las distintas áreas de la empresa —principalmente el ERP y el marketing—, los analiza de forma constante con modelos estadísticos y matemáticos, y usa inteligencia artificial para interpretar los resultados y explicarlos en lenguaje claro.
 
+Con una sola cuenta de AndRho, el negocio también puede pedir el desarrollo de su sitio web, el manejo de sus redes sociales, la implementación de Odoo como ERP y la adquisición de hardware especializado (puntos de venta, lectores, impresoras, sensores).
+
 AndRho no usa agentes autónomos de IA. El análisis lo hacen modelos estadísticos y matemáticos; la inteligencia artificial actúa como traductora entre esos resultados y el usuario final, y también permite hacer cambios visuales dentro del sistema. AndRho se adapta a la operación de cada negocio: se conecta a las herramientas que la empresa ya usa en lugar de obligarla a migrar. Está pensado para comercios y retail, restaurantes, empresas de servicios, manufactura, logística y salud.
 
 ## Qué hace
@@ -12,6 +14,18 @@ AndRho no usa agentes autónomos de IA. El análisis lo hacen modelos estadísti
 - Reportes de marketing, ventas, inventarios y KPIs.
 - Tráfico de buscadores y palabras clave orgánicas.
 - Visibilidad en IA: visitas de rastreadores de IA, visitas que llegan desde asistentes como ChatGPT o Perplexity, tendencia diaria y meta mensual, y una revisión de qué tan preparado está el sitio para buscadores e IA.
+
+## IA con criterio
+
+1. Monitorea (modelos): revisa el ERP, el sitio y las redes de forma constante.
+2. Analiza (modelos): estadística real sobre tendencias, demanda, precios e inventario.
+3. Sugiere (IA): la IA traduce el resultado en una propuesta clara.
+4. Aceptas (cliente): nada se ejecuta sin la aprobación del cliente, que puede añadir notas.
+5. Ejecuta (Creators): diseñadores y programadores reales hacen el trabajo a tiempo.
+
+## Creators
+
+Los Creators son diseñadores y programadores suscritos a AndRho. Las tareas nacen de sugerencias aceptadas por el cliente o de requerimientos directos; AndRho las muestra a los Creators disponibles que mejor encajan, cada uno decide si la acepta, y la plataforma gestiona el tiempo de entrega.
 
 ## Páginas
 

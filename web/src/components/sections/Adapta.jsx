@@ -1,6 +1,6 @@
 import { illustrations } from '../../lib/assets.js'
 
-// Window 2 (from sections.pdf, page 2).
+// Window view, opens the "adapta" group (from sections.pdf, page 2).
 export default function Adapta() {
   return (
     <div className="grid items-center gap-6 p-6 sm:p-10 md:grid-cols-[1fr_1.1fr] md:gap-12 md:p-14 lg:p-16">

@@ -6,8 +6,11 @@ const LINK_GROUPS = [
     heading: 'Explora',
     links: [
       { label: 'Relájate', href: '/#relajate' },
+      { label: 'IA con criterio', href: '/#ia-con-criterio' },
       { label: 'Adapta a tu operación', href: '/#adapta' },
+      { label: 'Todo en una cuenta', href: '/#todo-en-una-cuenta' },
       { label: 'Que no te deje la nave', href: '/#nave' },
+      { label: 'Creators', href: '/#creators' },
       { label: 'Juego', href: '/#juego' },
     ],
   },
@@ -57,8 +60,8 @@ export default function Footer() {
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm text-white/55">
-              Análisis de datos con inteligencia artificial para pymes en Guatemala. El departamento de Big Data que tu
-              empresa no sabía que necesitaba.
+              Análisis de datos con inteligencia artificial para pymes en Guatemala: sitio web, redes, Odoo, hardware y
+              Creators en una sola cuenta.
             </p>
           </div>
 

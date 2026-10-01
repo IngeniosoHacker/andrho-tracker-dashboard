@@ -1,6 +1,5 @@
-// Window between "Relájate" and "Adapta a tu operación" — the target of
-// Relájate's "Cómo funciona" button. Not in the navbar (while it's open the
-// "relájate" link stays highlighted, see `nav` in lib/landing.js).
+// Window view (group "relájate") — the target of Relájate's "Cómo funciona"
+// button.
 const STEPS = [
   {
     title: 'Unifica',
@@ -41,8 +40,8 @@ export default function ComoFunciona() {
         <a href="/signup.html" className="btn-solid sm:flex-1">
           Comenzar
         </a>
-        <a href="#adapta" className="btn-outline sm:flex-1">
-          Ver cómo se adapta
+        <a href="#ia-con-criterio" className="btn-outline sm:flex-1">
+          ¿Y la IA?
         </a>
       </div>
     </div>

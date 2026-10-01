@@ -6,15 +6,17 @@
 //   - JSON-LD (Organization, WebSite, SoftwareApplication, FAQPage)
 //   - a static, semantic copy of the page inside #root (replaced by React on
 //     load; hidden for JS browsers to avoid a flash, readable by everyone else)
-// The visible FAQ (Footer.jsx) reads FAQ from here too, so the FAQPage schema
-// always matches what's on the page.
+// The visible FAQ (Footer.jsx), the AI flow (IaConCriterio.jsx), the services
+// (TodoEnUnaCuenta.jsx) and the Creators glossary (Creators.jsx) read their
+// copy from here too, so the schema and the static copy always match what's
+// on the page.
 export const SITE = {
   url: 'https://andrho.com',
   name: 'AndRho',
   locale: 'es_GT',
   title: 'AndRho: análisis de datos con IA para pymes en Guatemala',
   description:
-    'AndRho unifica los datos de tu ERP y tu marketing, los analiza con modelos estadísticos y la IA te los traduce en decisiones claras. Para pymes en Guatemala.',
+    'AndRho unifica los datos de tu ERP y tu marketing, los analiza con modelos estadísticos y la IA te los traduce en decisiones claras. Sitio web, redes, Odoo y Creators en una sola cuenta.',
   ogImage: 'https://andrho.com/images/og/andrho-og.png',
   instagram: 'https://www.instagram.com/andrho.gt/',
   github: 'https://github.com/IngeniosoHacker/andrho',
@@ -35,7 +37,15 @@ export const FAQ = [
   },
   {
     q: '¿AndRho usa agentes de inteligencia artificial?',
-    a: 'No. AndRho no usa agentes autónomos: el análisis lo hacen modelos estadísticos y matemáticos sobre tus datos unificados. La inteligencia artificial se usa para interpretar esos resultados y servirte de traductor, y para hacer cambios visuales dentro del sistema.',
+    a: 'No. AndRho no usa agentes autónomos: el análisis lo hacen modelos estadísticos y matemáticos sobre tus datos unificados. La inteligencia artificial se usa para interpretar esos resultados y servirte de traductor, y para hacer cambios visuales dentro del sistema. Ninguna sugerencia se ejecuta sin tu aprobación.',
+  },
+  {
+    q: '¿AndRho también hace mi sitio web, mis redes y mi ERP?',
+    a: 'Sí. Con tu cuenta de AndRho puedes pedir el desarrollo de tu sitio web, el manejo de tus redes sociales, la implementación de Odoo como ERP y la adquisición del hardware especializado que necesites (puntos de venta, lectores, impresoras). Todo queda conectado a tu panel.',
+  },
+  {
+    q: '¿Qué es un Creator de AndRho?',
+    a: 'Un Creator es un diseñador o programador suscrito a la plataforma. Recibe tareas que nacen de las sugerencias que tú aceptas o de tus requerimientos directos; AndRho se las muestra a los Creators disponibles que mejor encajan, y ellos deciden si las aceptan. El tiempo de entrega se gestiona dentro de AndRho.',
   },
   {
     q: '¿AndRho mide si mi negocio aparece en Google, ChatGPT y otras IA?',
@@ -50,6 +60,52 @@ export const FAQ = [
 // Business activities cycled in the "Relájate" window ("Encárgate de …").
 // The last one is the joke.
 export const ACTIVITIES = ['vender', 'construir', 'cocinar', 'diseñar', 'enseñar', 'atender a tus clientes', '¿estafar?']
+
+// The monitoring → execution flow (IaConCriterio.jsx). `who` = who does the
+// step; the AI only owns one of them.
+export const FLOW = [
+  { title: 'Monitorea', who: 'Modelos', body: 'Revisamos tu ERP, tu sitio y tus redes de forma constante.' },
+  { title: 'Analiza', who: 'Modelos', body: 'Estadística real: tendencias, demanda, precios e inventario.' },
+  { title: 'Sugiere', who: 'IA', body: 'La IA traduce el resultado en una propuesta clara.' },
+  { title: 'Aceptas', who: 'Tú', body: 'Nada se ejecuta sin tu visto bueno. Puedes añadir notas.' },
+  { title: 'Ejecuta', who: 'Creators', body: 'Diseñadores y programadores reales lo hacen a tiempo.' },
+]
+
+// What one AndRho account covers besides the panel (TodoEnUnaCuenta.jsx).
+export const SERVICES = [
+  {
+    id: 'web',
+    title: 'Sitio web',
+    body: 'Diseñamos y desarrollamos tu sitio, listo para Google y para las inteligencias artificiales.',
+    tags: ['SEO', 'llms.txt', 'Tracker'],
+  },
+  {
+    id: 'redes',
+    title: 'Redes sociales',
+    body: 'Contenido, campañas y publicación en Instagram, Facebook y WhatsApp Business.',
+    tags: ['Meta', 'Campañas', 'Calendario'],
+  },
+  {
+    id: 'erp',
+    title: 'ERP con Odoo',
+    body: 'Implementamos Odoo: ventas, inventario, facturación y CRM, conectados a tu panel.',
+    tags: ['Inventario', 'Facturación', 'CRM'],
+  },
+  {
+    id: 'hardware',
+    title: 'Hardware',
+    body: 'Conseguimos el equipo especializado para AndRho: puntos de venta, lectores, impresoras y sensores.',
+    tags: ['POS', 'Escáneres', 'Sensores'],
+  },
+]
+
+// Small glossary under the Creators timeline (Creators.jsx).
+export const CREATOR_TERMS = [
+  { term: 'Creator', body: 'Diseñador o programador suscrito a AndRho que recibe tareas de negocios reales.' },
+  { term: 'Match', body: 'AndRho muestra cada tarea a los Creators disponibles que mejor encajan con ella.' },
+  { term: 'Aprobación', body: 'Tú aceptas cada sugerencia y puedes dejar notas antes de que alguien trabaje.' },
+  { term: 'A tiempo', body: 'Cada tarea tiene fecha de entrega y AndRho gestiona el tiempo de principio a fin.' },
+]
 
 export function jsonLd() {
   const org = {
@@ -89,6 +145,9 @@ export function jsonLd() {
           'Cambios visuales dentro del sistema asistidos por inteligencia artificial',
           'Reportes de ventas, inventarios, marketing y KPIs',
           'Tráfico de buscadores, palabras clave orgánicas y visibilidad en inteligencia artificial',
+          'Sugerencias que se ejecutan solo con la aprobación del cliente',
+          'Red de Creators (diseñadores y programadores) que ejecutan las tareas',
+          ...SERVICES.map((s) => `${s.title}: ${s.body}`),
         ],
         publisher: { '@id': org['@id'] },
       },
@@ -122,12 +181,33 @@ export function staticLandingHtml() {
     </ol>
   </section>
   <section>
+    <h2>IA con criterio, no a lo loco</h2>
+    <p>La IA no adivina tus números ni decide por ti. Cada paso lo hace quien mejor lo sabe hacer.</p>
+    <ol>
+      ${FLOW.map((f) => `<li><strong>${esc(f.title)} (${esc(f.who)}):</strong> ${esc(f.body)}</li>`).join('\n      ')}
+    </ol>
+  </section>
+  <section>
     <h2>Software que se adapta a tu operación</h2>
     <p>Sincronizar la vida real con el sistema a veces es imposible. Por eso AndRho se adapta a cómo ya trabaja tu negocio, en lugar de obligarte a cambiar.</p>
   </section>
   <section>
+    <h2>Una cuenta, todo tu negocio</h2>
+    <p>Además del panel, con tu cuenta de AndRho construimos y operamos las piezas que tu negocio necesita:</p>
+    <ul>
+      ${SERVICES.map((s) => `<li><strong>${esc(s.title)}:</strong> ${esc(s.body)}</li>`).join('\n      ')}
+    </ul>
+  </section>
+  <section>
     <h2>Que no te deje la nave: lista de espera</h2>
     <p>Estamos por despegar. <a href="/waitlist.html">Únete a la lista de espera de AndRho</a> y asegura tu lugar antes del lanzamiento.</p>
+  </section>
+  <section>
+    <h2>Creators: personas reales, a tiempo</h2>
+    <p>Las tareas nacen de las sugerencias que aceptas o de tus requerimientos directos. AndRho las muestra a los Creators disponibles que mejor encajan; cada uno decide si la acepta.</p>
+    <dl>
+      ${CREATOR_TERMS.map((c) => `<dt>${esc(c.term)}</dt><dd>${esc(c.body)}</dd>`).join('\n      ')}
+    </dl>
   </section>
   <section>
     <h2>Preguntas frecuentes</h2>

@@ -1,35 +1,18 @@
 import { createRef, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Hero from '../sections/Hero.jsx'
-import Relajate from '../sections/Relajate.jsx'
-import ComoFunciona from '../sections/ComoFunciona.jsx'
-import Adapta from '../sections/Adapta.jsx'
-import LaNave from '../sections/LaNave.jsx'
 import ScrambleLogo from '../ui/ScrambleLogo.jsx'
-import { DesktopWindow } from './WindowFrame.jsx'
-import { MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH, WINDOWS } from '../../lib/landing.js'
-import { easeInOutCubic, easeOutBack, easeOutCubic, lerp, mixColor, seg } from '../../lib/motion.js'
+import LandingWindow from './LandingWindow.jsx'
+import { MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH, VIEWS } from '../../lib/landing.js'
+import { easeInOutCubic, easeOutBack, lerp, mixColor, seg } from '../../lib/motion.js'
 
 const HERO_WORDS = NAV_LINKS.filter((l) => l.fromHero)
 
-const WINDOW_CONTENT = {
-  relajate: Relajate,
-  'como-funciona': ComoFunciona,
-  adapta: Adapta,
-  nave: LaNave,
-}
-
-// 0..1 visibility of a window at `t`, plus its "opening" progress for scale.
-export function windowOpacity(win, t) {
-  const opening = easeOutCubic(seg(t, win.fadeIn[0], win.fadeIn[1]))
-  const closing = win.fadeOut ? seg(t, win.fadeOut[0], win.fadeOut[1]) : 0
-  return { opacity: opening * (1 - closing), opening, closing }
-}
-
 // The pinned part of the landing: one sticky viewport that first shows the
-// hero, then folds it into the navbar, then opens the section windows one
-// by one over the space wallpaper. The page scrolls past it into the game
-// once `t` reaches STAGE_LENGTH. See lib/landing.js for the timeline.
+// hero, then folds it into the navbar, then opens the one big window over
+// the space wallpaper, whose views slide inside it (LandingWindow.jsx). The
+// page scrolls past it into the Creators timeline once `t` reaches
+// STAGE_LENGTH. See lib/landing.js for the timeline.
 export default function Stage({ t, sky, stageRef, navRefs }) {
   const stickyRef = useRef(null)
   const titleRef = useRef(null)
@@ -92,34 +75,21 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <Hero morph={morph} titleRef={titleRef} wordRefs={wordRefs} />
 
-        {/* The desktop: windows over the wallpaper, below the taskbar. */}
+        {/* The desktop: the window over the wallpaper, below the taskbar. */}
         <div className="pointer-events-none absolute inset-x-0 bottom-3 top-[116px] px-3 sm:bottom-5 sm:px-6 md:top-[84px]">
-          {WINDOWS.map((win) => {
-            const { opacity, opening, closing } = windowOpacity(win, t)
-            const Body = WINDOW_CONTENT[win.id]
-            return (
-              <DesktopWindow
-                key={win.id}
-                labelledBy={`${win.id}-title`}
-                opacity={opacity}
-                scale={0.94 + 0.06 * opening - 0.02 * closing}
-              >
-                <Body />
-              </DesktopWindow>
-            )
-          })}
+          <LandingWindow t={t} />
         </div>
       </div>
 
-      {/* Nav targets: plain anchors at the scroll offset where each window is
-          fully open, so #relajate / #adapta / #nave work natively. */}
-      {WINDOWS.map((win) => (
+      {/* Nav targets: plain anchors at the scroll offset where each view is
+          settled, so #relajate / #adapta / #nave work natively. */}
+      {VIEWS.map((view) => (
         <span
-          key={win.id}
-          id={win.id}
+          key={view.id}
+          id={view.id}
           aria-hidden="true"
           className="pointer-events-none absolute left-0 h-px w-px"
-          style={{ top: `calc(${win.anchor} * 100vh)` }}
+          style={{ top: `calc(${view.anchor} * 100vh)` }}
         />
       ))}
 

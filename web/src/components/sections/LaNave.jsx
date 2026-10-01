@@ -1,6 +1,6 @@
 import BoardingIllustration from '../ui/BoardingIllustration.jsx'
 
-// Window 3 — the waitlist call. Not in sections.pdf: built in the same
+// Window view, the "la nave" group — the waitlist call. Not in sections.pdf: built in the same
 // language as the two windows before it (big heading, short copy, black
 // primary + outlined secondary, flat mint illustration).
 export default function LaNave() {

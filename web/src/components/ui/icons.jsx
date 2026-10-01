@@ -85,3 +85,40 @@ export function SpinnerIcon(props) {
     </svg>
   )
 }
+
+// Service icons for the "Todo en una cuenta" window view.
+export function GlobeIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z" />
+    </svg>
+  )
+}
+
+export function MegaphoneIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 10v4a1 1 0 0 0 1 1h2l8 4.5V4.5L7 9H5a1 1 0 0 0-1 1Z" />
+      <path d="M8 15l1.2 4.5h2.3L10.6 15M18.5 9.5a3.5 3.5 0 0 1 0 5" />
+    </svg>
+  )
+}
+
+export function BoxesIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.5 13.5h7v7h-7zM13.5 13.5h7v7h-7zM8.5 3.5h7v7h-7z" />
+    </svg>
+  )
+}
+
+export function ChipIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="6" y="6" width="12" height="12" rx="1.5" />
+      <rect x="9.5" y="9.5" width="5" height="5" />
+      <path d="M9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5" />
+    </svg>
+  )
+}

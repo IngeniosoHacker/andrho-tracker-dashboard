@@ -2,7 +2,7 @@ import TextType from '../ui/TextType.jsx'
 import { illustrations } from '../../lib/assets.js'
 import { ACTIVITIES } from '../../lib/seo.js'
 
-// Window 1 (from sections.pdf, page 1). "vender" types through different
+// Window view, opens the "relájate" group (from sections.pdf, page 1). "vender" types through different
 // business activities (lib/seo.js ACTIVITIES), ending on a joke.
 export default function Relajate() {
   return (
