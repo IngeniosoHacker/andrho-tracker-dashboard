@@ -176,10 +176,6 @@ body {
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
-/* The astronaut is ink line art: invert it so the lines read on the dark sky. */
-.glass-scope img[src*="astronaut-puzzle"] {
-  filter: invert(0.92) hue-rotate(180deg);
-}
 .glass-scope .btn-solid {
   background: #ffffff;
   color: var(--night);

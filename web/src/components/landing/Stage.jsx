@@ -130,6 +130,7 @@ export default function Stage({ t, stageRef, navRefs }) {
               <DesktopWindow
                 key={win.id}
                 labelledBy={`${win.id}-title`}
+                framed={win.framed}
                 opacity={opacity}
                 scale={0.94 + 0.06 * opening - 0.02 * closing}
               >

@@ -16,14 +16,15 @@
 // highlighted while the window is open (windows without their own link).
 // ("Windows" are the sections; none has a frame — they sit on the stage's
 // glass backdrop.) `bare` ones fill the whole viewport instead of the
-// desktop area below the navbar.
+// desktop area below the navbar; `framed` ones keep the light window frame
+// on top of the glass (the astronaut's black-and-white art needs it).
 export const MORPH_LENGTH = 0.6
 
 export const WINDOWS = [
   { id: 'relajate', fadeIn: [0.5, 0.8], fadeOut: [1.5, 1.65], anchor: 0.9 },
   { id: 'como-funciona', nav: 'relajate', fadeIn: [1.65, 1.8], fadeOut: [2.45, 2.6], anchor: 1.9 },
   { id: 'ia-con-criterio', nav: 'relajate', bare: true, fadeIn: [2.6, 2.8], fadeOut: [3.75, 3.85], anchor: 2.9 },
-  { id: 'adapta', fadeIn: [3.85, 4.0], fadeOut: [4.55, 4.7], anchor: 4.05 },
+  { id: 'adapta', framed: true, fadeIn: [3.85, 4.0], fadeOut: [4.55, 4.7], anchor: 4.05 },
   { id: 'todo-en-una-cuenta', nav: 'adapta', fadeIn: [4.7, 4.85], fadeOut: [5.5, 5.65], anchor: 4.95 },
   { id: 'nave', fadeIn: [5.65, 5.8], anchor: 5.9 },
 ]

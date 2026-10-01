@@ -22,9 +22,9 @@ export default function WindowFrame({ children, className = '', style, contentSt
 
 // A section placed on the stage: centered in the desktop area, faded and
 // slightly scaled. It's a `plain` WindowFrame — no frame, just its content
-// on the stage's glass backdrop. Hidden sections are inert so keyboard and
-// screen-reader users only ever reach the open one.
-export function DesktopWindow({ opacity, scale, labelledBy, children }) {
+// on the stage's glass backdrop — unless `framed`. Hidden sections are inert
+// so keyboard and screen-reader users only ever reach the open one.
+export function DesktopWindow({ opacity, scale, labelledBy, framed = false, children }) {
   const open = opacity > 0.5
   return (
     <div
@@ -36,7 +36,7 @@ export function DesktopWindow({ opacity, scale, labelledBy, children }) {
     >
       {/* The desktop area is click-through (it overlaps the hero); only the
           open section itself takes pointer events. */}
-      <WindowFrame plain className={open ? 'pointer-events-auto' : ''} style={{ transform: `scale(${scale})` }}>
+      <WindowFrame plain={!framed} className={open ? 'pointer-events-auto' : ''} style={{ transform: `scale(${scale})` }}>
         {children}
       </WindowFrame>
     </div>
