@@ -1,6 +1,7 @@
 import { NAV_LINKS } from '../../lib/landing.js'
 import { easeOutBack, mixColor, seg } from '../../lib/motion.js'
 import { logo } from '../../lib/assets.js'
+import { GLASS } from '../../lib/variant.js'
 
 // The landing's "taskbar". At morph=0 only the login button exists (top-right of
 // the white hero); as the hero folds up (`morph` 0 → 1) the bar's glass
@@ -15,7 +16,9 @@ export default function SiteHeader({ morph = Infinity, sky = 1, activeId = null,
   const formed = morph >= 1
   const bar = seg(morph, 0.62, 1)
   const logoPop = formed ? 1 : Math.max(0, easeOutBack(seg(morph, 0.78, 0.92)))
-  const ink = mixColor('#0b1020', '#ffffff', sky)
+  // The glass version (lib/variant.js) keeps a white bar with dark ink.
+  const ink = GLASS ? '#0b1020' : mixColor('#0b1020', '#ffffff', sky)
+  const line = GLASS ? '11, 16, 32' : '255, 255, 255'
 
   return (
     <header className="fixed inset-x-3 top-3 z-50 sm:inset-x-4">
@@ -24,11 +27,11 @@ export default function SiteHeader({ morph = Infinity, sky = 1, activeId = null,
         className="mx-auto max-w-6xl rounded-2xl border"
         style={{
           color: ink,
-          backgroundColor: `rgba(8, 14, 36, ${0.74 * bar})`,
-          borderColor: `rgba(255, 255, 255, ${0.12 * bar})`,
+          backgroundColor: GLASS ? `rgba(255, 255, 255, ${0.92 * bar})` : `rgba(8, 14, 36, ${0.74 * bar})`,
+          borderColor: `rgba(${line}, ${0.12 * bar})`,
           backdropFilter: bar > 0.01 ? `blur(${14 * bar}px)` : 'none',
           WebkitBackdropFilter: bar > 0.01 ? `blur(${14 * bar}px)` : 'none',
-          boxShadow: `0 18px 50px -24px rgba(0, 0, 0, ${0.6 * bar})`,
+          boxShadow: `0 18px 50px -24px rgba(0, 0, 0, ${(GLASS ? 0.35 : 0.6) * bar})`,
         }}
       >
         <div className="flex flex-wrap items-center gap-x-6 px-4 sm:px-5">
@@ -59,7 +62,7 @@ export default function SiteHeader({ morph = Infinity, sky = 1, activeId = null,
           <ul
             inert={morph < 0.9}
             className="order-3 flex h-10 w-full items-center justify-center gap-5 border-t md:order-2 md:h-14 md:w-auto md:flex-1 md:gap-9 md:border-t-0"
-            style={{ borderColor: `rgba(255, 255, 255, ${0.08 * bar})` }}
+            style={{ borderColor: `rgba(${line}, ${0.08 * bar})` }}
           >
             {NAV_LINKS.map((link) => {
               const active = link.id === activeId
@@ -70,11 +73,11 @@ export default function SiteHeader({ morph = Infinity, sky = 1, activeId = null,
                     ref={refs?.links?.[link.id]}
                     href={`${base}#${link.id}`}
                     aria-current={active ? 'true' : undefined}
-                    className="block whitespace-nowrap text-sm font-semibold transition-colors hover:text-white"
+                    className={`block whitespace-nowrap text-sm font-semibold transition-colors ${GLASS ? 'hover:text-[var(--color-ink)]' : 'hover:text-white'}`}
                     style={{
                       opacity,
                       transform: link.fromHero || formed ? undefined : `translateY(${(1 - opacity) * 6}px)`,
-                      color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                      color: active ? (GLASS ? '#0b1020' : '#ffffff') : `rgba(${line}, ${GLASS ? 0.6 : 0.7})`,
                     }}
                   >
                     {link.label}
@@ -94,8 +97,8 @@ export default function SiteHeader({ morph = Infinity, sky = 1, activeId = null,
             className="order-2 ml-auto rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors md:order-3 md:ml-0"
             style={{
               color: ink,
-              borderColor: mixColor('#0b1020', '#5b6b8f', sky),
-              backgroundColor: `rgba(255, 255, 255, ${0.06 * bar})`,
+              borderColor: GLASS ? '#cbd5e1' : mixColor('#0b1020', '#5b6b8f', sky),
+              backgroundColor: GLASS ? 'transparent' : `rgba(255, 255, 255, ${0.06 * bar})`,
             }}
           >
             Iniciar sesión

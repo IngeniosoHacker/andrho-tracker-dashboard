@@ -10,6 +10,7 @@ import LaNave from '../sections/LaNave.jsx'
 import ScrambleLogo from '../ui/ScrambleLogo.jsx'
 import { BareScene, DesktopWindow } from './WindowFrame.jsx'
 import { MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH, WINDOWS } from '../../lib/landing.js'
+import { GLASS } from '../../lib/variant.js'
 import { easeInOutCubic, easeOutBack, easeOutCubic, lerp, mixColor, seg } from '../../lib/motion.js'
 
 const HERO_WORDS = NAV_LINKS.filter((l) => l.fromHero)
@@ -25,7 +26,8 @@ const WINDOW_CONTENT = {
 
 // 0..1 visibility of a window at `t`, plus its "opening" progress for scale.
 export function windowOpacity(win, t) {
-  const opening = easeOutCubic(seg(t, win.fadeIn[0], win.fadeIn[1]))
+  const fadeIn = (GLASS && win.fadeInPlain) || win.fadeIn
+  const opening = easeOutCubic(seg(t, fadeIn[0], fadeIn[1]))
   const closing = win.fadeOut ? seg(t, win.fadeOut[0], win.fadeOut[1]) : 0
   return { opacity: opening * (1 - closing), opening, closing }
 }
@@ -129,12 +131,28 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <Hero morph={morph} titleRef={titleRef} wordRefs={wordRefs} />
 
+        {/* Glass version: one frosted backdrop behind every section, instead
+            of a window per section. It leaves with the stage, so it ends
+            right before the Creators timeline. */}
+        {GLASS && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              opacity: easeOutCubic(seg(t, 0.35, 0.65)),
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(226, 232, 240, 0.76) 55%, rgba(214, 240, 232, 0.8))',
+              backdropFilter: 'blur(24px) saturate(150%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+            }}
+          />
+        )}
+
         {/* Bare scenes fill the whole viewport, under the framed windows. */}
         {WINDOWS.filter((w) => w.bare).map((win) => {
           const Body = WINDOW_CONTENT[win.id]
           return (
-            <BareScene key={win.id} labelledBy={`${win.id}-title`} opacity={windowOpacity(win, t).opacity}>
-              <Body />
+            <BareScene key={win.id} labelledBy={`${win.id}-title`} opacity={windowOpacity(win, t).opacity} light={GLASS}>
+              <Body light={GLASS} />
             </BareScene>
           )
         })}
@@ -144,16 +162,18 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
           {WINDOWS.filter((w) => !w.bare).map((win) => {
             const { opacity, opening, closing } = windowOpacity(win, t)
             const Body = WINDOW_CONTENT[win.id]
-            const emerge = win.emergeFrom ? easeInOutCubic(seg(t, win.fadeIn[0], win.fadeIn[1])) : null
+            // No frames to grow in the glass version: everything cross-fades.
+            const emerge = win.emergeFrom && !GLASS ? easeInOutCubic(seg(t, win.fadeIn[0], win.fadeIn[1])) : null
             return (
               <DesktopWindow
                 key={win.id}
                 frameRef={frameRefs[win.id]}
                 labelledBy={`${win.id}-title`}
-                opacity={win.emergeFrom ? (emerge > 0 ? 1 - closing : 0) : opacity}
+                opacity={emerge !== null ? (emerge > 0 ? 1 - closing : 0) : opacity}
                 scale={0.94 + 0.06 * opening - 0.02 * closing}
                 emerge={emerge}
                 from={emergeInsets[win.id]}
+                plain={GLASS}
               >
                 <Body />
               </DesktopWindow>
@@ -198,7 +218,7 @@ function FlyingLayer({ morph: t, sky, geo }) {
   const y = lerp(title.from.cy, title.to.cy, toCenter)
   // Interpolate scale in log space so the shrink reads as even.
   const scale = Math.exp(lerp(0, Math.log(title.scale), toCenter))
-  const ink = mixColor('#0b1020', '#ffffff', sky)
+  const ink = GLASS ? '#0b1020' : mixColor('#0b1020', '#ffffff', sky)
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60]">
@@ -221,7 +241,7 @@ function FlyingLayer({ morph: t, sky, geo }) {
             className="absolute left-0 top-0 whitespace-nowrap font-semibold leading-normal"
             style={{
               fontSize: `${word.fontSize}px`,
-              color: mixColor('#0b1020', '#ffffff', sky),
+              color: ink,
               opacity: lerp(1, 0.7, p),
               transform: `translate(${wx}px, ${wy}px) translate(-50%, -50%) scale(${ws})`,
             }}

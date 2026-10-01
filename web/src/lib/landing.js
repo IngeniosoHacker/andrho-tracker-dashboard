@@ -17,14 +17,15 @@
 // `bare` windows have no frame: their content fills the whole viewport,
 // straight on the wallpaper. `emergeFrom` = a window that doesn't fade in but
 // grows out of an element of that (bare) window — the element marked with
-// `data-emerge` (see Stage.jsx).
+// `data-emerge` (see Stage.jsx); `fadeInPlain` is its plain fade for when it
+// can't grow (the glass version, lib/variant.js), after the source is gone.
 export const MORPH_LENGTH = 0.6
 
 export const WINDOWS = [
   { id: 'relajate', fadeIn: [0.5, 0.8], fadeOut: [1.5, 1.65], anchor: 0.9 },
   { id: 'como-funciona', nav: 'relajate', fadeIn: [1.65, 1.8], fadeOut: [2.45, 2.6], anchor: 1.9 },
   { id: 'ia-con-criterio', nav: 'relajate', bare: true, fadeIn: [2.6, 2.8], fadeOut: [3.75, 3.85], anchor: 2.9 },
-  { id: 'adapta', emergeFrom: 'ia-con-criterio', fadeIn: [3.45, 3.85], fadeOut: [4.55, 4.7], anchor: 3.95 },
+  { id: 'adapta', emergeFrom: 'ia-con-criterio', fadeIn: [3.45, 3.85], fadeInPlain: [3.85, 4.0], fadeOut: [4.55, 4.7], anchor: 3.95 },
   { id: 'todo-en-una-cuenta', nav: 'adapta', fadeIn: [4.7, 4.85], fadeOut: [5.5, 5.65], anchor: 4.95 },
   { id: 'nave', fadeIn: [5.65, 5.8], anchor: 5.9 },
 ]
