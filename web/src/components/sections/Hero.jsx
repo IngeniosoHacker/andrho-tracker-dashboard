@@ -3,19 +3,8 @@ import MagnetButton from '../ui/MagnetButton.jsx'
 import ScrambleLogo from '../ui/ScrambleLogo.jsx'
 import { seg } from '../../lib/motion.js'
 
-// Module-level so re-rendering on every scroll frame doesn't restart TextType.
-const TYPE_LINES = [
-  '> conectando tu ERP...',
-  '> aplicando modelos estadísticos...',
-  '> unificando WhatsApp y web-tracker...',
-  '> traduciendo datos en decisiones...',
-]
 
-// The white hero, pinned inside the landing stage (Stage.jsx). As soon as the
-// visitor scrolls (t > 0) the title and the bold words hand off to flying
-// copies that travel into the navbar — here they just leave an invisible
-// placeholder behind (`titleRef` / `wordRefs` mark where they start) — and
-// everything else fades out.
+
 export default function Hero({ morph: t, titleRef, wordRefs }) {
   const moving = t > 0.001
   const fade = seg(t, 0, 0.3)
