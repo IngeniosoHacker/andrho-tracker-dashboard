@@ -1,11 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
 import Relajate from '../sections/Relajate.jsx'
 import ComoFunciona from '../sections/ComoFunciona.jsx'
 import IaConCriterio from '../sections/IaConCriterio.jsx'
 import Adapta from '../sections/Adapta.jsx'
 import TodoEnUnaCuenta from '../sections/TodoEnUnaCuenta.jsx'
 import LaNave from '../sections/LaNave.jsx'
-import { GROUPS, VIEWS, WINDOW_OPEN, gridOffset, viewPosition } from '../../lib/landing.js'
-import { easeOutCubic, seg } from '../../lib/motion.js'
+import { GROUPS } from '../../lib/landing.js'
 
 const VIEW_CONTENT = {
   relajate: Relajate,
@@ -16,8 +16,11 @@ const VIEW_CONTENT = {
   nave: LaNave,
 }
 
-// Small print scrolling along the bottom edge of the window: what an AndRho
-// account covers, as plain text (decorative for people, useful for search).
+const VIEW_IDS = GROUPS.flatMap((g) => g.views)
+const groupOf = (viewId) => GROUPS.find((g) => g.views.includes(viewId))
+
+// Small print along the bottom edge of the window: what an AndRho account
+// covers, as plain text (decorative for people, useful for search).
 const COVERAGE = [
   'ERP Odoo',
   'Meta Business',
@@ -32,58 +35,87 @@ const COVERAGE = [
   'Hardware especializado',
 ]
 
-// The one big window of the landing. It opens once after the hero morph and
-// stays open until the stage scrolls away; what changes is the view inside it. Views live on a grid — one
-// row per group (GROUPS in lib/landing.js), one column per view — and the
-// grid slides under the window: sideways within a group, up to the next
-// group. The tab bar on top names the groups so the visitor always knows
-// which chapter they're in.
-export default function LandingWindow({ t }) {
-  const opacity = easeOutCubic(seg(t, WINDOW_OPEN[0], WINDOW_OPEN[1]))
-  const open = opacity > 0.5
+// The view whose top has crossed the upper part of the viewport, or null
+// while the window hasn't reached it yet.
+function useCurrentView() {
+  const [current, setCurrent] = useState(null)
+  useEffect(() => {
+    let raf = 0
+    function update() {
+      raf = 0
+      const line = window.innerHeight * 0.45
+      let found = null
+      for (const id of VIEW_IDS) {
+        const el = document.getElementById(id)
+        if (el && el.getBoundingClientRect().top <= line) found = id
+      }
+      setCurrent(found)
+    }
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+    }
+  }, [])
+  return current
+}
 
-  const pos = viewPosition(t)
-  const current = VIEWS[Math.round(pos)]
-  const { y, rowX } = gridOffset(pos)
+// The one big window of the landing: a single tall panel that rises from
+// below once the hero has folded into the navbar (its negative top margin
+// tucks it under the end of the pinned stage) and then scrolls like the rest
+// of the page. Its views are stacked top to bottom, grouped into chapters
+// (GROUPS in lib/landing.js); the tab bar sticks under the navbar and shows
+// which chapter — and which view inside it — is on screen.
+export default function LandingWindow({ onGroupChange }) {
+  const current = useCurrentView()
+  const group = current ? groupOf(current).id : null
+  const reported = useRef(undefined)
+
+  useEffect(() => {
+    if (reported.current !== group) {
+      reported.current = group
+      onGroupChange?.(group)
+    }
+  }, [group, onGroupChange])
 
   return (
-    <div
-      inert={!open}
-      className="absolute inset-0 flex items-stretch justify-center"
-      style={{ opacity, visibility: opacity < 0.001 ? 'hidden' : 'visible' }}
-    >
+    <div className="relative z-20 -mt-[calc(100svh-128px)] px-3 sm:px-6 md:-mt-[calc(100svh-96px)]">
       <article
         aria-label="AndRho"
-        className={`flex h-full w-full max-w-[83rem] flex-col overflow-hidden rounded-3xl border border-white/15 bg-[var(--window-bg)] text-[var(--color-ink)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.75)] ${open ? 'pointer-events-auto' : ''}`}
-        style={{ transform: `scale(${0.94 + 0.06 * opacity})` }}
+        className="mx-auto max-w-[83rem] overflow-clip rounded-3xl border border-white/15 bg-[var(--window-bg)] text-[var(--color-ink)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.75)]"
       >
-        <WindowTabs current={current} pos={pos} />
+        <WindowTabs current={current} />
 
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          <div className="h-full will-change-transform" style={{ transform: `translateY(${-y * 100}%)` }}>
-            {GROUPS.map((group, row) => (
-              <div key={group.id} className="h-full overflow-hidden">
-                <div className="flex h-full will-change-transform" style={{ transform: `translateX(${-rowX[row] * 100}%)` }}>
-                  {group.views.map((id) => {
-                    const Body = VIEW_CONTENT[id]
-                    return (
-                      <section
-                        key={id}
-                        aria-labelledby={`${id}-title`}
-                        inert={id !== current.id}
-                        className="no-scrollbar flex h-full w-full shrink-0 overflow-y-auto"
-                      >
-                        <div className="my-auto w-full">
-                          <Body />
-                        </div>
-                      </section>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
+        {GROUPS.map((g, i) => (
+          <div key={g.id}>
+            <div className="flex items-center gap-3 px-6 pt-10 font-mono text-[11px] tracking-[0.25em] text-[var(--color-ink-soft)] uppercase sm:px-10 md:px-12">
+              <span className="text-[var(--window-teal)]">0{i + 1}</span>
+              {g.label}
+              <span aria-hidden="true" className="h-px flex-1 bg-[var(--window-line)]" />
+            </div>
+            {g.views.map((id) => {
+              const Body = VIEW_CONTENT[id]
+              return (
+                <section
+                  key={id}
+                  id={id}
+                  aria-labelledby={`${id}-title`}
+                  className="flex scroll-mt-[168px] items-center md:min-h-[calc(100svh-150px)] md:scroll-mt-[140px]"
+                >
+                  <div className="w-full">
+                    <Body />
+                  </div>
+                </section>
+              )
+            })}
           </div>
-        </div>
+        ))}
 
         <CoverageStrip />
       </article>
@@ -91,21 +123,24 @@ export default function LandingWindow({ t }) {
   )
 }
 
-// Chapter tabs + where you are inside the chapter. Tabs are plain links to
-// each group's anchor, so they double as in-window navigation.
-function WindowTabs({ current, pos }) {
-  const group = GROUPS.find((g) => g.id === current.group)
+// Chapter tabs + where you are inside the chapter. Sticks right under the
+// navbar while the window scrolls; tabs are plain links to each group. The
+// ::before strip hides content peeking between the navbar and the bar (the
+// article's overflow-clip trims it before the bar sticks).
+function WindowTabs({ current }) {
+  const group = current ? groupOf(current) : GROUPS[0]
+  const index = current ? group.views.indexOf(current) : -1
   return (
-    <div className="flex h-11 shrink-0 items-center gap-3 border-b border-[var(--window-line)] bg-[var(--window-bar)] px-3 sm:h-12 sm:px-5">
+    <div className="sticky top-[116px] z-10 flex h-11 before:absolute before:inset-x-0 before:bottom-full before:h-[140px] before:bg-[var(--window-bg)] items-center gap-3 rounded-t-3xl border-b border-[var(--window-line)] bg-[var(--window-bar)] px-3 sm:h-12 sm:px-5 md:top-[84px]">
       <nav aria-label="Capítulos" className="no-scrollbar flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
         {GROUPS.map((g, i) => {
-          const active = g.id === current.group
+          const active = current && g.id === group.id
           return (
             <a
               key={g.id}
               href={`#${g.id}`}
               aria-current={active ? 'true' : undefined}
-              className={`flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors sm:px-3 ${
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-1.5 font-mono text-[11px] tracking-[0.18em] uppercase transition-colors sm:px-3 ${
                 active ? 'bg-white text-[var(--color-ink)] shadow-sm' : 'text-[var(--color-ink-soft)] hover:bg-white/50'
               }`}
             >
@@ -116,17 +151,14 @@ function WindowTabs({ current, pos }) {
         })}
       </nav>
 
-      {/* Progress through the current group's views. */}
+      {/* Which view of the current group is on screen. */}
       <div aria-hidden="true" className="flex shrink-0 items-center gap-1.5">
-        {group.views.map((id) => {
-          const view = VIEWS.find((v) => v.id === id)
-          const fill = Math.min(Math.max(pos - view.index + 1, 0), 1)
-          return (
-            <span key={id} className="relative h-1.5 w-3.5 overflow-hidden rounded-full bg-[var(--window-line)] sm:w-7">
-              <span className="absolute inset-y-0 left-0 rounded-full bg-[var(--window-teal)]" style={{ width: `${fill * 100}%` }} />
-            </span>
-          )
-        })}
+        {group.views.map((id, i) => (
+          <span
+            key={id}
+            className={`h-1.5 w-3.5 rounded-full transition-colors duration-300 sm:w-7 ${i <= index ? 'bg-[var(--window-teal)]' : 'bg-[var(--window-line)]'}`}
+          />
+        ))}
       </div>
     </div>
   )
@@ -144,7 +176,7 @@ function CoverageStrip() {
     </ul>
   )
   return (
-    <div className="flex h-8 shrink-0 items-center overflow-hidden border-t border-[var(--window-line)] bg-[var(--window-bar)] font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--color-ink-soft)] sm:h-9">
+    <div className="mt-6 flex h-9 items-center overflow-hidden border-t border-[var(--window-line)] bg-[var(--window-bar)] font-mono text-[10px] tracking-[0.2em] text-[var(--color-ink-soft)] uppercase">
       <p className="sr-only">Una cuenta de AndRho incluye:</p>
       <div className="animate-marquee flex w-max">
         {items(false)}

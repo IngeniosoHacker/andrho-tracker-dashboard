@@ -10,13 +10,9 @@ import { CREATOR_TERMS } from '../../lib/seo.js'
 const TRACK_W = 2720
 const DESIGN_H = 620
 
-// Lanes = who acts. Cards sit on (or near) their actor's lane.
-const LANES = [
-  { label: 'AndRho', y: 0.16 },
-  { label: 'Cliente', y: 0.4 },
-  { label: 'Creator', y: 0.64 },
-  { label: 'Creator', y: 0.86 },
-]
+// Lanes = who acts (AndRho, client, creator, creator), as fractions of the
+// track height. Cards sit on (or near) their actor's lane.
+const LANES = [0.16, 0.4, 0.64, 0.86]
 
 // The story, left to right. `x`/`y` = card center (y as a fraction of the
 // track height), `rot` = resting tilt in degrees. Times are part of the
@@ -92,18 +88,6 @@ export default function Creators({ progress, sectionRef }) {
         </header>
 
         <div ref={trackBoxRef} className="relative mt-4 min-h-0 flex-1">
-          {/* Lane labels stay put while the track slides over them. */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 hidden sm:block">
-            {LANES.map((lane, i) => (
-              <span
-                key={i}
-                className="absolute left-5 -translate-y-1/2 rounded-full border border-white/15 bg-[#0a1330]/80 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] whitespace-nowrap text-white/60 backdrop-blur sm:left-8"
-                style={{ top: lane.y * box.h }}
-              >
-                {lane.label}
-              </span>
-            ))}
-          </div>
           <div
             className="absolute inset-0"
             style={{
@@ -186,8 +170,8 @@ function Lines({ H, play, declined }) {
           <rect x="-50" y="-50" width={Math.max(0, play + 50)} height={H + 100} />
         </clipPath>
       </defs>
-      {LANES.map((lane, i) => (
-        <line key={i} x1="0" x2={TRACK_W} y1={lane.y * H} y2={lane.y * H} stroke="rgba(255,255,255,0.09)" strokeDasharray="2 10" strokeWidth="2" />
+      {LANES.map((y) => (
+        <line key={y} x1="0" x2={TRACK_W} y1={y * H} y2={y * H} stroke="rgba(255,255,255,0.09)" strokeDasharray="2 10" strokeWidth="2" />
       ))}
       <g clipPath="url(#creators-drawn)" fill="none" strokeLinecap="round">
         {LINKS.map(([a, b]) => {

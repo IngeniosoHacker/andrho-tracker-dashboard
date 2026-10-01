@@ -2,17 +2,14 @@ import { createRef, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Hero from '../sections/Hero.jsx'
 import ScrambleLogo from '../ui/ScrambleLogo.jsx'
-import LandingWindow from './LandingWindow.jsx'
-import { MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH, VIEWS } from '../../lib/landing.js'
+import { MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH } from '../../lib/landing.js'
 import { easeInOutCubic, easeOutBack, lerp, mixColor, seg } from '../../lib/motion.js'
 
 const HERO_WORDS = NAV_LINKS.filter((l) => l.fromHero)
 
-// The pinned part of the landing: one sticky viewport that first shows the
-// hero, then folds it into the navbar, then opens the one big window over
-// the space wallpaper, whose views slide inside it (LandingWindow.jsx). The
-// page scrolls past it into the Creators timeline once `t` reaches
-// STAGE_LENGTH. See lib/landing.js for the timeline.
+// The pinned part of the landing: one sticky viewport that shows the hero,
+// then folds it into the navbar while the sky turns to space. The big
+// window (LandingWindow.jsx) rises over its end; see lib/landing.js.
 export default function Stage({ t, sky, stageRef, navRefs }) {
   const stickyRef = useRef(null)
   const titleRef = useRef(null)
@@ -74,24 +71,7 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
     >
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <Hero morph={morph} titleRef={titleRef} wordRefs={wordRefs} />
-
-        {/* The desktop: the window over the wallpaper, below the taskbar. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 top-[116px] px-3 sm:bottom-5 sm:px-6 md:top-[84px]">
-          <LandingWindow t={t} />
-        </div>
       </div>
-
-      {/* Nav targets: plain anchors at the scroll offset where each view is
-          settled, so #relajate / #adapta / #nave work natively. */}
-      {VIEWS.map((view) => (
-        <span
-          key={view.id}
-          id={view.id}
-          aria-hidden="true"
-          className="pointer-events-none absolute left-0 h-px w-px"
-          style={{ top: `calc(${view.anchor} * 100vh)` }}
-        />
-      ))}
 
       {morphing && createPortal(<FlyingLayer morph={morph} sky={sky} geo={geo} />, document.body)}
     </div>
