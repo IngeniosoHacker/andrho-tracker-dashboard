@@ -162,8 +162,8 @@ body {
   background: var(--cyan-soft);
 }
 
-/* Glass version (the default, lib/variant.js): section content sits on clear
-   glass over the dark sky instead of a light window, so flip its palette. */
+/* The landing's sections sit on clear glass over the dark sky (Stage.jsx)
+   instead of a light window, so flip their palette. */
 .glass-scope {
   --color-ink: #ffffff;
   --color-ink-soft: rgba(255, 255, 255, 0.72);

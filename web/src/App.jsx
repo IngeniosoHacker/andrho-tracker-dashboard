@@ -44,9 +44,9 @@ export default function App() {
   return (
     <div className="antialiased">
       <PixelStarfield mix={sky} />
-      <SiteHeader morph={morph} sky={sky} activeId={activeSection(t, c)} refs={navRefs} />
+      <SiteHeader morph={morph} activeId={activeSection(t, c)} refs={navRefs} />
       <main>
-        <Stage t={t} sky={sky} stageRef={stageRef} navRefs={navRefs} />
+        <Stage t={t} stageRef={stageRef} navRefs={navRefs} />
         <Creators progress={c} sectionRef={creatorsRef} />
         {/* Leaving the "info" desktop: the blue wallpaper fades to black. */}
         <div aria-hidden="true" className="relative z-10 h-[30vh] bg-gradient-to-b from-transparent to-black" />

@@ -17,10 +17,9 @@ const FACTS = [
   { value: '100%', label: 'de las sugerencias pasan por tu aprobación' },
 ]
 
-// Bare scene (no window, straight on the wallpaper): how AndRho uses AI — on
-// purpose, in one step of the flow, instead of everywhere. The last step's
-// card ("Ejecuta") is lit in the window color: the next window grows out of
-// it (`data-emerge`, see Stage.jsx).
+// Bare scene (fills the whole viewport): how AndRho uses AI — on purpose, in
+// one step of the flow, instead of everywhere. The last step's card
+// ("Ejecuta", the Creators) is lit: it's where the work actually happens.
 export default function IaConCriterio() {
   return (
     <div className="flex min-h-full flex-col">
@@ -40,7 +39,6 @@ export default function IaConCriterio() {
             return (
               <li
                 key={step.title}
-                data-emerge={last ? 'ia-con-criterio' : undefined}
                 className={`relative rounded-2xl p-3 sm:p-4 lg:p-5 ${
                   last
                     ? 'bg-[var(--window-bg)] text-[var(--color-ink)]'

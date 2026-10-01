@@ -10,8 +10,7 @@ import LaNave from '../sections/LaNave.jsx'
 import ScrambleLogo from '../ui/ScrambleLogo.jsx'
 import { BareScene, DesktopWindow } from './WindowFrame.jsx'
 import { MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH, WINDOWS } from '../../lib/landing.js'
-import { GLASS } from '../../lib/variant.js'
-import { easeInOutCubic, easeOutBack, easeOutCubic, lerp, mixColor, seg } from '../../lib/motion.js'
+import { easeInOutCubic, easeOutBack, easeOutCubic, lerp, seg } from '../../lib/motion.js'
 
 const HERO_WORDS = NAV_LINKS.filter((l) => l.fromHero)
 
@@ -26,54 +25,22 @@ const WINDOW_CONTENT = {
 
 // 0..1 visibility of a window at `t`, plus its "opening" progress for scale.
 export function windowOpacity(win, t) {
-  const fadeIn = (GLASS && win.fadeInPlain) || win.fadeIn
-  const opening = easeOutCubic(seg(t, fadeIn[0], fadeIn[1]))
+  const opening = easeOutCubic(seg(t, win.fadeIn[0], win.fadeIn[1]))
   const closing = win.fadeOut ? seg(t, win.fadeOut[0], win.fadeOut[1]) : 0
   return { opacity: opening * (1 - closing), opening, closing }
 }
 
-// For windows that grow out of an element (`emergeFrom`, lib/landing.js):
-// that element's box as clip insets [top, right, bottom, left] relative to
-// the emerging window's frame. Measured from layout, so transforms don't
-// matter (the source scene isn't transformed, and emerging frames aren't
-// scaled).
-function useEmergeInsets(frameRefs) {
-  const [insets, setInsets] = useState({})
-  useLayoutEffect(() => {
-    function measure() {
-      const next = {}
-      for (const win of WINDOWS) {
-        if (!win.emergeFrom) continue
-        const frame = frameRefs[win.id].current
-        const source = document.querySelector(`[data-emerge="${win.emergeFrom}"]`)
-        if (!frame || !source) continue
-        const f = frame.getBoundingClientRect()
-        const s = source.getBoundingClientRect()
-        next[win.id] = [s.top - f.top, f.right - s.right, f.bottom - s.bottom, s.left - f.left]
-      }
-      setInsets(next)
-    }
-    measure()
-    window.addEventListener('resize', measure)
-    document.fonts?.ready.then(measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [frameRefs])
-  return insets
-}
-
 // The pinned part of the landing: one sticky viewport that first shows the
-// hero, then folds it into the navbar, then opens the section windows one
-// by one over the space wallpaper — some framed, some bare (filling the
-// screen), one growing out of the bare scene before it. The page scrolls
-// past it into the Creators timeline once `t` reaches STAGE_LENGTH. See
-// lib/landing.js for the timeline.
-export default function Stage({ t, sky, stageRef, navRefs }) {
+// hero, then folds it into the navbar, then shows the sections one by one on
+// a clear frosted-glass backdrop over the space wallpaper — no windows, just
+// the content on the glass. The page scrolls past it into the Creators
+// timeline once `t` reaches STAGE_LENGTH. See lib/landing.js for the
+// timeline.
+export default function Stage({ t, stageRef, navRefs }) {
   const stickyRef = useRef(null)
   const titleRef = useRef(null)
   const [wordRefs] = useState(() => Object.fromEntries(HERO_WORDS.map((l) => [l.id, createRef()])))
   const [geo, setGeo] = useState(null)
-  const [frameRefs] = useState(() => Object.fromEntries(WINDOWS.map((w) => [w.id, createRef()])))
-  const emergeInsets = useEmergeInsets(frameRefs)
 
   // Where each flying element starts (its placeholder in the hero, in
   // sticky-viewport coordinates) and lands (its twin in the navbar, in
@@ -131,11 +98,9 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <Hero morph={morph} titleRef={titleRef} wordRefs={wordRefs} />
 
-        {/* Glass version: one frosted backdrop behind every section, instead
-            of a window per section. It leaves with the stage, so it ends
-            right before the Creators timeline. */}
-        {GLASS && (
-          <div
+        {/* One frosted backdrop behind every section. It leaves with the
+            stage, so it ends right before the Creators timeline. */}
+        <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0"
             style={{
@@ -145,9 +110,8 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
               WebkitBackdropFilter: 'blur(24px) saturate(150%)',
             }}
           />
-        )}
 
-        {/* Bare scenes fill the whole viewport, under the framed windows. */}
+        {/* Bare scenes fill the whole viewport, under the other sections. */}
         {WINDOWS.filter((w) => w.bare).map((win) => {
           const Body = WINDOW_CONTENT[win.id]
           return (
@@ -157,23 +121,17 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
           )
         })}
 
-        {/* The desktop: framed windows over the wallpaper, below the taskbar. */}
+        {/* The desktop: the other sections, centered below the taskbar. */}
         <div className="pointer-events-none absolute inset-x-0 bottom-3 top-[116px] px-3 sm:bottom-5 sm:px-6 md:top-[84px]">
           {WINDOWS.filter((w) => !w.bare).map((win) => {
             const { opacity, opening, closing } = windowOpacity(win, t)
             const Body = WINDOW_CONTENT[win.id]
-            // No frames to grow in the glass version: everything cross-fades.
-            const emerge = win.emergeFrom && !GLASS ? easeInOutCubic(seg(t, win.fadeIn[0], win.fadeIn[1])) : null
             return (
               <DesktopWindow
                 key={win.id}
-                frameRef={frameRefs[win.id]}
                 labelledBy={`${win.id}-title`}
-                opacity={emerge !== null ? (emerge > 0 ? 1 - closing : 0) : opacity}
+                opacity={opacity}
                 scale={0.94 + 0.06 * opening - 0.02 * closing}
-                emerge={emerge}
-                from={emergeInsets[win.id]}
-                plain={GLASS}
               >
                 <Body />
               </DesktopWindow>
@@ -194,7 +152,7 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
         />
       ))}
 
-      {morphing && createPortal(<FlyingLayer morph={morph} sky={sky} geo={geo} />, document.body)}
+      {morphing && createPortal(<FlyingLayer morph={morph} geo={geo} />, document.body)}
     </div>
   )
 }
@@ -202,7 +160,7 @@ export default function Stage({ t, sky, stageRef, navRefs }) {
 // Copies of the hero title and bold words that travel into the navbar.
 // Portaled to <body> and fixed above the header (z-50), so they're drawn on
 // top of the forming bar instead of inside the stage's stacking context.
-function FlyingLayer({ morph: t, sky, geo }) {
+function FlyingLayer({ morph: t, geo }) {
   const { title } = geo
 
   // Title: shrink while rising to the center of the bar, slide left until it
@@ -218,7 +176,8 @@ function FlyingLayer({ morph: t, sky, geo }) {
   const y = lerp(title.from.cy, title.to.cy, toCenter)
   // Interpolate scale in log space so the shrink reads as even.
   const scale = Math.exp(lerp(0, Math.log(title.scale), toCenter))
-  const ink = GLASS ? '#0b1020' : mixColor('#0b1020', '#ffffff', sky)
+  // Dark ink: they land on the white navbar.
+  const ink = '#0b1020'
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60]">
