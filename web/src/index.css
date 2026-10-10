@@ -204,6 +204,36 @@ select:focus-visible {
   outline-offset: 3px;
 }
 
+/* Waitlist wizard (waitlist.html): each question is a card that slides out
+   sideways like a dealt card while the next one comes in from the other
+   side; between them a big message fades in and out. */
+@keyframes card-out-next {
+  to { transform: translateX(-112%) rotate(-7deg) scale(0.94); opacity: 0.3; }
+}
+@keyframes card-in-next {
+  from { transform: translateX(112%) rotate(7deg) scale(0.94); opacity: 0.3; }
+}
+@keyframes card-out-prev {
+  to { transform: translateX(112%) rotate(7deg) scale(0.94); opacity: 0.3; }
+}
+@keyframes card-in-prev {
+  from { transform: translateX(-112%) rotate(-7deg) scale(0.94); opacity: 0.3; }
+}
+.card-out-next { animation: card-out-next 0.42s cubic-bezier(0.5, 0, 0.75, 0) forwards; }
+.card-out-prev { animation: card-out-prev 0.42s cubic-bezier(0.5, 0, 0.75, 0) forwards; }
+.card-in-next { animation: card-in-next 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.card-in-prev { animation: card-in-prev 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+@keyframes verdict {
+  0% { opacity: 0; transform: scale(0.96); filter: blur(8px); }
+  22%, 72% { opacity: 1; transform: scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: scale(1.04); filter: blur(6px); }
+}
+.verdict { animation: verdict 1.7s ease-in-out forwards; }
+.verdict-good { color: #fff; text-shadow: 0 0 40px rgba(0, 230, 184, 0.55); }
+.verdict-warn { color: #ffe1d3; text-shadow: 0 0 40px rgba(255, 122, 69, 0.55); }
+.verdict-neutral { color: #fff; text-shadow: 0 0 40px rgba(96, 165, 250, 0.45); }
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
