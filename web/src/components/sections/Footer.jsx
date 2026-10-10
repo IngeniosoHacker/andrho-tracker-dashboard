@@ -1,5 +1,5 @@
 import Logo from '../ui/Logo.jsx'
-import { FAQ } from '../../lib/seo.js'
+import { FAQ, SITE } from '../../lib/seo.js'
 
 const LINK_GROUPS = [
   {
@@ -25,8 +25,9 @@ const LINK_GROUPS = [
   {
     heading: 'Comunidad',
     links: [
-      { label: 'GitHub', href: 'https://github.com/IngeniosoHacker/andrho', external: true },
-      { label: 'Instagram', href: 'https://www.instagram.com/andrho.gt/', external: true },
+      { label: `WhatsApp ${SITE.phone}`, href: SITE.whatsapp, external: true },
+      { label: `Instagram ${SITE.instagramHandle}`, href: SITE.instagram, external: true },
+      { label: 'GitHub', href: SITE.github, external: true },
     ],
   },
 ]

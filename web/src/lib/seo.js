@@ -18,7 +18,10 @@ export const SITE = {
   description:
     'AndRho unifica los datos de tu ERP y tu marketing, los analiza con modelos estadísticos y la IA te los traduce en decisiones claras. Sitio web, redes, Odoo y Creators en una sola cuenta.',
   ogImage: 'https://andrho.com/images/og/andrho-og.png',
-  instagram: 'https://www.instagram.com/andrho.gt/',
+  instagram: 'https://www.instagram.com/andrho.app/',
+  instagramHandle: '@andrho.app',
+  whatsapp: 'https://wa.me/19148889560',
+  phone: '+1 (914) 888-9560',
   github: 'https://github.com/IngeniosoHacker/andrho',
 }
 
@@ -115,6 +118,12 @@ export function jsonLd() {
     url: SITE.url,
     logo: `${SITE.url}/images/logo/andrho-mark.png`,
     sameAs: [SITE.instagram, SITE.github],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      telephone: '+1-914-888-9560',
+      availableLanguage: ['es', 'en'],
+    },
     areaServed: { '@type': 'Country', name: 'Guatemala' },
     description: SITE.description,
   }
@@ -212,6 +221,10 @@ export function staticLandingHtml() {
   <section>
     <h2>Preguntas frecuentes</h2>
     ${FAQ.map(({ q, a }) => `<h3>${esc(q)}</h3>\n    <p>${esc(a)}</p>`).join('\n    ')}
+  </section>
+  <section>
+    <h2>Contacto</h2>
+    <p>WhatsApp: <a href="${SITE.whatsapp}">${esc(SITE.phone)}</a> · Instagram: <a href="${SITE.instagram}">${esc(SITE.instagramHandle)}</a></p>
   </section>
 </main>`
 }
