@@ -5,8 +5,14 @@ import { apiPost } from './authApi.js'
 // show up, how you run things today (and what hurts), where you want to go —
 // and only then the contact details. Answers post to andrho-api's public
 // `POST /waitlist` (waitlist_submissions table) with the same keys as
-// INITIAL_ANSWERS. They also tell us which modules to build first, and give
-// each person a suggested AndRho setup (suggestModules).
+// INITIAL_ANSWERS. They also tell us which modules to build first. The API
+// matches the answers to a plan (POST /waitlist/recommendation, shown as the
+// "Recomendado" badge on the plan question) and builds the suggested AndRho
+// setup shown at the end.
+//
+// Steps adapt to earlier answers: `when` hides a whole step, and `title`,
+// `options`, `note` and `verdict` may be functions of (answers, ctx), where
+// ctx = { recommendation } — see resolveStep.
 //
 // Every step can return a `verdict` — the big message shown between slides.
 // `good` answers get reassurance, answers with room to improve get a light
@@ -70,16 +76,23 @@ const MANAGEMENT = [
 const USES_SOFTWARE = ['software', 'erp', 'varias']
 const NO_SYSTEM = ['papel', 'nada']
 
+// Complaints about "my system" only make sense to someone who has one, and
+// "I don't use any system" only to someone who doesn't.
+function painPointOptions(a) {
+  const hasTool = a.management !== '' && !NO_SYSTEM.includes(a.management)
+  return PAIN_POINTS.filter((o) => o.software === undefined || o.software === hasTool)
+}
+
 const PAIN_POINTS = [
   { value: 'datos_dispersos', label: 'Mi información está regada en muchos lados' },
   { value: 'no_me_dice', label: 'Tengo datos, pero no sé qué hacer con ellos' },
   { value: 'reportes_tarde', label: 'Los reportes llegan tarde o nunca' },
-  { value: 'dificil', label: 'Es difícil de usar' },
-  { value: 'caro', label: 'Es caro para lo que me da' },
-  { value: 'no_conecta', label: 'No se conecta con mis redes ni mi web' },
+  { value: 'dificil', label: 'Mi sistema es difícil de usar', software: true },
+  { value: 'caro', label: 'Mi sistema es caro para lo que me da', software: true },
+  { value: 'no_conecta', label: 'Mi sistema no se conecta con mis redes ni mi web', software: true },
   { value: 'pierdo_control', label: 'Pierdo el control del inventario o del dinero' },
-  { value: 'soporte', label: 'El soporte es lento' },
-  { value: 'sin_sistema', label: 'Todavía no uso ningún sistema' },
+  { value: 'soporte', label: 'El soporte de mi sistema es lento', software: true },
+  { value: 'sin_sistema', label: 'Todavía no uso ningún sistema', software: false },
 ]
 
 export const MODULES = [
@@ -114,9 +127,9 @@ const PLANS = [
     value: 'todo',
     label: 'Todo mi negocio',
     description: 'Todas las áreas en una sola cuenta, con Creators a mi disposición.',
-    badge: 'Recomendado',
   },
 ]
+const PLAN_RANK = { basico: 0, crecer: 1, todo: 2 }
 
 const SATISFACTION = [
   { value: 1, label: 'Nada' },
@@ -430,9 +443,11 @@ export const STEPS = [
     id: 'satisfaction',
     group: 'Tu operación',
     art: 'gauge',
+    // Nothing to rate without a system (paper or "all in my head").
+    when: (a) => !NO_SYSTEM.includes(a.management),
     title: (a) =>
-      NO_SYSTEM.includes(a.management)
-        ? '¿Qué tan satisfecho estás con cómo administras hoy?'
+      a.management === 'excel'
+        ? '¿Qué tan satisfecho estás con tus hojas de cálculo?'
         : '¿Qué tan satisfecho estás con tu software actual?',
     kind: 'rating',
     options: SATISFACTION,
@@ -449,6 +464,7 @@ export const STEPS = [
     id: 'satisfactionReason',
     group: 'Tu operación',
     art: 'gauge',
+    when: (a) => !NO_SYSTEM.includes(a.management),
     title: '¿Por qué?',
     hint: 'Lo bueno y lo malo. Lo leemos todo.',
     kind: 'textarea',
@@ -464,7 +480,7 @@ export const STEPS = [
     title: '¿Qué es lo que más te frena hoy?',
     hint: 'Elige todas las que apliquen.',
     kind: 'multi',
-    options: PAIN_POINTS,
+    options: painPointOptions,
     ...field('painPoints'),
     valid: (a) => a.painPoints.length > 0,
     verdict: () => ({ tone: 'good', text: 'Ese problema tiene los días contados.' }),
@@ -474,8 +490,10 @@ export const STEPS = [
     group: 'Tu operación',
     art: 'tangle',
     title: 'Si pudieras mejorar una sola cosa de tu negocio, ¿cuál sería?',
-    kind: 'textarea',
-    placeholder: 'Ej.: Saber qué productos me dejan más ganancia.',
+    hint: 'En una frase corta.',
+    kind: 'text',
+    maxLength: 70,
+    placeholder: 'Ej.: Saber qué me deja más ganancia',
     ...field('improvement'),
     valid: (a) => a.improvement.trim().length > 1,
     verdict: () => ({ tone: 'good', text: 'Anotado. Ya está en el plan de vuelo.' }),
@@ -516,15 +534,22 @@ export const STEPS = [
     art: 'fleet',
     title: '¿Hasta dónde quieres llegar con AndRho?',
     kind: 'single',
-    options: PLANS,
+    // The badge goes on the plan the API matched to the answers so far.
+    options: (a, { recommendation }) =>
+      PLANS.map((p) => (p.value === recommendation?.plan ? { ...p, badge: 'Recomendado para ti' } : p)),
+    note: (a, { recommendation }) =>
+      recommendation?.reasons?.length ? `Por lo que nos contaste: ${recommendation.reasons.join(' ')}` : '',
     ...field('planInterest'),
     valid: (a) => a.planInterest !== '',
-    verdict: (a) =>
-      a.planInterest === 'todo'
+    // At or above the recommendation: reassurance. Below it: the dinosaur.
+    verdict: (a, { recommendation }) => {
+      const target = PLAN_RANK[recommendation?.plan ?? 'todo']
+      const picked = PLAN_RANK[a.planInterest]
+      if (picked < target) return { tone: 'warn', text: 'El dinosaurio también creyó que tenía tiempo.' }
+      return a.planInterest === 'todo'
         ? { tone: 'good', text: 'Tus hijos te lo agradecerán.' }
-        : a.planInterest === 'crecer'
-          ? { tone: 'good', text: 'Buen paso. El resto del negocio también cuenta.' }
-          : { tone: 'warn', text: 'El dinosaurio también creyó que tenía tiempo.' },
+        : { tone: 'good', text: 'Justo lo que tu negocio necesita.' }
+    },
   },
 
   // — Boarding
@@ -568,6 +593,12 @@ export const INITIAL_ANSWERS = {
 // The steps that apply to these answers (sector questions etc. come and go).
 export const activeSteps = (answers) => STEPS.filter((s) => !s.when || s.when(answers))
 
+// A step with its answer-dependent parts (title, options, note) worked out.
+export function resolveStep(step, answers, ctx) {
+  const at = (v) => (typeof v === 'function' ? v(answers, ctx) : v)
+  return { ...step, title: at(step.title), options: at(step.options), note: at(step.note) ?? '' }
+}
+
 // Toggle `value` in a multi-select list: exclusive options ("ninguna") clear
 // the rest, picking anything else clears them; `max` caps the selection.
 export function toggleOption(list, option, options, max) {
@@ -605,28 +636,6 @@ export const SUGGESTED_MODULE_LABELS = {
   creators: 'Creators: diseñadores y programadores a tu disposición',
 }
 
-// The AndRho setup we'd suggest for these answers: the modules they asked
-// for plus the ones their answers point to. Stored with the submission too.
-export function suggestModules(a) {
-  const out = ['analitica']
-  if (a.painPoints.includes('datos_dispersos') || a.management === 'varias') out.push('unificacion')
-  if (has(['papel', 'excel', 'nada'], a.management)) out.push('erp')
-  out.push(a.hasWebsite === 'si' ? 'tracking' : 'sitio_web')
-  if (a.socialNetworks.includes('ninguna')) out.push('redes_creacion')
-  else if (a.socialNetworks.length) out.push('redes')
-  if (has(a.messagingApps, 'whatsapp', 'whatsapp_business')) out.push('whatsapp')
-  if (a.sectors.includes('restaurantes')) out.push('vencimientos')
-  if (has(a.sectors, 'comercio', 'restaurantes', 'manufactura')) out.push('inventario')
-  if (has(['se_pierde', 'bodega'], a.unsoldHandling)) out.push('mermas')
-  if (a.sectors.includes('servicios')) out.push('agenda')
-  if (a.sectors.includes('manufactura')) out.push('produccion')
-  if (a.sectors.includes('logistica')) out.push('rutas')
-  if (a.sectors.includes('salud')) out.push('citas')
-  for (const m of a.modules) out.push(m === 'sitio_web' && a.hasWebsite === 'si' ? 'tracking' : m)
-  if (a.planInterest === 'todo') out.push('creators')
-  return [...new Set(out)].filter((m) => SUGGESTED_MODULE_LABELS[m])
-}
-
 // Answers to questions that no longer apply (a sector picked, answered, then
 // unpicked) are dropped. Multi-select sector answers are sent as
 // comma-separated strings (sectorAnswers is a flat string map on the API side).
@@ -643,12 +652,21 @@ export function buildSubmission(a) {
     unsoldHandling: has(a.sectors, ...UNSOLD_SECTORS) ? a.unsoldHandling : '',
     websiteUrl: a.hasWebsite === 'si' ? a.websiteUrl : '',
     currentSoftware: USES_SOFTWARE.includes(a.management) ? a.currentSoftware : '',
+    satisfaction: NO_SYSTEM.includes(a.management) ? 0 : a.satisfaction,
+    satisfactionReason: NO_SYSTEM.includes(a.management) ? '' : a.satisfactionReason,
+    painPoints: a.painPoints.filter((v) => painPointOptions(a).some((o) => o.value === v)),
   }
-  return { ...clean, suggestedModules: suggestModules(clean) }
+  return clean
 }
 
-// `submission` = buildSubmission(answers). Throws with a user-facing
-// `.message` on failure.
-export async function joinWaitlist(submission) {
-  await apiPost('/waitlist', submission)
+// `submission` = buildSubmission(answers). Resolves to the API's
+// { id, recommendation: { plan, reasons, suggestedModules } }; throws with a
+// user-facing `.message` on failure.
+export function joinWaitlist(submission) {
+  return apiPost('/waitlist', submission)
+}
+
+// The plan matched to the answers so far: { plan, reasons, suggestedModules }.
+export function fetchRecommendation(answers) {
+  return apiPost('/waitlist/recommendation', buildSubmission(answers))
 }

@@ -113,9 +113,9 @@ function LoginPage() {
             </button>
 
             <p className="text-center text-sm text-[var(--color-muted)]">
-              ¿No tienes cuenta?{' '}
-              <a href="/signup.html" className="text-[var(--blue)] hover:underline">
-                Crea una
+              ¿Aún no tienes acceso?{' '}
+              <a href="/waitlist.html" className="text-[var(--blue)] hover:underline">
+                Únete a la lista de espera
               </a>
             </p>
           </form>

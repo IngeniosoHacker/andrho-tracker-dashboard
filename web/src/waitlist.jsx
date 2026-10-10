@@ -3,11 +3,19 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import SiteHeader from './components/landing/SiteHeader.jsx'
 import PixelStarfield from './components/ui/PixelStarfield.jsx'
-import BoardingIllustration from './components/ui/BoardingIllustration.jsx'
 import SurveyArt from './components/waitlist/SurveyArt.jsx'
 import QuestionControls from './components/waitlist/QuestionControls.jsx'
 import { AlertIcon, SpinnerIcon } from './components/ui/icons.jsx'
-import { INITIAL_ANSWERS, STEPS, SUGGESTED_MODULE_LABELS, activeSteps, buildSubmission, joinWaitlist } from './lib/waitlist.js'
+import {
+  INITIAL_ANSWERS,
+  STEPS,
+  SUGGESTED_MODULE_LABELS,
+  activeSteps,
+  buildSubmission,
+  fetchRecommendation,
+  joinWaitlist,
+  resolveStep,
+} from './lib/waitlist.js'
 import { getDiscountTier, generateDiscountCode } from './lib/discountTiers.js'
 import { submitRegistration } from './lib/gameStorage.js'
 import { prefersReducedMotion } from './lib/motion.js'
@@ -76,13 +84,13 @@ const CARD =
   'absolute inset-0 flex flex-col overflow-hidden rounded-3xl border border-white/15 bg-[var(--window-bg)] text-[var(--color-ink)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.75)]'
 
 function DoneCard({ done, className }) {
-  const { submission, code } = done
+  const { submission, code, modules } = done
   const firstName = submission.name.split(/\s+/)[0]
   return (
     <article aria-labelledby="done-title" className={`${CARD} ${className}`}>
       <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] md:grid-cols-[0.95fr_1.05fr] md:grid-rows-1">
         <div className="flex items-center justify-center bg-white/45 p-4 md:p-10">
-          <BoardingIllustration className="h-[16svh] w-auto md:h-auto md:max-h-[60svh] md:w-full" />
+          <SurveyArt scene="aboard" className="h-[16svh] w-auto md:h-auto md:max-h-[60svh] md:w-full" />
         </div>
         <div className="flex min-h-0 overflow-y-auto p-6 sm:p-10 lg:p-14">
           <div className="my-auto w-full">
@@ -91,11 +99,11 @@ function DoneCard({ done, className }) {
               ¡Estás a bordo, <span className="text-[var(--window-teal)]">{firstName}</span>!
             </h1>
             <p className="mt-4 text-lg leading-snug">
-              Te escribiremos a <strong>{submission.email}</strong> antes del despegue. Con lo que nos contaste, esta es la
-              nave que armaríamos para {submission.company}:
+              Te escribiremos a <strong>{submission.email}</strong> antes del despegue.
+              {modules.length > 0 && ` Con lo que nos contaste, esta es la nave que armaríamos para ${submission.company}:`}
             </p>
             <ul className="mt-6 grid gap-2 sm:grid-cols-2">
-              {submission.suggestedModules.map((m) => (
+              {modules.map((m) => (
                 <li key={m} className="flex items-start gap-2.5 rounded-xl bg-white/70 px-3.5 py-2.5 text-sm font-medium">
                   <span aria-hidden="true" className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--window-teal)] text-white">
                     <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -113,11 +121,11 @@ function DoneCard({ done, className }) {
               </div>
             )}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href="/" className="btn-solid">
-                Volver al inicio
+              <a href="/articulos/" className="btn-solid">
+                Leer mientras despegamos
               </a>
-              <a href="/#juego" className="btn-outline">
-                Jugar mientras despegamos
+              <a href="/" className="btn-outline">
+                Volver al inicio
               </a>
             </div>
           </div>
@@ -138,6 +146,8 @@ function WaitlistPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(null)
+  // { key, data } — the API's plan match for the answers in `key`.
+  const [recommendation, setRecommendation] = useState(null)
 
   const timers = useRef([])
   const pending = useRef(null)
@@ -146,12 +156,29 @@ function WaitlistPage() {
 
   const steps = activeSteps(answers)
   const index = Math.max(0, steps.findIndex((s) => s.id === stepId))
-  const step = steps[index]
+  const ctx = { recommendation: recommendation?.data ?? null }
+  const step = resolveStep(steps[index], answers, ctx)
   const isLast = index === steps.length - 1
   const valid = step.valid(answers)
   const busy = motion.phase === 'out' || motion.phase === 'message' || submitting
 
   useEffect(() => () => timers.current.forEach(clearTimeout), [])
+
+  // Ask the API for the matching plan when the plan question comes up (again
+  // if the answers changed since). Without it the question still works, just
+  // with no badge.
+  const recommendationKey = step.id === 'planInterest' ? JSON.stringify({ ...answers, planInterest: '' }) : null
+  useEffect(() => {
+    if (!recommendationKey || recommendation?.key === recommendationKey) return
+    let cancelled = false
+    fetchRecommendation(answers)
+      .then((data) => !cancelled && setRecommendation({ key: recommendationKey, data }))
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recommendationKey])
 
   useEffect(() => {
     if (!done) saveDraft({ answers, stepId })
@@ -198,8 +225,10 @@ function WaitlistPage() {
     setError('')
     setSubmitting(true)
     const submission = buildSubmission(answers)
+    let modules = []
     try {
-      await joinWaitlist(submission)
+      const res = await joinWaitlist(submission)
+      modules = (res?.recommendation?.suggestedModules ?? []).filter((m) => SUGGESTED_MODULE_LABELS[m])
     } catch (err) {
       setError(err.message || 'No se pudo completar tu registro. Intenta de nuevo.')
       setSubmitting(false)
@@ -220,14 +249,14 @@ function WaitlistPage() {
     }
     saveDraft(null)
     setSubmitting(false)
-    transition(1, () => setDone({ submission, code }), { tone: 'good', text: 'Bienvenido a bordo.' })
+    transition(1, () => setDone({ submission, code, modules }), { tone: 'good', text: 'Bienvenido a bordo.' })
   }
 
   function next() {
     if (busy || !valid) return
     if (isLast) return submit()
     const nextId = steps[index + 1].id
-    transition(1, () => setStepId(nextId), step.verdict?.(answers))
+    transition(1, () => setStepId(nextId), step.verdict?.(answers, ctx))
   }
 
   function back() {
@@ -238,7 +267,7 @@ function WaitlistPage() {
 
   const dirName = motion.dir > 0 ? 'next' : 'prev'
   const cardMotion = motion.phase === 'out' ? `card-out-${dirName}` : motion.phase === 'in' ? `card-in-${dirName}` : ''
-  const title = typeof step.title === 'function' ? step.title(answers) : step.title
+  const title = step.title
   const progress = done ? 100 : Math.round((index / steps.length) * 100)
 
   return (

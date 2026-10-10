@@ -536,6 +536,80 @@ function Fleet() {
   )
 }
 
+// Survey done: the T-rex made it. It sits back in the saucer's dome, eyes on
+// its phone, while the meteor hits the planet it left behind.
+function Aboard() {
+  const burst = Array.from({ length: 16 }, (_, i) => {
+    const a = (i * Math.PI) / 8
+    const r = i % 2 ? 20 : 46
+    return `${150 + r * Math.cos(a)},${271 + r * Math.sin(a)}`
+  }).join(' ')
+  return (
+    <>
+      {/* the old planet, taking the hit */}
+      <circle cx="90" cy="430" r="170" fill="#d9efe7" />
+      <circle cx="90" cy="430" r="170" fill="none" stroke={MINT} strokeWidth="4" />
+      <path d="M-20 300 l18 -22 l18 22 z M10 296 l12 -15 l12 15 z" fill={MINT} opacity="0.8" />
+      <Meteor id="sa-aboard-meteor" x={138} y={252} s={0.9} angle={56} />
+      <polygon className="sa-pulse" points={burst} fill={FIRE_SOFT} />
+      <circle cx="150" cy="271" r="16" fill={FIRE} />
+      {[70, 100].map((r) => (
+        <path key={r} d={`M${150 - r} ${290} Q150 ${250 - r / 3} ${150 + r} ${290}`} fill="none" stroke={FIRE} strokeWidth="3" opacity={0.5 - r / 400} />
+      ))}
+      {[
+        [196, 226, 5],
+        [212, 250, 3],
+        [112, 222, 4],
+        [92, 246, 3],
+      ].map(([cx, cy, r]) => (
+        <circle key={cx} cx={cx} cy={cy} r={r} fill={ROCK} />
+      ))}
+
+      {/* the saucer, already on its way */}
+      <g stroke={MINT} strokeWidth="4" strokeLinecap="round" opacity="0.6">
+        <line x1="200" y1="150" x2="224" y2="150" />
+        <line x1="186" y1="172" x2="222" y2="172" />
+        <line x1="204" y1="194" x2="226" y2="194" />
+      </g>
+      <g className="sa-float">
+        <g transform="translate(310 200)">
+          {/* glass dome with the passenger inside */}
+          <path d="M-78 -10 C-76 -146 76 -146 78 -10 Z" fill={MINT_SOFT} opacity="0.55" />
+          <g transform="translate(-4 -8) scale(0.72)">
+            <path
+              d="M-70 -62 Q-40 -70 -20 -72 C0 -82 20 -80 30 -88 L34 -104 Q36 -112 46 -112 L74 -110 Q80 -109 80 -102 L80 -90 Q78 -82 70 -80 L48 -78 C44 -64 36 -48 20 -38 C6 -30 -16 -32 -26 -42 Q-46 -54 -70 -62 Z"
+              fill={SLATE}
+            />
+            {/* relaxed: half-closed eye, a small smile */}
+            <circle cx="58" cy="-101" r="5" fill={PAPER} />
+            <circle cx="59" cy="-99" r="2" fill={INK} />
+            <path d="M52 -103 a6 6 0 0 1 12 0 z" fill={SLATE} />
+            <path d="M58 -86 q8 4 16 -1" fill="none" stroke={PAPER} strokeWidth="1.8" strokeLinecap="round" />
+            {/* phone, lighting its face */}
+            <ellipse cx="64" cy="-80" rx="12" ry="8" fill={MINT} opacity="0.2" />
+            <g transform="rotate(-24 62 -64)">
+              <rect x="54" y="-78" width="16" height="26" rx="3" fill={INK} />
+              <rect x="56" y="-75" width="12" height="18" rx="1.5" fill={MINT} />
+              <rect x="58" y="-72" width="8" height="2" fill={PAPER} />
+              <rect x="58" y="-67" width="6" height="2" fill={PAPER} />
+            </g>
+            <path d="M36 -62 L50 -60 L58 -66" fill="none" stroke={SLATE} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+          <path d="M-78 -10 C-76 -146 76 -146 78 -10" fill="none" stroke={PAPER} strokeWidth="3" opacity="0.7" />
+          <path d="M-50 -70 Q-40 -96 -16 -106" fill="none" stroke={PAPER} strokeWidth="5" strokeLinecap="round" opacity="0.8" />
+          <ellipse cx="0" cy="0" rx="124" ry="30" fill={TEAL} />
+          <ellipse cx="0" cy="-8" rx="124" ry="16" fill={MINT} />
+          {[-80, -40, 0, 40, 80].map((cx) => (
+            <circle key={cx} cx={cx} cy="10" r="6" fill={LIGHT} />
+          ))}
+        </g>
+      </g>
+      <Dots x={380} y={300} cols={6} rows={3} />
+      <Sparkles at={[[40, 60, true], [250, 50], [440, 70, true], [420, 260]]} />
+    </>
+  )
+}
+
 const SCENES = {
   orbit: Orbit,
   crew: Crew,
@@ -548,6 +622,7 @@ const SCENES = {
   puzzle: Puzzle,
   target: Target,
   fleet: Fleet,
+  aboard: Aboard,
 }
 
 export default function SurveyArt({ scene, className = '' }) {

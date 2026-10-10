@@ -31,7 +31,8 @@ Los Creators son diseñadores y programadores suscritos a AndRho. Las tareas nac
 
 - [Inicio](https://andrho.com/): qué es AndRho y cómo funciona.
 - [Lista de espera](https://andrho.com/waitlist.html): reservar un lugar antes del lanzamiento.
-- [Crear cuenta](https://andrho.com/signup.html): registro para usar el panel.
+- [Artículos](https://andrho.com/articulos/): guías y opinión sobre tecnología para pymes.
+- [Por qué el software libre le conviene a tu empresa](https://andrho.com/articulos/software-libre.html)
 
 ## Contacto
 

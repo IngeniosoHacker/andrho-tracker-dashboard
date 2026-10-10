@@ -145,29 +145,36 @@ export default function QuestionControls({ step, answers, setAnswers, onSubmitKe
       return (
         <>
           <Single step={step} value={value} onChange={onChange} labelledBy={labelledBy} />
-          <Note>{step.note?.(answers)}</Note>
+          <Note>{step.note}</Note>
         </>
       )
     case 'multi':
       return (
         <>
           <Multi step={step} value={value} onChange={onChange} labelledBy={labelledBy} />
-          <Note>{step.note?.(answers)}</Note>
+          <Note>{step.note}</Note>
         </>
       )
     case 'rating':
       return <Rating step={step} value={value} onChange={onChange} labelledBy={labelledBy} />
     case 'text':
       return (
-        <TextInput
-          aria-labelledby={labelledBy}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={enter}
-          placeholder={step.placeholder}
-          maxLength={300}
-          className="!py-3.5 !text-base"
-        />
+        <>
+          <TextInput
+            aria-labelledby={labelledBy}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={enter}
+            placeholder={step.placeholder}
+            maxLength={step.maxLength ?? 300}
+            className="!py-3.5 !text-base"
+          />
+          {step.maxLength && (
+            <p className="mt-2 text-right font-mono text-xs text-[var(--color-muted)]">
+              {value.length}/{step.maxLength}
+            </p>
+          )}
+        </>
       )
     case 'textarea':
       return (

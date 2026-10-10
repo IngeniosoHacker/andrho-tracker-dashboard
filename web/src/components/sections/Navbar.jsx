@@ -23,7 +23,7 @@ export default function Navbar({ page = 'home' }) {
           </a>
         </div>
 
-        {/* Login + register are one pair, login immediately before register */}
+        {/* Login + the waiting list (no public sign-up while AndRho is in development) */}
         <div className="flex items-center gap-3">
           {page !== 'login' && (
             <a
@@ -33,11 +33,9 @@ export default function Navbar({ page = 'home' }) {
               Iniciar sesión
             </a>
           )}
-          {page !== 'signup' && (
-            <a href="/signup.html" className="btn-primary rounded-full px-4 py-2 text-sm font-semibold transition-colors">
-              Crear cuenta
-            </a>
-          )}
+          <a href="/waitlist.html" className="btn-primary rounded-full px-4 py-2 text-sm font-semibold transition-colors">
+            Lista de espera
+          </a>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}

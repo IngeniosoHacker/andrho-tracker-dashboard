@@ -89,15 +89,13 @@ export default function SiteHeader({ morph = Infinity, activeId = null, refs, ba
             })}
           </ul>
 
+          {/* While AndRho is in development the only way in is the waiting
+              list (login stays in the footer for the team and beta users). */}
           <a
-            href="/login.html"
-            className="order-2 ml-auto rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors md:order-3 md:ml-0"
-            style={{
-              color: ink,
-              borderColor: '#cbd5e1',
-            }}
+            href="/waitlist.html"
+            className="order-2 ml-auto rounded-full bg-[var(--color-ink)] px-4 py-1.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#1f2937] md:order-3 md:ml-0"
           >
-            Iniciar sesión
+            Lista de espera
           </a>
         </div>
       </nav>

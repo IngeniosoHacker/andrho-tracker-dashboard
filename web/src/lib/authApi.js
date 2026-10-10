@@ -63,3 +63,11 @@ export async function apiPost(path, body) {
 
   return data
 }
+
+// Public GET (no auth) for read-only endpoints like /progress. Resolves to
+// the parsed JSON; throws on network errors and non-2xx responses.
+export async function apiGet(path) {
+  const res = await fetch(`${API_URL}${path}`)
+  if (!res.ok) throw new Error(`${path}: ${res.status}`)
+  return res.json()
+}

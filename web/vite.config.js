@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { SITE, jsonLd, staticLandingHtml } from './src/lib/seo.js'
+import { ARTICLES, articleHead, articleHtml, articlesIndexHead, articlesIndexHtml, findArticle } from './src/lib/articles.js'
 
 const resolvePath = (p) => fileURLToPath(new URL(p, import.meta.url))
 
@@ -39,6 +40,24 @@ function landingSeo() {
   }
 }
 
+// Same for the articles: /articulos/ (<!--articles:*-->) and each
+// /articulos/<slug>.html (<!--article:*-->, slug from #root's data-slug).
+function articlesSeo() {
+  return {
+    name: 'andrho-articles-seo',
+    transformIndexHtml(html) {
+      if (html.includes('<!--articles:head-->')) {
+        return html.replace('<!--articles:head-->', articlesIndexHead()).replace('<!--articles:body-->', articlesIndexHtml())
+      }
+      if (!html.includes('<!--article:head-->')) return html
+      const slug = html.match(/data-slug="([^"]+)"/)?.[1]
+      const article = findArticle(slug)
+      if (!article) throw new Error(`articulos: no article "${slug}" in src/lib/articles.js`)
+      return html.replace('<!--article:head-->', articleHead(article)).replace('<!--article:body-->', articleHtml(article))
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // VITE_ANDRHO_API_URL gets inlined into login.jsx/signup.jsx at build time
@@ -60,7 +79,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), tailwindcss(), landingSeo()],
+    plugins: [react(), tailwindcss(), landingSeo(), articlesSeo()],
     build: {
       rollupOptions: {
         input: {
@@ -69,6 +88,9 @@ export default defineConfig(({ mode }) => {
           signup: resolvePath('./signup.html'),
           acceptInvite: resolvePath('./accept-invite.html'),
           waitlist: resolvePath('./waitlist.html'),
+          articles: resolvePath('./articulos/index.html'),
+          // One page per article: articulos/<slug>.html (copy an existing one).
+          ...Object.fromEntries(ARTICLES.map((a) => [`article-${a.slug}`, resolvePath(`./articulos/${a.slug}.html`)])),
         },
       },
     },

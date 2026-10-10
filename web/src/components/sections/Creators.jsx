@@ -488,11 +488,11 @@ function CrecerWindow({ active }) {
           </h2>
           <p className="mt-5 text-xl font-semibold text-[var(--color-ink)]/75 sm:text-2xl lg:text-3xl">No en tu caso.</p>
           <a
-            href="/signup.html"
+            href="/waitlist.html"
             className="mt-8 inline-flex h-12 items-center rounded-full bg-[var(--color-ink)] px-8 text-sm font-bold tracking-[0.15em] uppercase transition-colors hover:bg-[#1f2937] lg:h-14 lg:px-10"
             style={{ color: PALETTE.yellow }}
           >
-            Regístrate
+            Únete a la lista
           </a>
         </div>
         <IceCreamArt className="mx-auto max-h-[30svh] w-auto md:max-h-[60svh]" />

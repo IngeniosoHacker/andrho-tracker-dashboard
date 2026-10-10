@@ -4,6 +4,8 @@ import Stage, { windowOpacity } from './components/landing/Stage.jsx'
 import PixelStarfield from './components/ui/PixelStarfield.jsx'
 import Creators from './components/sections/Creators.jsx'
 import Juego from './components/sections/Juego.jsx'
+import Progreso from './components/sections/Progreso.jsx'
+import Articulos from './components/sections/Articulos.jsx'
 import Footer from './components/sections/Footer.jsx'
 import { CREATORS_LENGTH, MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH, WINDOWS } from './lib/landing.js'
 import { easeInOutCubic, seg } from './lib/motion.js'
@@ -51,6 +53,8 @@ export default function App() {
         {/* Leaving the "info" desktop: the blue wallpaper fades to black. */}
         <div aria-hidden="true" className="relative z-10 h-[30vh] bg-gradient-to-b from-transparent to-black" />
         <Juego />
+        <Progreso />
+        <Articulos />
       </main>
       <Footer />
     </div>

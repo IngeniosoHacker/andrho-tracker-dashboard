@@ -55,8 +55,8 @@ export const FAQ = [
     a: 'Sí. El panel incluye el tráfico de buscadores con sus palabras clave orgánicas y una sección de Visibilidad IA: cuántas veces los rastreadores de IA visitan tu sitio, cuántas visitas llegan desde asistentes como ChatGPT o Perplexity, su tendencia diaria y una meta mensual. También revisa si tu sitio está preparado para buscadores e IA (robots.txt, sitemap, llms.txt, datos estructurados y contenido legible sin JavaScript).',
   },
   {
-    q: '¿Cómo empiezo a usar AndRho?',
-    a: 'Únete a la lista de espera en andrho.com para asegurar tu lugar antes del lanzamiento, o crea tu cuenta y en un minuto tendrás tu código de seguimiento listo para instalar en tu sitio.',
+    q: '¿Ya puedo usar AndRho?',
+    a: 'Todavía no: AndRho está en desarrollo y el avance es público, commit por commit, en andrho.com. Únete a la lista de espera para asegurar tu lugar antes del lanzamiento; te avisamos cuando abramos.',
   },
 ]
 
@@ -176,7 +176,7 @@ export function staticLandingHtml() {
 <main class="seo-fallback">
   <h1>AndRho: análisis de datos con inteligencia artificial para pymes en Guatemala</h1>
   <p>Conecta y entiende tu negocio. AndRho es el centro de control que unifica tu ERP, tu marketing y tu equipo, lo analiza con modelos estadísticos y, con inteligencia artificial, te lo traduce en decisiones, no en más pestañas. Así que relájate: la plataforma se adapta a tu operación.</p>
-  <p><a href="/signup.html">Crear cuenta</a> · <a href="/waitlist.html">Unirme a la lista de espera</a> · <a href="/login.html">Iniciar sesión</a></p>
+  <p>AndRho está en desarrollo. <a href="/waitlist.html">Unirme a la lista de espera</a> · <a href="/#progreso">Avance en vivo</a> · <a href="/articulos/">Artículos</a></p>
   <section>
     <h2>Relájate</h2>
     <p>Encárgate de ${esc(ACTIVITIES.slice(0, -1).join(', '))} mientras la plataforma hace toda la parte complicada.</p>

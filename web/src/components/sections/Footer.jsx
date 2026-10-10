@@ -12,6 +12,8 @@ const LINK_GROUPS = [
       { label: 'Que no te deje la nave', href: '/#nave' },
       { label: 'Creators', href: '/#creators' },
       { label: 'Juego', href: '/#juego' },
+      { label: 'Avance en vivo', href: '/#progreso' },
+      { label: 'Artículos', href: '/articulos/' },
     ],
   },
   {
@@ -19,7 +21,6 @@ const LINK_GROUPS = [
     links: [
       { label: 'Lista de espera', href: '/waitlist.html' },
       { label: 'Iniciar sesión', href: '/login.html' },
-      { label: 'Crear cuenta', href: '/signup.html' },
     ],
   },
   {

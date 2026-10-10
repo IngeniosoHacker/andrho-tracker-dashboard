@@ -37,8 +37,8 @@ export default function ComoFunciona() {
       </ol>
 
       <div className="mt-8 flex max-w-2xl flex-col gap-3 sm:mt-10 sm:flex-row">
-        <a href="/signup.html" className="btn-solid sm:flex-1">
-          Comenzar
+        <a href="/waitlist.html" className="btn-solid sm:flex-1">
+          Unirme a la lista de espera
         </a>
         <a href="#ia-con-criterio" className="btn-outline sm:flex-1">
           ¿Y la IA?

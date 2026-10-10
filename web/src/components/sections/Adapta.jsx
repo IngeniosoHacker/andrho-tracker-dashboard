@@ -23,8 +23,8 @@ export default function Adapta() {
         <h2 id="adapta-title" className="mt-4 text-5xl font-extrabold leading-[0.95] tracking-[-0.05em] sm:text-6xl lg:text-8xl">
           Adapta a tu operación
         </h2>
-        <a href="/signup.html" className="btn-solid mx-auto mt-8 w-full max-w-60 sm:mt-12">
-          Crea tu propio Sistema
+        <a href="/waitlist.html" className="btn-solid mx-auto mt-8 w-full max-w-60 sm:mt-12">
+          Reserva tu sistema
         </a>
       </div>
     </div>
