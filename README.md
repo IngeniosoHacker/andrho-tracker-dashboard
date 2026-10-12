@@ -34,10 +34,10 @@ The old "know the site_id, no password" gate is gone. Access now works like this
    **refresh token** (both JWTs, HS256). The browser stores them in
    `localStorage` under `andrho_access_token` / `andrho_refresh_token` and is
    redirected to `/dashboard/`.
-3. `public/dashboard/app.js` reads the access token on load, calls
+3. `public/dashboard/js/main.js` reads the access token on load, calls
    `GET {ANDRHO_API_URL}/auth/me` to resolve the account (email, company name,
    and — critically — the account's `site_id`), and renders a single-site
-   dashboard for that account. No sidebar, no "add another site" flow.
+   dashboard for that account. No "add another site" flow.
 4. If `/auth/me` returns 401 (expired access token), the dashboard tries
    `POST {ANDRHO_API_URL}/auth/refresh` once with the refresh token. If that
    also fails, both tokens are cleared and the user is sent back to
@@ -68,7 +68,7 @@ collision; see that repo's `internal/auth/siteid.go`) and stores on the
 returned by `/auth/me` and carried in the JWT (`site_id` above), so it's
 deliberately fine to publish — it names which site's data a hit belongs to,
 nothing about the account. The dashboard's Overview tab (`panel-overview`,
-see `public/dashboard/app.js`'s `openTrackerDrawer`) surfaces this `site_id`
+see `public/dashboard/js/views/web.js`) surfaces this `site_id`
 plus the exact `<!-- TRACKER -->` embed snippet (with that account's real id
 in place of a hardcoded one) so customers don't have to go dig it out of a
 network request.
@@ -97,8 +97,19 @@ web/                    Vite + React + Tailwind v4 app: landing + login + signup
 
 public/dashboard/       the analytics dashboard (formerly public/), now served
                          under /dashboard/ and gated by JWT instead of site_id
-  index.html            gets `window.ANDRHO_API_URL` injected server-side
-  app.js                single-site dashboard, JWT auth flow, no more sidebar
+  index.html            three columns: sections sidebar | current view |
+                         AndRho panel. Gets `window.ANDRHO_API_URL` injected
+                         server-side.
+  js/main.js            boot (JWT auth flow) + hash router: #/<section>/<tab>
+  js/core.js            session, the two backends (siteApi -> /api/sites/:id,
+                         andrhoApi -> andrho-api), formatting, drawer, charts
+  js/nav.js             sidebar sections: Inicio, Web, Social, Inventario,
+                         Clientes, Prospectos, Sucursales, Usuarios, Resumen
+                         (+ AndRho staff: Tokens Usage) and Configuración
+  js/insights.js        right panel: summary/notifications on top,
+                         suggestions to accept or reject below, reloaded on
+                         every section change
+  js/views/*.js         one module per section: { title, hint, render(el, route) }
   styles.css
 
 src/
@@ -244,7 +255,7 @@ both projects now own similar SQL — if you change the schema, update both
 ## 7. Known limitations / possible next steps
 
 - `andrho-api`'s exact `/auth/me`, `/auth/refresh`, `/auth/logout` response
-  shapes were assumed (see `public/dashboard/app.js` and `web/src/lib/authApi.js`)
+  shapes were assumed (see `public/dashboard/js/core.js` and `web/src/lib/authApi.js`)
   based on the JWT contract in §1 — verify against `andrho-api`'s actual
   implementation once both services are deployed together and adjust if the
   field names differ (`account_id` vs `id`, etc).
