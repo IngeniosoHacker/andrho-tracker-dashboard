@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { SITE, jsonLd, staticLandingHtml } from './src/lib/seo.js'
+import { INDUSTRIES, findIndustry, industryHead, industryHtml } from './src/lib/industries.js'
 import { ARTICLES, articleHead, articleHtml, articlesIndexHead, articlesIndexHtml, findArticle } from './src/lib/articles.js'
 
 const resolvePath = (p) => fileURLToPath(new URL(p, import.meta.url))
@@ -61,6 +62,20 @@ function articlesSeo() {
 }
 
 // https://vite.dev/config/
+// The "software para ___" pages (<!--industry:*-->, src/lib/industries.js).
+function industriesSeo() {
+  return {
+    name: 'andrho-industries-seo',
+    transformIndexHtml(html) {
+      if (!html.includes('<!--industry:head-->')) return html
+      const slug = html.match(/data-slug="([^"]*)"/)?.[1]
+      const industry = findIndustry(slug)
+      if (!industry) throw new Error(`software-para: no industry "${slug}" in src/lib/industries.js`)
+      return html.replace('<!--industry:head-->', industryHead(industry)).replace('<!--industry:body-->', industryHtml(industry))
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   // VITE_ANDRHO_API_URL gets inlined into login.jsx/signup.jsx at build time
   // (see web/.env.example, src/lib/authApi.js) -- the browser calls it
@@ -81,7 +96,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), tailwindcss(), landingSeo(), articlesSeo()],
+    plugins: [react(), tailwindcss(), landingSeo(), articlesSeo(), industriesSeo()],
     build: {
       rollupOptions: {
         input: {
@@ -92,6 +107,8 @@ export default defineConfig(({ mode }) => {
           waitlist: resolvePath('./waitlist.html'),
           articles: resolvePath('./articulos/index.html'),
           'article-template': resolvePath('./articulos/plantilla.html'),
+          // One page per business type: software-para/<slug>.html.
+          ...Object.fromEntries(INDUSTRIES.map((i) => [`industry-${i.slug}`, resolvePath(`./software-para/${i.slug}.html`)])),
           // One page per article: articulos/<slug>.html (copy an existing one).
           ...Object.fromEntries(ARTICLES.map((a) => [`article-${a.slug}`, resolvePath(`./articulos/${a.slug}.html`)])),
         },

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es-GT">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/png" href="/images/logo/andrho-mark.png" />
+<!-- Title, description, canonical, Open Graph and JSON-LD: injected at build
+     time from src/lib/industries.js (see industriesSeo() in vite.config.js and src/lib/industries.js). -->
+<!--industry:head-->
+
+<!-- TRACKER -->
+<script src="https://webtracker-production-b8d7.up.railway.app/tracker.js"
+        data-site-id="andrho"
+        defer></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- The static copy in #root is for crawlers/no-JS; JS browsers hide it
+     until React replaces it. -->
+<script>document.documentElement.classList.add('js')</script>
+<style>.js .seo-fallback { visibility: hidden; }</style>
+</head>
+
+<body class="antialiased overflow-x-hidden">
+  <div id="root" data-slug="emprendedores"><!--industry:body--></div>
+  <script type="module" src="/src/industry.jsx"></script>
+</body>
+</html>

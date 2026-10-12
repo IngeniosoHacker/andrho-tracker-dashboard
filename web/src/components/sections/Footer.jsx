@@ -1,5 +1,6 @@
 import Logo from '../ui/Logo.jsx'
 import { FAQ, SITE } from '../../lib/seo.js'
+import { INDUSTRIES, industryUrl } from '../../lib/industries.js'
 
 const LINK_GROUPS = [
   {
@@ -15,6 +16,10 @@ const LINK_GROUPS = [
       { label: 'Avance en vivo', href: '/#progreso' },
       { label: 'Artículos', href: '/articulos/' },
     ],
+  },
+  {
+    heading: 'Software para',
+    links: INDUSTRIES.map((i) => ({ label: i.name[0].toUpperCase() + i.name.slice(1), href: industryUrl(i) })),
   },
   {
     heading: 'Cuenta',
@@ -58,7 +63,7 @@ export default function Footer() {
       </section>
 
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm text-white/55">

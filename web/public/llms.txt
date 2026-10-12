@@ -34,6 +34,15 @@ Los Creators son diseñadores y programadores suscritos a AndRho. Las tareas nac
 - [Artículos](https://andrho.com/articulos/): guías y opinión sobre tecnología para pymes.
 - [Por qué el software libre le conviene a tu empresa](https://andrho.com/articulos/software-libre.html)
 
+## Software para cada negocio
+
+- [Software para restaurantes en Guatemala](https://andrho.com/software-para/restaurantes.html)
+- [Software para tiendas y comercios en Guatemala](https://andrho.com/software-para/tiendas.html)
+- [Software para emprendedores en Guatemala](https://andrho.com/software-para/emprendedores.html)
+- [Software para vender en línea y por redes sociales](https://andrho.com/software-para/ventas-en-linea.html)
+- [Software para clínicas y consultorios en Guatemala](https://andrho.com/software-para/clinicas.html)
+- [Software para distribuidoras y logística en Guatemala](https://andrho.com/software-para/distribuidoras.html)
+
 ## Contacto
 
 - WhatsApp: +1 (914) 888-9560 (https://wa.me/19148889560)
