@@ -226,8 +226,25 @@ const INDEX_TITLE = 'Artículos de AndRho | Tecnología, datos y software libre 
 const INDEX_DESCRIPTION =
   'Guías y opinión del equipo de AndRho sobre tecnología para pymes en Guatemala: datos, software libre, ERP y marketing.'
 
+// "## Preguntas frecuentes" followed by "### question" + paragraphs becomes
+// a FAQPage in the article's JSON-LD: search engines and AI assistants quote
+// question/answer pairs directly.
+const plain = (text) => inline(text).map((t) => t.bold ?? t.link ?? t.text).join('')
+export function articleFaq(blocks) {
+  const start = blocks.findIndex((b) => b.h2 && /preguntas frecuentes/i.test(b.h2))
+  if (start < 0) return []
+  const faq = []
+  for (const b of blocks.slice(start + 1)) {
+    if (b.h2) break
+    if (b.h3) faq.push({ q: b.h3, a: [] })
+    else if (faq.length && b.p) faq[faq.length - 1].a.push(plain(b.p))
+  }
+  return faq.filter((f) => f.a.length)
+}
+
 export function articleHead(a) {
   const url = `${SITE.url}${articleUrl(a)}`
+  const faq = articleFaq(a.body)
   return headTags({
     title: `${a.title} | AndRho`,
     description: a.description,
@@ -256,6 +273,14 @@ export function articleHead(a) {
             { '@type': 'ListItem', position: 3, name: a.title, item: url },
           ],
         },
+        ...(faq.length
+          ? [
+              {
+                '@type': 'FAQPage',
+                mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a.join(' ') } })),
+              },
+            ]
+          : []),
       ],
     },
   })
