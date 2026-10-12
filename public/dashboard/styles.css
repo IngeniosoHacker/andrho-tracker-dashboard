@@ -529,3 +529,5 @@ td.mono { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-se
 .grid-2 > .card { margin-bottom: 0; }
 .grid-2 { row-gap: 18px; }
 .import-card { margin-bottom: 18px; }
+.erp-form { max-width: 460px; }
+.branch-card .detail-kv { margin: 0; }

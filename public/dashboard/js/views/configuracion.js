@@ -1,5 +1,8 @@
 // Configuración: team management (invites, roles) and the account's plan.
-import { andrhoApi, esc, roleAtLeast, openDrawer, ROLE_LABEL, PLAN_LABEL } from '../core.js';
+import { andrhoApi, esc, fmtDate, roleAtLeast, openDrawer, ROLE_LABEL, PLAN_LABEL } from '../core.js';
+
+const JOB = { erp: 'ERP (Odoo)', whatsapp: 'WhatsApp', website: 'Sitio web', meta: 'Facebook e Instagram' };
+const JOB_STATUS = { pendiente: ['En cola', 'status-sugerida'], en_proceso: ['En proceso', 'status-proceso'], listo: ['Listo', 'status-terminada'], esperando_vps: ['Preparando el servidor', 'status-proceso'], esperando_meta: ['Esperando a Meta', 'status-sugerida'], error: ['Se reintentará', 'status-rechazada'] };
 
 function quotaLabel(quota) {
   if (!quota) return '';
@@ -9,7 +12,11 @@ function quotaLabel(quota) {
 
 async function render(el) {
   el.innerHTML = '<p class="loading-state">cargando…</p>';
-  const [usersData, planData] = await Promise.all([andrhoApi('/account/users'), andrhoApi('/account/plan')]);
+  const [usersData, planData, erp, prov] = await Promise.all([
+    andrhoApi('/account/users'), andrhoApi('/account/plan'),
+    andrhoApi('/erp/status').catch(() => ({ connected: false })),
+    andrhoApi('/account/provisioning').catch(() => ({ jobs: [], tasks: [] }))
+  ]);
   const canManageTeam = roleAtLeast('admin');
   const isOwner = roleAtLeast('owner');
 
@@ -53,7 +60,56 @@ async function render(el) {
         `).join('')}
       </div>
     </div>
+
+    <div class="card" id="erp">
+      <h2>Tu ERP</h2>
+      ${erp.connected ? `
+        <dl class="detail-kv"><dt>Odoo</dt><dd><a href="${esc(erp.url)}" target="_blank" rel="noopener">${esc(erp.url)}</a></dd>
+          <dt>Base de datos</dt><dd>${esc(erp.db)}</dd><dt>Usuario</dt><dd>${esc(erp.login)}</dd></dl>
+        <p class="hint">Inventario, Clientes, Prospectos, Sucursales y Resumen leen de aquí.</p>` :
+        '<p class="hint" style="margin:0 0 12px">Sin ERP conectado. Si elegiste el ERP de AndRho al registrarte, aparece aquí cuando esté listo.</p>'}
+      ${canManageTeam ? `
+        <details ${erp.connected ? '' : 'open'}>
+          <summary class="hint" style="cursor:pointer">${erp.connected ? 'Conectar otro Odoo' : '¿Ya usas Odoo? Conéctalo'}</summary>
+          <form class="invite-form erp-form" id="erpForm" style="margin-top:12px">
+            <label>URL de tu Odoo<input name="url" type="url" required placeholder="https://miempresa.odoo.com" /></label>
+            <label>Base de datos<input name="db" required /></label>
+            <label>Usuario<input name="login" required autocomplete="off" /></label>
+            <label>Contraseña o clave de API<input name="password" type="password" required autocomplete="new-password" /></label>
+            <p class="form-error" hidden></p>
+            <button type="submit">Conectar</button>
+          </form>
+        </details>` : ''}
+    </div>
+
+    ${prov.jobs.length || prov.tasks.length ? `
+    <div class="card">
+      <h2>Lo que AndRho preparó para ti</h2>
+      <table><thead><tr><th>Servicio</th><th>Estado</th><th>Detalle</th><th>Actualizado</th></tr></thead><tbody>
+        ${prov.jobs.map((j) => { const [label, cls] = JOB_STATUS[j.status] || [j.status, '']; return `<tr><td>${esc(JOB[j.kind] || j.kind)}</td><td><span class="status-pill ${cls}">${esc(label)}</span></td><td>${esc(j.detail)}</td><td class="mono">${fmtDate(j.updated_at)}</td></tr>`; }).join('')}
+        ${prov.tasks.map((t) => `<tr><td>${esc(t.title)}</td><td><span class="status-pill ${t.status === 'entregada' ? 'status-terminada' : 'status-proceso'}">${t.status === 'entregada' ? 'Entregado' : t.status === 'aceptada' ? 'Un Creator trabaja en ello' : 'Esperando Creator'}</span></td>
+          <td>${t.delivery_url ? `<a href="${esc(t.delivery_url)}" target="_blank" rel="noopener">${esc(t.delivery_url)}</a>` : esc(t.notes || '')}</td><td class="mono">${fmtDate(t.updated_at)}</td></tr>`).join('')}
+      </tbody></table>
+    </div>` : ''}
   `;
+
+  const erpForm = el.querySelector('#erpForm');
+  if (erpForm) erpForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = erpForm.elements;
+    const err = erpForm.querySelector('.form-error');
+    const btn = erpForm.querySelector('button');
+    btn.disabled = true;
+    err.hidden = true;
+    try {
+      await andrhoApi('/account/erp', { method: 'POST', body: JSON.stringify({ url: f.url.value, db: f.db.value, login: f.login.value, password: f.password.value }) });
+      render(el);
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+      btn.disabled = false;
+    }
+  });
 
   const act = async (fn, msg) => {
     try { await fn(); render(el); } catch (err) { alert(err.message || msg); }
