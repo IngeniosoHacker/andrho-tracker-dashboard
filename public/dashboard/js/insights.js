@@ -1,6 +1,8 @@
 // The AndRho panel on the right of every section: on top, what AndRho read
 // from the section's data (summary, comments, notifications); below, the
-// suggestions it makes, to accept or reject.
+// suggestions it makes, to accept or reject. Opening a section runs its
+// analysis on andrho-api (POST /insights/:section: extraction, statistics,
+// AI translation), which also files new suggestions.
 import { andrhoApi, esc, fmtDate, roleAtLeast } from './core.js';
 
 const panel = () => document.getElementById('insights');
@@ -44,17 +46,42 @@ export async function loadInsights(section, title) {
     </div>
   `;
   el.querySelector('.insights-close').addEventListener('click', () => document.body.classList.remove('insights-open'));
-  await Promise.all([renderSummary(section, my), renderSuggestions(section, my)]);
+  await renderSummary(section, my);
+  await renderSuggestions(section, my);
 }
 
-async function renderSummary(section, my) {
+const SEV_ICON = { alerta: '!', buena: '↑', info: '·' };
+
+async function renderSummary(section, my, refresh) {
   const top = document.getElementById('insightsTop');
+  let d;
+  try {
+    d = await andrhoApi(`/insights/${encodeURIComponent(section)}${refresh ? '?refresh=1' : ''}`, { method: 'POST' });
+  } catch (err) {
+    if (my === token && top) top.innerHTML = `<div class="insight-summary"><p>No pudimos analizar esta sección ahora.</p></div>`;
+    return;
+  }
   if (my !== token || !top) return;
+  const i = d.insights;
+  const list = (kind, title) => {
+    const items = i.findings.filter((f) => f.kind === kind);
+    return items.length ? `<p class="insights-label">${title}</p><ul class="insight-list">${items.map((f) => `
+      <li class="insight-${f.severity}"><span class="insight-dot" aria-hidden="true">${SEV_ICON[f.severity] || '·'}</span><span>${esc(f.text)}</span></li>`).join('')}</ul>` : '';
+  };
   top.innerHTML = `
-    <div class="insight-summary">
-      <p>AndRho resume aquí lo más importante de esta sección cada vez que entras.</p>
-    </div>
+    <div class="insight-summary"><p>${esc(i.summary)}</p></div>
+    ${list('notificacion', 'Notificaciones')}
+    ${list('comentario', 'Comentarios')}
+    ${d.quota_reached ? '<p class="insight-upsell">AndRho tiene más sugerencias para ti, pero tu plan llegó a su límite del mes. <a href="#/configuracion">Ver planes</a></p>' : ''}
+    <p class="insights-meta">${i.source === 'ia' ? 'Explicado por IA' : 'Calculado'} · ${fmtDate(i.generated_at)}
+      <button type="button" class="link-btn" id="insightsRefresh">Actualizar</button></p>
   `;
+  top.querySelector('#insightsRefresh').addEventListener('click', async () => {
+    top.style.opacity = '0.5';
+    await renderSummary(section, token, true);
+    top.style.opacity = '';
+    await renderSuggestions(section, token);
+  });
 }
 
 async function renderSuggestions(section, my) {
