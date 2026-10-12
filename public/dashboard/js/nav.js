@@ -36,6 +36,8 @@ export const NAV = [
 
 // AndRho's own team only.
 export const STAFF_NAV = [
+  { key: 'creators', label: 'Creators', section: 'creators', staff: 'creator' },
+  { key: 'andrho', label: 'Métricas AndRho', icon: 'admin', section: 'andrho', staff: 'admin' },
   { key: 'tokens', label: 'Tokens Usage', section: 'tokens', staff: 'admin' }
 ];
 

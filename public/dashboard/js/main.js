@@ -19,9 +19,11 @@ import sucursales from './views/sucursales.js';
 import usuarios from './views/usuarios.js';
 import resumen from './views/resumen.js';
 import tokens from './views/tokens.js';
+import creators from './views/creators.js';
+import andrho from './views/andrho.js';
 import configuracion from './views/configuracion.js';
 
-const VIEWS = { inicio, web, social, inventario, clientes, prospectos, sucursales, usuarios, resumen, tokens, configuracion };
+const VIEWS = { inicio, web, social, inventario, clientes, prospectos, sucursales, usuarios, resumen, tokens, configuracion, creators, andrho };
 
 const els = {
   sidebar: document.getElementById('sidebar'),
@@ -103,6 +105,8 @@ async function boot() {
   if (a.role) { els.role.textContent = ROLE_LABEL[a.role] || a.role; els.role.hidden = false; }
 
   drawSidebar();
+  // A Creator (not an admin) lands on their tasks.
+  if (!window.location.hash && a.staffRole === 'creator') history.replaceState(null, '', '#/creators');
   window.addEventListener('hashchange', route);
   await route();
 }
