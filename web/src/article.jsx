@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import SiteHeader from './components/landing/SiteHeader.jsx'
@@ -7,11 +7,14 @@ import Footer from './components/sections/Footer.jsx'
 import SurveyArt from './components/waitlist/SurveyArt.jsx'
 import ArticleBody from './components/articles/ArticleBody.jsx'
 import ArticleCard from './components/articles/ArticleCard.jsx'
-import { ARTICLES, findArticle, formatDate } from './lib/articles.js'
+import { findArticle, formatDate } from './lib/articles.js'
+import { fetchRemoteArticle, useArticles } from './lib/remoteArticles.js'
 
-// /articulos/<slug>.html — one article, picked by #root's data-slug.
+// /articulos/<slug>.html — one article. A built one is picked by #root's
+// data-slug; an uploaded one comes inlined by src/server.js (#article-data)
+// or, failing that, from andrho-api by the slug in the URL.
 function ArticlePage({ article }) {
-  const others = ARTICLES.filter((a) => a.slug !== article.slug).slice(0, 2)
+  const others = useArticles().filter((a) => a.slug !== article.slug).slice(0, 2)
   return (
     <div className="min-h-screen">
       <PixelStarfield mix={1} />
@@ -70,12 +73,55 @@ function ArticlePage({ article }) {
   )
 }
 
-const root = document.getElementById('root')
-const article = findArticle(root.dataset.slug)
-if (article) {
-  createRoot(root).render(
-    <StrictMode>
-      <ArticlePage article={article} />
-    </StrictMode>,
+function NotFound() {
+  return (
+    <div className="min-h-screen">
+      <PixelStarfield mix={1} />
+      <SiteHeader base="/" />
+      <main className="relative z-10 px-3 pb-20 pt-[124px] sm:px-6 md:pt-[100px]">
+        <div className="mx-auto max-w-3xl rounded-3xl bg-[var(--window-bg)] p-10 text-center text-[var(--color-ink)]">
+          <h1 className="text-4xl font-extrabold tracking-tight">No encontramos este artículo</h1>
+          <p className="mt-4 text-[var(--color-ink-soft)]">Puede que lo hayan movido o que todavía no esté publicado.</p>
+          <a href="/articulos/" className="mt-6 inline-flex h-12 items-center rounded-[0.6rem] bg-[var(--color-ink)] px-6 font-bold text-white">
+            Ver todos los artículos
+          </a>
+        </div>
+      </main>
+      <Footer />
+    </div>
   )
 }
+
+function inlinedArticle() {
+  const el = document.getElementById('article-data')
+  if (!el) return null
+  try {
+    return JSON.parse(el.textContent)
+  } catch {
+    return null
+  }
+}
+
+function slugFromUrl() {
+  return window.location.pathname.match(/\/articulos\/([^/]+?)(?:\.html)?$/)?.[1] || ''
+}
+
+// Uploaded article not inlined by the server (e.g. the static host in
+// production): fetch it, keeping the crawler copy until it arrives.
+function RemoteArticle({ slug }) {
+  const [state, setState] = useState({ loading: true, article: null })
+  useEffect(() => {
+    fetchRemoteArticle(slug).then((article) => setState({ loading: false, article }))
+  }, [slug])
+  if (state.loading) return null
+  if (!state.article) return <NotFound />
+  document.title = `${state.article.title} | AndRho`
+  return <ArticlePage article={state.article} />
+}
+
+const root = document.getElementById('root')
+const slug = root.dataset.slug || slugFromUrl()
+const article = findArticle(root.dataset.slug) || inlinedArticle()
+createRoot(root).render(
+  <StrictMode>{article ? <ArticlePage article={article} /> : <RemoteArticle slug={slug} />}</StrictMode>,
+)

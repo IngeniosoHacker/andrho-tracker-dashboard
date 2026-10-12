@@ -50,7 +50,9 @@ function articlesSeo() {
         return html.replace('<!--articles:head-->', articlesIndexHead()).replace('<!--articles:body-->', articlesIndexHtml())
       }
       if (!html.includes('<!--article:head-->')) return html
-      const slug = html.match(/data-slug="([^"]+)"/)?.[1]
+      const slug = html.match(/data-slug="([^"]*)"/)?.[1]
+      // articulos/plantilla.html: filled per request by src/server.js.
+      if (!slug) return html
       const article = findArticle(slug)
       if (!article) throw new Error(`articulos: no article "${slug}" in src/lib/articles.js`)
       return html.replace('<!--article:head-->', articleHead(article)).replace('<!--article:body-->', articleHtml(article))
@@ -89,6 +91,7 @@ export default defineConfig(({ mode }) => {
           acceptInvite: resolvePath('./accept-invite.html'),
           waitlist: resolvePath('./waitlist.html'),
           articles: resolvePath('./articulos/index.html'),
+          'article-template': resolvePath('./articulos/plantilla.html'),
           // One page per article: articulos/<slug>.html (copy an existing one).
           ...Object.fromEntries(ARTICLES.map((a) => [`article-${a.slug}`, resolvePath(`./articulos/${a.slug}.html`)])),
         },

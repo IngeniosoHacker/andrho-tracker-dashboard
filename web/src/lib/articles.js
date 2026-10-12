@@ -4,14 +4,22 @@
 // injects for crawlers without JavaScript (articleHtml, articlesIndexHtml)
 // always say the same thing.
 //
-// Adding an article: add it to ARTICLES, copy articulos/software-libre.html
+// Two sources: ARTICLES below (built into static pages) and the articles
+// uploaded from the dashboard (Web > Artículos), which andrho-api serves as
+// Markdown and lib/remoteArticles.js turns into this same shape (fromApi).
+// The site lists both; on the same slug, the built one wins.
+//
+// Adding a built article: add it to ARTICLES, copy articulos/software-libre.html
 // to articulos/<slug>.html with the new data-slug, and list it in
 // public/sitemap.xml (vite.config.js picks the page up from ARTICLES).
+// Uploaded articles need none of that: src/server.js renders them from
+// articulos/plantilla.html and adds them to the sitemap.
 //
 // Blocks: { p }, { h2 }, { h3 }, { ul: [...] }, { ol: [...] }, { quote },
 // { table: { head: [...], rows: [[...]] } }. Inline text supports **bold**
 // and [links](url).
 import { SITE } from './seo.js'
+import { markdownToBlocks, readingMinutes } from './markdown.js'
 
 export const ARTICLES = [
   {
@@ -123,11 +131,36 @@ export const ARTICLES = [
   },
 ]
 
-export const articleUrl = (a) => `/articulos/${a.slug}.html`
+export const articleUrl = (a) => a.path || `/articulos/${a.slug}.html`
 export const findArticle = (slug) => ARTICLES.find((a) => a.slug === slug)
 
+// An andrho-api article (GET /public/sites/:siteId/articles[/:slug]) in the
+// shape above. List responses carry no body, so `body` is [] there.
+export function fromApi(a) {
+  return {
+    slug: a.slug,
+    title: a.title,
+    description: a.description,
+    date: (a.published_at || a.created_at || '').slice(0, 10),
+    author: a.author || 'Equipo AndRho',
+    readingMinutes: readingMinutes(a.word_count),
+    tags: a.tags || [],
+    keywords: a.keywords || [],
+    path: a.path || '',
+    body: a.body ? markdownToBlocks(a.body).blocks : [],
+  }
+}
+
+// Built articles plus uploaded ones, newest first; a built article wins
+// over an uploaded one with the same slug.
+export function mergeArticles(remote) {
+  const bySlug = new Map((remote || []).map((a) => [a.slug, a]))
+  for (const a of ARTICLES) bySlug.set(a.slug, a)
+  return [...bySlug.values()].sort((a, b) => b.date.localeCompare(a.date))
+}
+
 export const formatDate = (iso) =>
-  new Date(`${iso}T12:00:00`).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' })
+  iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
 
 // Inline markup → tokens: { text } | { bold } | { link, href }.
 export function inline(text) {
@@ -138,7 +171,8 @@ export function inline(text) {
   while ((m = re.exec(text))) {
     if (m.index > last) tokens.push({ text: text.slice(last, m.index) })
     if (m[1] !== undefined) tokens.push({ bold: m[1] })
-    else tokens.push({ link: m[2], href: m[3] })
+    // Links come from uploaded Markdown too: web, relative, anchors and mail only.
+    else tokens.push({ link: m[2], href: /^(https?:\/\/|\/|#|mailto:)/i.test(m[3]) ? m[3] : '#' })
     last = re.lastIndex
   }
   if (last < text.length) tokens.push({ text: text.slice(last) })
@@ -208,7 +242,7 @@ export function articleHead(a) {
           description: a.description,
           datePublished: a.date,
           inLanguage: 'es-GT',
-          keywords: a.tags.join(', '),
+          keywords: [...(a.keywords || []), ...a.tags].join(', '),
           mainEntityOfPage: url,
           image: SITE.ogImage,
           author: { '@type': 'Organization', name: a.author, url: SITE.url },
@@ -237,8 +271,10 @@ export function articleHtml(a) {
 </article>`
 }
 
-export function articlesIndexHead() {
-  return headTags({
+// The index's head and body are wrapped in <!--articles:*:start/end-->
+// markers so src/server.js can re-render them with the uploaded articles.
+export function articlesIndexHead(list = ARTICLES) {
+  return `<!--articles:head:start-->\n${headTags({
     title: INDEX_TITLE,
     description: INDEX_DESCRIPTION,
     url: `${SITE.url}/articulos/`,
@@ -249,18 +285,19 @@ export function articlesIndexHead() {
       name: 'Artículos de AndRho',
       url: `${SITE.url}/articulos/`,
       inLanguage: 'es-GT',
-      blogPost: ARTICLES.map((a) => ({ '@type': 'BlogPosting', headline: a.title, url: `${SITE.url}${articleUrl(a)}`, datePublished: a.date })),
+      blogPost: list.map((a) => ({ '@type': 'BlogPosting', headline: a.title, url: `${SITE.url}${articleUrl(a)}`, datePublished: a.date })),
     },
-  })
+  })}\n<!--articles:head:end-->`
 }
 
-export function articlesIndexHtml() {
-  return `
+export function articlesIndexHtml(list = ARTICLES) {
+  return `<!--articles:body:start-->
 <main class="seo-fallback">
   <h1>Artículos</h1>
   <p>${esc(INDEX_DESCRIPTION)}</p>
   <ul>
-    ${ARTICLES.map((a) => `<li><a href="${articleUrl(a)}">${esc(a.title)}</a> — ${esc(a.description)}</li>`).join('\n    ')}
+    ${list.map((a) => `<li><a href="${articleUrl(a)}">${esc(a.title)}</a> — ${esc(a.description)}</li>`).join('\n    ')}
   </ul>
-</main>`
+</main>
+<!--articles:body:end-->`
 }

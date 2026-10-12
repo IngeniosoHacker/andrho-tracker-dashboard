@@ -1,8 +1,9 @@
 import ArticleCard from '../articles/ArticleCard.jsx'
-import { ARTICLES } from '../../lib/articles.js'
+import { useArticles } from '../../lib/remoteArticles.js'
 
-// The landing's informative section: the latest articles (lib/articles.js).
+// The landing's informative section: the latest articles, built and uploaded.
 export default function Articulos() {
+  const articles = useArticles()
   return (
     <section id="articulos" aria-labelledby="articulos-title" className="relative z-10 border-t border-white/10 bg-black px-6 py-24 text-white lg:px-10 lg:py-32">
       <div className="mx-auto max-w-6xl">
@@ -18,7 +19,7 @@ export default function Articulos() {
           </a>
         </div>
         <ul className="mt-12 grid gap-5 md:grid-cols-2">
-          {ARTICLES.slice(0, 4).map((a) => (
+          {articles.slice(0, 4).map((a) => (
             <li key={a.slug}>
               <ArticleCard article={a} dark />
             </li>

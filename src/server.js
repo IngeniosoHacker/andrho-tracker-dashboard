@@ -7,6 +7,7 @@ const cors = require('cors');
 
 const pool = require('./config/db');
 const apiRoutes = require('./routes/api');
+const { siteArticlesRouter } = require('./lib/siteArticles');
 
 if (!process.env.JWT_SECRET) {
   console.error('[server] JWT_SECRET is not set. Refusing to start: every /api/sites/* route ' +
@@ -95,6 +96,16 @@ app.use(cors({
     return cb(new Error('Origin not allowed'));
   }
 }));
+
+// Articles uploaded from the dashboard, rendered into the built site
+// (src/lib/siteArticles.js). Before express.static so /articulos/, the
+// sitemap and llms.txt include them; built article pages are left to static.
+app.use(siteArticlesRouter(express));
+
+// The site's Markdown parser, shared with the dashboard's article editor.
+app.get('/dashboard/js/markdown.js', (req, res) => {
+  res.type('application/javascript').sendFile(path.join(__dirname, '..', 'web', 'src', 'lib', 'markdown.js'));
+});
 
 // Official landing (/, /login.html, /signup.html) -- built from web/ via
 // `npm --prefix web run build` (see railway.json / README.md).

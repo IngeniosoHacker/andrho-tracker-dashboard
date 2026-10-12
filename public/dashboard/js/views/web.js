@@ -7,6 +7,7 @@ import {
   session, siteApi, esc, fmtMs, fmtNum, fmtDate, sourceBadge, cssVar, chart, barChartOptions,
   openDrawer, tabStrip, wireTabs, withPanel, setSubRoute
 } from '../core.js';
+import { renderArticles } from './articles.js';
 
 const TRACKER_SCRIPT_ORIGIN = 'https://webtracker-production-b8d7.up.railway.app';
 
@@ -17,7 +18,8 @@ const TABS = [
   { key: 'trafico', label: 'Tráfico &amp; Keywords' },
   { key: 'geografia', label: 'Geografía' },
   { key: 'ia', label: 'Visibilidad IA' },
-  { key: 'minijuego', label: 'Minijuego' }
+  { key: 'minijuego', label: 'Minijuego' },
+  { key: 'articulos', label: 'Artículos' }
 ];
 
 const RENDER = {
@@ -27,7 +29,8 @@ const RENDER = {
   trafico: renderTraffic,
   geografia: renderGeo,
   ia: renderAI,
-  minijuego: renderGame
+  minijuego: renderGame,
+  articulos: renderArticles
 };
 
 let sessionsPage = { limit: 25, offset: 0, total: 0 };

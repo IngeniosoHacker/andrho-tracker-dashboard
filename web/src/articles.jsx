@@ -5,11 +5,11 @@ import SiteHeader from './components/landing/SiteHeader.jsx'
 import PixelStarfield from './components/ui/PixelStarfield.jsx'
 import Footer from './components/sections/Footer.jsx'
 import ArticleCard from './components/articles/ArticleCard.jsx'
-import { ARTICLES } from './lib/articles.js'
+import { useArticles } from './lib/remoteArticles.js'
 
 // /articulos/ — every article, newest first.
 function ArticlesPage() {
-  const articles = [...ARTICLES].sort((a, b) => b.date.localeCompare(a.date))
+  const articles = useArticles()
   return (
     <div className="min-h-screen">
       <PixelStarfield mix={1} />

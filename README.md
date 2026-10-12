@@ -141,6 +141,35 @@ and scores it. The origin comes from the site's own tracked sessions, never
 from the request; every fetch is SSRF-guarded (public IPs only, ports 80/443,
 redirects re-checked, 6 s / 1 MB caps) and results are cached 15 min.
 
+### Articles
+
+Two sources, one look:
+
+- **Built articles** (`web/src/lib/articles.js` → `ARTICLES`), each with its
+  own `web/articulos/<slug>.html`, static HTML injected at build time.
+- **Uploaded articles**: written or uploaded as `.md` in the dashboard's
+  **Web > Artículos** tab, stored by andrho-api (`/articles`) as Markdown.
+  `src/lib/siteArticles.js` reads the published ones
+  (`GET /public/sites/$ARTICLES_SITE_ID/articles`) and renders them into the
+  built site per request: `/articulos/<slug>.html` from
+  `web/articulos/plantilla.html` (head, crawler copy and the article as
+  `#article-data` JSON), the `/articulos/` index, `sitemap.xml` and
+  `llms.txt`. Built pages always win on the same slug. Without this server
+  (a static host), the React pages still fetch them from andrho-api.
+
+`web/src/lib/markdown.js` (Markdown ⇄ article blocks, front matter) is
+shared by the site, this server and the dashboard's editor preview
+(served as `/dashboard/js/markdown.js`).
+
+The tab's numbers come from `POST /api/sites/:siteId/content-performance`
+(`src/lib/contentPerformance.js`): per article, pageviews, visitors, time,
+average scroll, share read to the end (≥90%), how far readers get (each 10%),
+entrances (organic, AI assistants, referrals), the search queries behind
+them, AI-crawler reads by bot, and daily views. **Cannibalization** flags a
+search query that brought visitors to two or more articles (severity by how
+evenly the clicks split) and target keywords declared by more than one
+article.
+
 ---
 
 ## 3. Environment variables
@@ -153,7 +182,8 @@ Root `.env` (Express backend) — see `.env.example`:
 | `DATABASE_URL` | same Postgres `analytics-tracker` uses |
 | `ALLOWED_ORIGINS` | CORS allowlist for `/api/*` |
 | `JWT_SECRET` | **must match** the secret `andrho-api` signs JWTs with. The server refuses to start without it. |
-| `ANDRHO_API_URL` | public/local URL of `andrho-api`. Injected into `public/dashboard/index.html` as `window.ANDRHO_API_URL`, and used to build the CSP `connect-src` allowance. |
+| `ANDRHO_API_URL` | public/local URL of `andrho-api`. Injected into `public/dashboard/index.html` as `window.ANDRHO_API_URL`, and used to build the CSP `connect-src` allowance. Also where the server reads the uploaded articles. |
+| `ARTICLES_SITE_ID` | site id whose uploaded articles are rendered into `/articulos/` (default `andrho`, AndRho's own site). |
 
 `web/.env` (Vite build-time) — see `web/.env.example`:
 

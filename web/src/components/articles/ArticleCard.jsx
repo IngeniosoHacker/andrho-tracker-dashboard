@@ -11,7 +11,7 @@ export default function ArticleCard({ article, dark = false }) {
       }`}
     >
       <p className={`font-mono text-xs uppercase tracking-[0.2em] ${dark ? 'text-white/45' : 'text-[var(--color-muted)]'}`}>
-        {article.tags[0]} · {article.readingMinutes} min
+        {article.tags[0] || 'Artículo'} · {article.readingMinutes} min
       </p>
       <h3 className="mt-3 font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{article.title}</h3>
       <p className={`mt-3 flex-1 leading-relaxed ${dark ? 'text-white/60' : 'text-[var(--color-ink-soft)]'}`}>{article.description}</p>

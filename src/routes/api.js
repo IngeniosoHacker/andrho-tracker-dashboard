@@ -5,6 +5,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const { requireAuth } = require('../middleware/auth');
 const { auditSite } = require('../lib/seoAudit');
+const { contentPerformance } = require('../lib/contentPerformance');
 
 router.use(express.json());
 
@@ -430,6 +431,27 @@ router.get('/sites/:siteId/game', async (req, res, next) => {
       byTheme: byTheme.rows,
       byThemeCommerce: byThemeCommerce.rows
     });
+  } catch (err) { next(err); }
+});
+
+// ---------------------------------------------------------------------------
+// Articles' performance (Web > Artículos). The articles live in andrho-api;
+// the dashboard posts their paths and target keywords:
+//   { articles: [{ path: '/articulos/x.html', keywords: ['...'] }] }
+// ---------------------------------------------------------------------------
+router.post('/sites/:siteId/content-performance', async (req, res, next) => {
+  const raw = Array.isArray(req.body && req.body.articles) ? req.body.articles : null;
+  if (!raw || raw.length > 300) return res.status(400).json({ error: 'articles must be a list of at most 300' });
+  const articles = [];
+  for (const a of raw) {
+    if (!a || typeof a.path !== 'string' || !/^\/[^\s]{0,299}$/.test(a.path)) {
+      return res.status(400).json({ error: 'every article needs a path starting with /' });
+    }
+    const keywords = Array.isArray(a.keywords) ? a.keywords.filter((k) => typeof k === 'string').slice(0, 30) : [];
+    articles.push({ path: a.path, keywords });
+  }
+  try {
+    res.json(await contentPerformance(pool, req.params.siteId, articles));
   } catch (err) { next(err); }
 });
 

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es-GT">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/png" href="/images/logo/andrho-mark.png" />
+<!-- Template for the articles uploaded from the dashboard: src/server.js
+     fills the markers below (head, crawler copy, #article-data) per request.
+     Served as is, it's an empty page that crawlers must not index. -->
+<!--article:head-->
+<meta name="robots" content="noindex" data-template />
+
+<!-- TRACKER -->
+<script src="https://webtracker-production-b8d7.up.railway.app/tracker.js"
+        data-site-id="andrho"
+        defer></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- The static copy in #root is for crawlers/no-JS; JS browsers hide it
+     until React replaces it. -->
+<script>document.documentElement.classList.add('js')</script>
+<style>.js .seo-fallback { visibility: hidden; }</style>
+</head>
+
+<body class="antialiased overflow-x-hidden">
+  <div id="root" data-slug=""><!--article:body--></div>
+  <!--article:data-->
+  <script type="module" src="/src/article.jsx"></script>
+</body>
+</html>
