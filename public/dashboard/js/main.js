@@ -4,7 +4,7 @@
 // the section's summary, notifications and suggestions.
 import {
   session, getAccessToken, fetchMe, tryRefresh, clearTokensAndRedirect, logout,
-  esc, isStaff, ROLE_LABEL, closeDrawer, parseRoute, withPanel
+  esc, isStaff, ROLE_LABEL, closeDrawer, parseRoute, withPanel, andrhoApi
 } from './core.js';
 import { NAV, STAFF_NAV, FOOTER_NAV, ICONS, findNav } from './nav.js';
 import { loadInsights } from './insights.js';
@@ -90,6 +90,26 @@ async function route() {
   await withPanel(els.view, (el) => view.render(el, { key, sub }));
 }
 
+// My status in the sidebar, and a heartbeat so the team sees who's online.
+async function setupPresence() {
+  const sel = document.getElementById('myStatus');
+  const dot = document.getElementById('statusDot');
+  const paint = () => { dot.dataset.status = sel.value; };
+  try {
+    const { presence } = await andrhoApi('/account/presence');
+    const mine = presence.find((p) => p.user_id === session.account.userId);
+    if (mine) sel.value = mine.status;
+  } catch {}
+  paint();
+  sel.addEventListener('change', async () => {
+    paint();
+    try { await andrhoApi('/account/me/status', { method: 'PATCH', body: JSON.stringify({ status: sel.value }) }); } catch {}
+  });
+  const beat = () => { if (!document.hidden) andrhoApi('/account/me/heartbeat', { method: 'POST' }).catch(() => {}); };
+  beat();
+  setInterval(beat, 60000);
+}
+
 async function boot() {
   if (!getAccessToken()) { window.location.href = '/login.html'; return; }
   try {
@@ -105,6 +125,7 @@ async function boot() {
   if (a.role) { els.role.textContent = ROLE_LABEL[a.role] || a.role; els.role.hidden = false; }
 
   drawSidebar();
+  setupPresence();
   // A Creator (not an admin) lands on their tasks.
   if (!window.location.hash && a.staffRole === 'creator') history.replaceState(null, '', '#/creators');
   window.addEventListener('hashchange', route);

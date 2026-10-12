@@ -25,6 +25,15 @@
     <div class="side-account">
       <p class="side-company" id="companyName">—</p>
       <p class="side-user"><span id="userName">—</span> <span class="role-badge" id="roleBadge" hidden></span></p>
+      <label class="side-status"><span class="status-dot" id="statusDot"></span>
+        <select id="myStatus" aria-label="Tu estado">
+          <option value="disponible">Disponible</option>
+          <option value="almorzando">Almorzando</option>
+          <option value="en_reunion">En reunión</option>
+          <option value="en_ruta">En ruta</option>
+          <option value="fuera">Fuera de turno</option>
+        </select>
+      </label>
     </div>
     <nav class="side-nav" id="sideNav"></nav>
     <button class="side-link side-logout" id="logoutBtn" type="button">

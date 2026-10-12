@@ -547,3 +547,19 @@ td.mono { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-se
 .insights-meta { margin: 14px 0 0; font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); display: flex; gap: 8px; align-items: center; }
 .link-btn { background: none; border: none; padding: 0; color: var(--accent-human); cursor: pointer; font: inherit; text-decoration: underline; }
 .insight-upsell { margin: 14px 0 0; padding: 10px 12px; border-radius: var(--radius-sm); background: rgba(124, 58, 237, 0.07); color: var(--accent-violet); font-size: 12.5px; }
+.side-status { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.side-status select { border: none; background: transparent; font-family: var(--font-ui); font-size: 12px; color: var(--text-secondary); cursor: pointer; padding: 2px 0; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-human); flex-shrink: 0; }
+.status-dot[data-status="almorzando"], .status-dot[data-status="en_reunion"], .status-dot[data-status="en_ruta"] { background: var(--accent-ai); }
+.status-dot[data-status="fuera"] { background: var(--text-tertiary); }
+.presence { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.presence small { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 11px; }
+.home-card { text-decoration: none; color: inherit; transition: border-color 0.15s ease, transform 0.15s ease; }
+.home-card:hover { border-color: var(--mint); transform: translateY(-1px); }
+.home-card.home-alert { border-color: rgba(225, 29, 72, 0.4); }
+.home-card .kpi-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-editor { max-width: 520px; }
+.home-pick { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 4px; }
+.home-pick li { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border: 1px solid var(--border-soft); border-radius: var(--radius-sm); font-size: 13.5px; }
+.home-pick label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.section-head .welcome { margin: 0; }
