@@ -2,6 +2,8 @@
 // running out, and the latest movements.
 import { esc, fmtNum, fmtMoney, fmtDate, tabStrip, wireTabs } from '../core.js';
 import { erpGet, odooDate } from './erp.js';
+import { openMigration } from './migrate.js';
+import { roleAtLeast, withPanel } from '../core.js';
 
 const STATUS = { agotado: ['Agotado', 'status-rechazada'], bajo: ['Bajo', 'status-proceso'], ok: ['Bien', 'status-terminada'] };
 
@@ -9,6 +11,7 @@ export default {
   title: 'Inventario',
   hint: 'tus productos y servicios, y cómo se mueven',
   async render(el) {
+    const self = this;
     const d = await erpGet(el, '/inventory');
     if (!d) return;
     const s = d.summary;
@@ -19,9 +22,12 @@ export default {
         <div class="kpi-card"><p class="kpi-label">Agotados</p><p class="kpi-value" style="color:var(--accent-danger)">${fmtNum(s.out_of_stock)}</p></div>
         <div class="kpi-card"><p class="kpi-label">Por agotarse</p><p class="kpi-value ai">${fmtNum(s.low_stock)}</p><p class="kpi-sub">5 unidades o menos</p></div>
       </div>
+      ${roleAtLeast('editor') ? `<div class="section-head"><span></span><button type="button" class="copy-btn" data-migrate>Migrar productos de otro sistema</button></div>` : ''}
       ${tabStrip('invTabs', [{ key: 'productos', label: 'Productos' }, { key: 'movimientos', label: 'Movimientos' }], 'productos')}
       <div class="card" id="invPanel"></div>
     `;
+    const mb = el.querySelector('[data-migrate]');
+    if (mb) mb.addEventListener('click', () => openMigration('products', () => withPanel(el, (p) => self.render(p))));
     const panel = el.querySelector('#invPanel');
     const show = (tab) => {
       panel.innerHTML = tab === 'movimientos'

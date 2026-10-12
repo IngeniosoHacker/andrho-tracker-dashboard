@@ -2,11 +2,14 @@
 // how often, and the regulars who stopped coming.
 import { esc, fmtNum, fmtMoney, fmtDate } from '../core.js';
 import { erpGet, odooDate } from './erp.js';
+import { openMigration } from './migrate.js';
+import { roleAtLeast, withPanel } from '../core.js';
 
 export default {
   title: 'Clientes',
   hint: 'quienes ya te compraron',
   async render(el) {
+    const self = this;
     const d = await erpGet(el, '/customers');
     if (!d) return;
     const s = d.summary;
@@ -18,6 +21,7 @@ export default {
         <div class="kpi-card"><p class="kpi-label">Ingresos</p><p class="kpi-value">${fmtMoney(s.revenue)}</p></div>
         <div class="kpi-card"><p class="kpi-label">Dejaron de venir</p><p class="kpi-value" style="color:var(--accent-danger)">${fmtNum(risk.length)}</p><p class="kpi-sub">clientes frecuentes, más de 30 días sin comprar</p></div>
       </div>
+      ${roleAtLeast('editor') ? `<div class="section-head"><span></span><button type="button" class="copy-btn" data-migrate>Migrar clientes de otro sistema</button></div>` : ''}
       <div class="card">
         <h2>Clientes <span class="hint">ordenados por lo que te han comprado</span></h2>
         ${d.customers.length ? `<table><thead><tr><th>Cliente</th><th>Contacto</th><th class="num">Compras</th><th class="num">Total</th><th class="num">Ticket prom.</th><th>Última compra</th></tr></thead><tbody>
@@ -29,5 +33,7 @@ export default {
         </tbody></table>` : '<p class="empty-state">Todavía no hay ventas con cliente registrado.</p>'}
       </div>
     `;
+    const mb = el.querySelector('[data-migrate]');
+    if (mb) mb.addEventListener('click', () => openMigration('customers', () => withPanel(el, (p) => self.render(p))));
   }
 };
