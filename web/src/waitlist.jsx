@@ -5,7 +5,8 @@ import SiteHeader from './components/landing/SiteHeader.jsx'
 import PixelStarfield from './components/ui/PixelStarfield.jsx'
 import SurveyArt from './components/waitlist/SurveyArt.jsx'
 import QuestionControls from './components/waitlist/QuestionControls.jsx'
-import { AlertIcon, SpinnerIcon } from './components/ui/icons.jsx'
+import { CARD, DeckNav, DeckStack, Verdict } from './components/waitlist/Deck.jsx'
+import { AlertIcon } from './components/ui/icons.jsx'
 import {
   INITIAL_ANSWERS,
   STEPS,
@@ -18,7 +19,7 @@ import {
 } from './lib/waitlist.js'
 import { getDiscountTier, generateDiscountCode } from './lib/discountTiers.js'
 import { submitRegistration } from './lib/gameStorage.js'
-import { prefersReducedMotion } from './lib/motion.js'
+import { useDeck } from './lib/useDeck.js'
 
 // Coming from the landing's game (Juego.jsx) the URL carries the result:
 // ?descuento=10&destruidos=23&partida=<game session id>. The percent is
@@ -57,31 +58,6 @@ function saveDraft(value) {
     // Storage blocked (private mode…): the survey just won't resume.
   }
 }
-
-const OUT_MS = 420
-const MESSAGE_MS = 1700
-
-// The big message between two cards (see `verdict` on each step).
-function Verdict({ verdict, onSkip }) {
-  return (
-    <button
-      type="button"
-      onClick={onSkip}
-      aria-label="Continuar"
-      className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center px-6"
-    >
-      <p
-        key={verdict.key}
-        className={`verdict verdict-${verdict.tone} max-w-5xl text-center font-display text-4xl font-bold leading-[1.02] tracking-tight sm:text-6xl lg:text-8xl`}
-      >
-        {verdict.text}
-      </p>
-    </button>
-  )
-}
-
-const CARD =
-  'absolute inset-0 flex flex-col overflow-hidden rounded-3xl border border-white/15 bg-[var(--window-bg)] text-[var(--color-ink)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.75)]'
 
 function DoneCard({ done, className }) {
   const { submission, code, modules } = done
@@ -140,17 +116,13 @@ function WaitlistPage() {
   const [draft] = useState(loadDraft)
   const [answers, setAnswers] = useState(draft?.answers ?? INITIAL_ANSWERS)
   const [stepId, setStepId] = useState(draft?.stepId ?? STEPS[0].id)
-  // phase: 'in' (card arriving / shown) → 'out' (leaving) → 'message' → 'in'
-  const [motion, setMotion] = useState({ phase: 'in', dir: 1 })
-  const [verdict, setVerdict] = useState(null)
+  const { verdict, transition, arrive, cardMotion, moving, showingMessage } = useDeck()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(null)
   // { key, data } — the API's plan match for the answers in `key`.
   const [recommendation, setRecommendation] = useState(null)
 
-  const timers = useRef([])
-  const pending = useRef(null)
   const headingRef = useRef(null)
   const firstRender = useRef(true)
 
@@ -160,9 +132,7 @@ function WaitlistPage() {
   const step = resolveStep(steps[index], answers, ctx)
   const isLast = index === steps.length - 1
   const valid = step.valid(answers)
-  const busy = motion.phase === 'out' || motion.phase === 'message' || submitting
-
-  useEffect(() => () => timers.current.forEach(clearTimeout), [])
+  const busy = moving || submitting
 
   // Ask the API for the matching plan when the plan question comes up (again
   // if the answers changed since). Without it the question still works, just
@@ -192,34 +162,6 @@ function WaitlistPage() {
     }
     headingRef.current?.focus({ preventScroll: true })
   }, [stepId, done])
-
-  function later(ms, fn) {
-    timers.current.push(setTimeout(fn, ms))
-  }
-
-  function arrive() {
-    timers.current.forEach(clearTimeout)
-    timers.current = []
-    const next = pending.current
-    pending.current = null
-    if (!next) return
-    setVerdict(null)
-    next.apply()
-    setMotion({ phase: 'in', dir: next.dir })
-  }
-
-  // Slide the current card out, show `message` (if any), slide the next in.
-  function transition(dir, apply, message) {
-    const reduced = prefersReducedMotion()
-    pending.current = { dir, apply }
-    setMotion({ phase: 'out', dir })
-    later(reduced ? 0 : OUT_MS, () => {
-      if (!message) return arrive()
-      setVerdict({ ...message, key: Date.now() })
-      setMotion({ phase: 'message', dir })
-      later(MESSAGE_MS, arrive)
-    })
-  }
 
   async function submit() {
     setError('')
@@ -265,8 +207,6 @@ function WaitlistPage() {
     transition(-1, () => setStepId(prevId))
   }
 
-  const dirName = motion.dir > 0 ? 'next' : 'prev'
-  const cardMotion = motion.phase === 'out' ? `card-out-${dirName}` : motion.phase === 'in' ? `card-in-${dirName}` : ''
   const title = step.title
   const progress = done ? 100 : Math.round((index / steps.length) * 100)
 
@@ -277,16 +217,11 @@ function WaitlistPage() {
 
       <main className="absolute inset-0 px-3 pb-[96px] pt-[124px] sm:px-6 md:pt-[96px]">
         <div className="relative mx-auto h-full max-w-[83rem]">
-          {/* The rest of the deck, peeking out behind the current card;
-              gone while a message is up so it reads over open space. */}
-          {motion.phase !== 'message' && (
-            <>
-              <div aria-hidden="true" className="absolute inset-0 translate-x-3 translate-y-3 rotate-[1.4deg] rounded-3xl border border-white/10 bg-[var(--window-bg)]/20" />
-              <div aria-hidden="true" className="absolute inset-0 translate-x-1.5 translate-y-1.5 rotate-[0.6deg] rounded-3xl border border-white/10 bg-[var(--window-bg)]/40" />
-            </>
-          )}
+          {/* The rest of the deck; gone while a message is up so it reads
+              over open space. */}
+          {!showingMessage && <DeckStack />}
 
-          {motion.phase !== 'message' &&
+          {!showingMessage &&
             (done ? (
               <DoneCard key="done" done={done} className={cardMotion} />
             ) : (
@@ -337,7 +272,7 @@ function WaitlistPage() {
               </article>
             ))}
 
-          {verdict && motion.phase === 'message' && <Verdict verdict={verdict} onSkip={arrive} />}
+          {verdict && showingMessage && <Verdict verdict={verdict} onSkip={arrive} />}
           <p className="sr-only" aria-live="polite">
             {verdict?.text ?? ''}
           </p>
@@ -346,30 +281,16 @@ function WaitlistPage() {
 
       {/* Back / continue, pinned to the bottom of the screen. */}
       {!done && (
-        <nav aria-label="Navegación del formulario" className="fixed inset-x-3 bottom-3 z-40 sm:inset-x-6">
-          <div className="mx-auto max-w-[83rem] overflow-hidden rounded-2xl border border-black/10 bg-white/92 shadow-[0_18px_50px_-24px_rgba(0,0,0,0.35)] backdrop-blur-md">
-            <div className="h-1 bg-[var(--window-line)]">
-              <div className="h-full bg-[var(--window-teal)] transition-[width] duration-500" style={{ width: `${progress}%` }} />
-            </div>
-            <div className="flex items-center justify-between gap-3 px-3 py-2.5 sm:px-4">
-              <button type="button" onClick={back} disabled={index === 0 || busy} className="btn-outline !h-11 disabled:cursor-not-allowed disabled:opacity-35">
-                Regresar
-              </button>
-              <p className="hidden font-mono text-xs uppercase tracking-widest text-[var(--color-muted)] sm:block">
-                {progress}% del abordaje
-              </p>
-              <button
-                type="button"
-                onClick={next}
-                disabled={!valid || busy}
-                className="btn-solid !h-11 gap-2 disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                {submitting && <SpinnerIcon className="h-4 w-4 animate-spin" />}
-                {isLast ? (submitting ? 'Abordando…' : 'Abordar la nave') : step.optional && !step.get(answers) ? 'Omitir' : 'Continuar'}
-              </button>
-            </div>
-          </div>
-        </nav>
+        <DeckNav
+          progress={progress}
+          label={`${progress}% del abordaje`}
+          onBack={back}
+          backDisabled={index === 0 || busy}
+          onNext={next}
+          nextDisabled={!valid || busy}
+          loading={submitting}
+          nextLabel={isLast ? (submitting ? 'Abordando…' : 'Abordar la nave') : step.optional && !step.get(answers) ? 'Omitir' : 'Continuar'}
+        />
       )}
     </div>
   )

@@ -88,7 +88,14 @@ web/                    Vite + React + Tailwind v4 app: landing + login + signup
                          space wallpaper -- timeline in src/lib/landing.js),
                          then the full-bleed asteroids mini-game and footer
   login.html            -> src/login.jsx
-  signup.html           -> src/signup.jsx
+  signup.html           -> src/signup.jsx: the signup with setup (lib/signup.js).
+                         Quick (a paragraph, read by andrho-api's Analyzer)
+                         or custom (the waitlist's questions), then the three
+                         packages (modules can be unchecked), the brand
+                         ("Cuéntanos de tu marca": essence, logo) and the
+                         account -> POST /auth/register, which provisions
+                         the ERP, WhatsApp and the website. Not linked from
+                         the landing while AndRho is in development.
   waitlist.html         -> src/waitlist.jsx (POST andrho-api /waitlist; also
                          sends the game's `game_registration` when arriving
                          from a won discount)
