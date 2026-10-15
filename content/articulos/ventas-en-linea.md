@@ -108,4 +108,4 @@ Sí, por los canales oficiales de WhatsApp Business: confirmaciones, recordatori
 
 ## Súbete antes de la próxima temporada alta
 
-AndRho está en desarrollo. Si vendes en línea y quieres que tus canales trabajen juntos, [únete a la lista de espera](/waitlist.html): nos ayuda a construir lo que tu negocio necesita y te avisamos antes del despegue.
+AndRho está en beta. Si vendes en línea y quieres que tus canales trabajen juntos, [continúa aquí](/signup.html): cuéntanos de tu negocio y armamos lo que necesita. Es gratis mientras dure la beta.

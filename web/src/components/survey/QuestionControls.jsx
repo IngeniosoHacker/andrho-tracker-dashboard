@@ -1,9 +1,9 @@
 import Field from '../ui/form/Field.jsx'
 import { TextInput } from '../ui/form/inputs.jsx'
 import { BuildingIcon, GlobeIcon, MailIcon } from '../ui/icons.jsx'
-import { toggleOption } from '../../lib/waitlist.js'
+import { toggleOption } from '../../lib/survey.js'
 
-// The answer controls of one waitlist step (see STEPS in lib/waitlist.js),
+// The answer controls of one survey step (see STEPS in lib/survey.js),
 // by `step.kind`. `value` = step.get(answers); `onChange(value)` stores it.
 
 function OptionButton({ option, selected, onClick, role, disabled }) {

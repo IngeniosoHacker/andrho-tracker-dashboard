@@ -107,6 +107,14 @@ app.get('/dashboard/js/markdown.js', (req, res) => {
   res.type('application/javascript').sendFile(path.join(__dirname, '..', 'web', 'src', 'lib', 'markdown.js'));
 });
 
+// The waiting list is gone: old links (shared ones, the game's "Reclamar mi
+// X%" with its ?descuento=…&destruidos=…&partida=…) go to the signup, query
+// string included.
+app.get('/waitlist.html', (req, res) => {
+  const qs = req.originalUrl.indexOf('?');
+  res.redirect(301, '/signup.html' + (qs >= 0 ? req.originalUrl.slice(qs) : ''));
+});
+
 // Official landing (/, /login.html, /signup.html) -- built from web/ via
 // `npm --prefix web run build` (see railway.json / README.md).
 app.use(express.static(path.join(__dirname, '..', 'web', 'dist'), { maxAge: '5m' }));

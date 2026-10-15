@@ -45,8 +45,8 @@ export default function TodoEnUnaCuenta() {
       </ul>
 
       <div className="mt-8 flex max-w-2xl flex-col gap-3 sm:flex-row lg:mt-10">
-        <a href="/waitlist.html" className="btn-solid sm:flex-1">
-          Reservar mi cuenta
+        <a href="/signup.html" className="btn-solid sm:flex-1">
+          Continuar
         </a>
         <a href="#creators" className="btn-outline sm:flex-1">
           Conoce a los Creators

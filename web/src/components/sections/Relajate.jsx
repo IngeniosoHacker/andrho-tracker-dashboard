@@ -27,8 +27,8 @@ export default function Relajate() {
           </span>
         </p>
         <div className="mt-8 flex max-w-sm flex-col gap-3 sm:mt-12">
-          <a href="/waitlist.html" className="btn-solid">
-            Unirme a la lista de espera
+          <a href="/signup.html" className="btn-solid">
+            Continuar
           </a>
           <a href="#como-funciona" className="btn-outline">
             Cómo funciona

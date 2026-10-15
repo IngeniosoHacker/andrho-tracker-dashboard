@@ -56,7 +56,7 @@ export const FAQ = [
   },
   {
     q: '¿Ya puedo usar AndRho?',
-    a: 'Todavía no: AndRho está en desarrollo y el avance es público, commit por commit, en andrho.com. Únete a la lista de espera para asegurar tu lugar antes del lanzamiento; te avisamos cuando abramos.',
+    a: 'Sí, en beta y gratis mientras dure. AndRho sigue en desarrollo y el avance es público, commit por commit, en andrho.com. Para empezar, pulsa Continuar: describes tu negocio o respondes unas preguntas, eliges tu paquete y preparamos tus servicios. La conexión con WhatsApp, Facebook e Instagram se activa cuando Meta apruebe a AndRho.',
   },
 ]
 
@@ -176,7 +176,7 @@ export function staticLandingHtml() {
 <main class="seo-fallback">
   <h1>AndRho: análisis de datos con inteligencia artificial para pymes en Guatemala</h1>
   <p>Conecta y entiende tu negocio. AndRho es el centro de control que unifica tu ERP, tu marketing y tu equipo, lo analiza con modelos estadísticos y, con inteligencia artificial, te lo traduce en decisiones, no en más pestañas. Así que relájate: la plataforma se adapta a tu operación.</p>
-  <p>AndRho está en desarrollo. <a href="/waitlist.html">Unirme a la lista de espera</a> · <a href="/#progreso">Avance en vivo</a> · <a href="/articulos/">Artículos</a></p>
+  <p>AndRho está en beta abierta. <a href="/signup.html">Continuar</a> · <a href="/#progreso">Avance en vivo</a> · <a href="/articulos/">Artículos</a></p>
   <section>
     <h2>Relájate</h2>
     <p>Encárgate de ${esc(ACTIVITIES.slice(0, -1).join(', '))} mientras la plataforma hace toda la parte complicada.</p>
@@ -208,8 +208,8 @@ export function staticLandingHtml() {
     </ul>
   </section>
   <section>
-    <h2>Que no te deje la nave: lista de espera</h2>
-    <p>Estamos por despegar. <a href="/waitlist.html">Únete a la lista de espera de AndRho</a> y asegura tu lugar antes del lanzamiento.</p>
+    <h2>Que no te deje la nave</h2>
+    <p>Estamos por despegar. Cuéntanos de tu negocio, elige tu paquete y <a href="/signup.html">sube a bordo de AndRho</a>: es gratis mientras dure la beta.</p>
   </section>
   <section>
     <h2>Creators: personas reales, a tiempo</h2>

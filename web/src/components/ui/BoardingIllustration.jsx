@@ -1,4 +1,4 @@
-// Flat illustration for the waitlist window: a saucer beaming up a boarding
+// Flat illustration for the "la nave" window: a saucer beaming up a boarding
 // pass while a meteor falls and a T-rex runs for the beam — the ones who
 // don't board go the way of the dinosaurs. Same palette as the PDF artwork
 // (mint/teal, ink, off-white) plus the meteor's fire, so it sits next to the
@@ -103,7 +103,7 @@ export default function BoardingIllustration({ className = '' }) {
           PUERTA ρ-01
         </text>
         <text x="132" y="310" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#3f4a63" letterSpacing="1">
-          LISTA DE ESPERA
+          PASE DE ABORDAJE
         </text>
         <line x1="274" y1="248" x2="274" y2="318" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 4" />
         {BARS.map(([x, w]) => (

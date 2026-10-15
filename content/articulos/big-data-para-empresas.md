@@ -106,4 +106,4 @@ No. En AndRho, los modelos estadísticos analizan y la IA explica y sugiere. **N
 
 ## Súbete antes del despegue
 
-AndRho está en desarrollo y lo construimos a la vista, commit por commit. Si quieres que tu negocio decida con datos como las empresas más grandes del mundo, pero sin su presupuesto, [únete a la lista de espera](/waitlist.html). Los que se suben primero, despegan primero.
+AndRho está en beta y lo construimos a la vista, commit por commit. Si quieres que tu negocio decida con datos como las empresas más grandes del mundo, pero sin su presupuesto, [continúa aquí](/signup.html). Los que se suben primero, despegan primero.

@@ -4,7 +4,8 @@ This Express service now serves three things:
 
 - **`/`** — the official AndRho marketing landing page (built from `web/`, a
   Vite + React + Tailwind v4 app ported from the `andrho` repo).
-- **`/waitlist.html`** — the pre-launch waitlist form (andrho-api `POST /waitlist`).
+- **`/waitlist.html`** — gone: redirects to `/signup.html` (query string kept,
+  so the game's "Reclamar mi X%" links still work).
 - **`/login.html`** and **`/signup.html`** — real account auth, backed by
   [`andrho-api`](../andrho-api) (a separate Go service that owns accounts and
   issues JWTs).
@@ -82,23 +83,26 @@ network request.
 ## 2. Project layout
 
 ```
-web/                    Vite + React + Tailwind v4 app: landing + login + signup + waitlist
+web/                    Vite + React + Tailwind v4 app: landing + login + signup
   index.html            AndRho landing: a scroll-driven stage (white hero that
                          folds into the navbar, then section "windows" over a
                          space wallpaper -- timeline in src/lib/landing.js),
-                         then the full-bleed asteroids mini-game and footer
+                         then the full-bleed asteroids mini-game and footer.
+                         main.jsx picks the view per visitor (src/lib/visitor.js):
+                         the full landing the first time, ShortLanding.jsx when
+                         they come back without signing up, WelcomeBack.jsx once
+                         they did (?vista=completa|corta|bienvenida forces one)
   login.html            -> src/login.jsx
   signup.html           -> src/signup.jsx: the signup with setup (lib/signup.js).
                          Quick (a paragraph, read by andrho-api's Analyzer)
-                         or custom (the waitlist's questions), then the three
+                         or custom (src/lib/survey.js), then the three
                          packages (modules can be unchecked), the brand
                          ("Cuéntanos de tu marca": essence, logo) and the
                          account -> POST /auth/register, which provisions
-                         the ERP, WhatsApp and the website. Not linked from
-                         the landing while AndRho is in development.
-  waitlist.html         -> src/waitlist.jsx (POST andrho-api /waitlist; also
-                         sends the game's `game_registration` when arriving
-                         from a won discount)
+                         the ERP, WhatsApp and the website. Every
+                         "Continuar" on the site leads here; arriving from a
+                         won game it also claims the discount (stored with the
+                         account, plus the game's `game_registration` event)
   src/                  components (landing/ = stage, header, window chrome)
   dist/                 build output (gitignored), served at "/" by src/server.js
 

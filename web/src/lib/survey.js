@@ -1,14 +1,9 @@
-import { apiPost } from './authApi.js'
-
-// The waitlist survey (waitlist.html), built from waitinglist.md: one
+// The business survey behind the signup's custom setup (signup.html),
+// built from waitinglist.md (it started as the waitlist's survey): one
 // question per screen, grouped as a sales story — who you are, where you
-// show up, how you run things today (and what hurts), where you want to go —
-// and only then the contact details. Answers post to andrho-api's public
-// `POST /waitlist` (waitlist_submissions table) with the same keys as
-// INITIAL_ANSWERS. They also tell us which modules to build first. The API
-// matches the answers to a plan (POST /waitlist/recommendation, shown as the
-// "Recomendado" badge on the plan question) and builds the suggested AndRho
-// setup shown at the end.
+// show up, how you run things today (and what hurts), where you want to go.
+// buildSubmission() turns the answers into the keys andrho-api's Analyzer
+// (POST /analyzer) and POST /auth/register read.
 //
 // Steps adapt to earlier answers: `when` hides a whole step, and `title`,
 // `options`, `note` and `verdict` may be functions of (answers, ctx), where
@@ -610,32 +605,6 @@ export function toggleOption(list, option, options, max) {
   return [...next, option.value]
 }
 
-export const SUGGESTED_MODULE_LABELS = {
-  analitica: 'Análisis estadístico con IA que te lo explica',
-  unificacion: 'Unificación de todos tus datos',
-  erp: 'ERP con Odoo, administrado por AndRho',
-  sitio_web: 'Sitio web con seguimiento incluido',
-  tracking: 'Plugin de seguimiento para tu sitio',
-  redes_creacion: 'Creación de tus páginas en Meta y TikTok',
-  redes: 'Redes vinculadas y medidas con tus ventas',
-  whatsapp: 'Integración con WhatsApp Business',
-  vencimientos: 'Control de vencimientos y rotación',
-  inventario: 'Inventario en tiempo real',
-  mermas: 'Mermas y aprovechamiento de lo que no se vende',
-  agenda: 'Agenda y seguimiento de clientes',
-  produccion: 'Planificación de producción',
-  rutas: 'Seguimiento de envíos y rutas',
-  citas: 'Citas y expedientes',
-  finanzas: 'Finanzas y contabilidad',
-  ventas: 'Ventas y punto de venta',
-  marketing: 'Marketing y campañas',
-  clientes: 'Clientes (CRM)',
-  compras: 'Compras y proveedores',
-  logistica: 'Envíos y rutas',
-  rrhh: 'Personal y planilla',
-  creators: 'Creators: diseñadores y programadores a tu disposición',
-}
-
 // Answers to questions that no longer apply (a sector picked, answered, then
 // unpicked) are dropped. Multi-select sector answers are sent as
 // comma-separated strings (sectorAnswers is a flat string map on the API side).
@@ -657,16 +626,4 @@ export function buildSubmission(a) {
     painPoints: a.painPoints.filter((v) => painPointOptions(a).some((o) => o.value === v)),
   }
   return clean
-}
-
-// `submission` = buildSubmission(answers). Resolves to the API's
-// { id, recommendation: { plan, reasons, suggestedModules } }; throws with a
-// user-facing `.message` on failure.
-export function joinWaitlist(submission) {
-  return apiPost('/waitlist', submission)
-}
-
-// The plan matched to the answers so far: { plan, reasons, suggestedModules }.
-export function fetchRecommendation(answers) {
-  return apiPost('/waitlist/recommendation', buildSubmission(answers))
 }

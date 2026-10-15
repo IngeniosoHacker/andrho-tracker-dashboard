@@ -1,7 +1,6 @@
 import { SpinnerIcon } from '../ui/icons.jsx'
 
-// Pieces of the full-screen card deck shared by waitlist.html and
-// signup.html (motion lives in lib/useDeck.js).
+// Pieces of the full-screen card deck of signup.html (motion lives in lib/useDeck.js).
 
 export const CARD =
   'absolute inset-0 flex flex-col overflow-hidden rounded-3xl border border-white/15 bg-[var(--window-bg)] text-[var(--color-ink)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.75)]'

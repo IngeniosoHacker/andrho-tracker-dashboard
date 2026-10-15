@@ -4,7 +4,7 @@ import WindowFrame from '../landing/WindowFrame.jsx'
 import { logo } from '../../lib/assets.js'
 import { CREATORS_LENGTH, CREATORS_TRACK } from '../../lib/landing.js'
 import { easeInOutCubic, easeOutCubic, lerp, seg } from '../../lib/motion.js'
-import { CREATOR_TERMS } from '../../lib/seo.js'
+import { CREATOR_TERMS, SITE } from '../../lib/seo.js'
 
 // Track geometry, in unscaled track pixels. The track is scaled down to fit
 // short viewports (see `scale` below), so these never change.
@@ -112,7 +112,7 @@ export default function Creators({ progress, sectionRef }) {
           <p className="max-w-md text-xs leading-relaxed text-white/65 sm:text-base">
             Así viaja una idea: de tus datos a tu aprobación, y de ahí a un diseñador o programador de la red que
             la acepta y la entrega.{' '}
-            <a href="/waitlist.html" className="font-semibold text-white underline decoration-[var(--mint)] underline-offset-4">
+            <a href={SITE.whatsapp} target="_blank" rel="noreferrer" className="font-semibold text-white underline decoration-[var(--mint)] underline-offset-4">
               ¿Eres Creator?
             </a>
           </p>
@@ -488,11 +488,11 @@ function CrecerWindow({ active }) {
           </h2>
           <p className="mt-5 text-xl font-semibold text-[var(--color-ink)]/75 sm:text-2xl lg:text-3xl">No en tu caso.</p>
           <a
-            href="/waitlist.html"
+            href="/signup.html"
             className="mt-8 inline-flex h-12 items-center rounded-full bg-[var(--color-ink)] px-8 text-sm font-bold tracking-[0.15em] uppercase transition-colors hover:bg-[#1f2937] lg:h-14 lg:px-10"
             style={{ color: PALETTE.yellow }}
           >
-            Únete a la lista
+            Continuar
           </a>
         </div>
         <IceCreamArt className="mx-auto max-h-[30svh] w-auto md:max-h-[60svh]" />

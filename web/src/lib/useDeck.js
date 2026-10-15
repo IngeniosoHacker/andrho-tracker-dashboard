@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { prefersReducedMotion } from './motion.js'
 
-// The card deck behind the full-screen questionnaires (waitlist.html,
-// signup.html): one card per screen sliding sideways, with an optional big
-// message (a "verdict") shown alone between two cards.
+// The card deck behind the full-screen signup (signup.html): one card per
+// screen sliding sideways, with an optional big message (a "verdict") shown
+// alone between two cards.
 //
 // transition(dir, apply, message): slides the current card out (dir 1 =
 // forward, -1 = back), shows `message` ({ tone, text }) if given, then calls

@@ -2,7 +2,7 @@ import { NAV_LINKS } from '../../lib/landing.js'
 import { easeOutBack, seg } from '../../lib/motion.js'
 import { logo } from '../../lib/assets.js'
 
-// The landing's "taskbar". At morph=0 only the login + waitlist buttons exist (top-right of
+// The landing's "taskbar". At morph=0 only the login + continue buttons exist (top-right of
 // the white hero); as the hero folds up (`morph` 0 → 1) the white bar
 // fades in around it, the hero title lands as the wordmark, the logo pops in
 // and the bold hero words land as links (the flying copies live in
@@ -10,7 +10,7 @@ import { logo } from '../../lib/assets.js'
 // through `refs`). Once formed it stays for the rest of the site.
 //
 // `base` prefixes the section links, so pages other than the landing (e.g.
-// waitlist.html, rendered with morph = Infinity) link back into it.
+// signup.html, rendered with morph = Infinity) link back into it.
 export default function SiteHeader({ morph = Infinity, activeId = null, refs, base = '' }) {
   const formed = morph >= 1
   const bar = seg(morph, 0.62, 1)
@@ -89,8 +89,7 @@ export default function SiteHeader({ morph = Infinity, activeId = null, refs, ba
             })}
           </ul>
 
-          {/* Login for the team and beta users, next to the waiting list
-              (no public sign-up while AndRho is in development). */}
+          {/* Login, and "Continuar" into the signup. */}
           <div className="order-2 ml-auto flex items-center gap-2 md:order-3 md:ml-0">
             <a
               href="/login.html"
@@ -100,10 +99,10 @@ export default function SiteHeader({ morph = Infinity, activeId = null, refs, ba
               Iniciar sesión
             </a>
             <a
-              href="/waitlist.html"
+              href="/signup.html"
               className="rounded-full bg-[var(--color-ink)] px-4 py-1.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#1f2937]"
             >
-              Lista de espera
+              Continuar
             </a>
           </div>
         </div>

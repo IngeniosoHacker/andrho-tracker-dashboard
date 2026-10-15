@@ -196,7 +196,7 @@ export function industryHtml(i) {
   <ul>${i.modules.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>
   <h2>Preguntas frecuentes</h2>
   ${i.faq.map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join('\n  ')}
-  <p><a href="/waitlist.html">Únete a la lista de espera</a> · <a href="/articulos/${i.article}.html">Lee más</a></p>
+  <p><a href="/signup.html">Continuar</a> · <a href="/articulos/${i.article}.html">Lee más</a></p>
   <p>Otros giros: ${INDUSTRIES.filter((x) => x.slug !== i.slug).map((x) => `<a href="${industryUrl(x)}">${esc(x.title)}</a>`).join(' · ')}</p>
 </main>`
 }

@@ -71,3 +71,22 @@ export async function apiGet(path) {
   if (!res.ok) throw new Error(`${path}: ${res.status}`)
   return res.json()
 }
+
+// GET with the stored session (the landing's welcome back). An expired
+// access token is refreshed once with the refresh token; resolves to null
+// when there is no usable session.
+export async function apiGetAuth(path) {
+  const get = () =>
+    fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEYS.access)}` } })
+  try {
+    if (!localStorage.getItem(TOKEN_KEYS.access)) return null
+    let res = await get()
+    if (res.status === 401 && localStorage.getItem(TOKEN_KEYS.refresh)) {
+      storeTokens(await apiPost('/auth/refresh', { refresh_token: localStorage.getItem(TOKEN_KEYS.refresh) }))
+      res = await get()
+    }
+    return res.ok ? res.json() : null
+  } catch {
+    return null
+  }
+}

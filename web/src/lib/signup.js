@@ -1,11 +1,11 @@
 import { apiPost } from './authApi.js'
-import { INITIAL_ANSWERS, STEPS, buildSubmission } from './waitlist.js'
+import { INITIAL_ANSWERS, STEPS, buildSubmission } from './survey.js'
 
 // The signup (signup.html): two ways in, one way out.
 //
 //   rápida        a paragraph about the business; the Analyzer reads it
 //                 (POST /analyzer/describe, Claude or keyword rules)
-//   personalizada the waitlist's questions; the Analyzer reads the answers
+//   personalizada the survey's questions; the Analyzer reads the answers
 //                 (POST /analyzer)
 //
 // Both lead to the three packages (Despegue, En Órbita, Galáctico), the
@@ -14,8 +14,8 @@ import { INITIAL_ANSWERS, STEPS, buildSubmission } from './waitlist.js'
 // then POST /auth/register, which creates the account and sets up its
 // services. Everything is free during the beta.
 
-// The waitlist's questions minus the open-text ones and the waitlist-only
-// ones (plan and contact are cards of their own here).
+// The survey's questions minus the open-text ones and the ones the signup
+// asks on cards of its own (plan and contact).
 const SKIP = ['currentSoftware', 'satisfactionReason', 'improvement', 'planInterest', 'contact']
 export const QUESTION_STEPS = STEPS.filter((s) => !SKIP.includes(s.id))
 export const questionSteps = (answers) => QUESTION_STEPS.filter((s) => !s.when || s.when(answers))

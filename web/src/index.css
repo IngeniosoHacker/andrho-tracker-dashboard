@@ -204,7 +204,7 @@ select:focus-visible {
   outline-offset: 3px;
 }
 
-/* Waitlist wizard (waitlist.html): each question is a card that slides out
+/* Card deck (signup.html): each question is a card that slides out
    sideways like a dealt card while the next one comes in from the other
    side; between them a big message fades in and out. */
 @keyframes card-out-next {

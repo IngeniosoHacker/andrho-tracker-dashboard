@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { recordVisit } from './lib/visitor.js'
 import SiteHeader from './components/landing/SiteHeader.jsx'
 import PixelStarfield from './components/ui/PixelStarfield.jsx'
 import Footer from './components/sections/Footer.jsx'
@@ -36,6 +37,8 @@ function ArticlesPage() {
     </div>
   )
 }
+
+recordVisit()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

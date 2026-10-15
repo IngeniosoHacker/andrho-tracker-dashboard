@@ -1,10 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { recordVisit } from './lib/visitor.js'
 import SiteHeader from './components/landing/SiteHeader.jsx'
 import PixelStarfield from './components/ui/PixelStarfield.jsx'
 import Footer from './components/sections/Footer.jsx'
-import SurveyArt from './components/waitlist/SurveyArt.jsx'
+import SurveyArt from './components/survey/SurveyArt.jsx'
 import { INDUSTRIES, findIndustry, industryUrl } from './lib/industries.js'
 
 // /software-para/<slug>.html — AndRho for one kind of business, picked by
@@ -29,8 +30,8 @@ function IndustryPage({ i }) {
               <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--color-ink-soft)]">AndRho para {i.name}</p>
               <h1 className="mt-4 text-4xl font-extrabold leading-[1] tracking-[-0.04em] sm:text-5xl lg:text-6xl">{i.title}</h1>
               <p className="mt-5 text-lg leading-relaxed text-[var(--color-ink-soft)]">{i.answer}</p>
-              <a href="/waitlist.html" className="mt-7 inline-flex h-12 items-center rounded-[0.6rem] bg-[var(--color-ink)] px-6 font-bold text-white hover:opacity-90">
-                Reservar mi lugar
+              <a href="/signup.html" className="mt-7 inline-flex h-12 items-center rounded-[0.6rem] bg-[var(--color-ink)] px-6 font-bold text-white hover:opacity-90">
+                Continuar
               </a>
             </div>
             <SurveyArt scene="puzzle" className="mx-auto hidden max-h-72 w-full md:block" />
@@ -76,9 +77,9 @@ function IndustryPage({ i }) {
             </div>
             <div className="mt-10 rounded-2xl bg-[var(--color-ink)] p-6 text-white sm:p-8">
               <p className="font-display text-2xl font-bold">Los que se suben primero, despegan primero.</p>
-              <p className="mt-2 text-white/70">AndRho está en desarrollo. Anótate y adaptamos la nave a tu negocio antes del despegue.</p>
+              <p className="mt-2 text-white/70">AndRho está en beta y es gratis mientras dure. Cuéntanos de tu negocio y adaptamos la nave a él.</p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                <a href="/waitlist.html" className="inline-flex h-12 items-center justify-center rounded-[0.6rem] bg-white px-6 font-bold text-black hover:bg-white/85">Unirme a la lista de espera</a>
+                <a href="/signup.html" className="inline-flex h-12 items-center justify-center rounded-[0.6rem] bg-white px-6 font-bold text-black hover:bg-white/85">Continuar</a>
                 <a href={`/articulos/${i.article}.html`} className="inline-flex h-12 items-center justify-center rounded-[0.6rem] border border-white/40 px-6 font-bold hover:bg-white/10">Leer más</a>
               </div>
             </div>
@@ -101,7 +102,9 @@ function IndustryPage({ i }) {
 const root = document.getElementById('root')
 const industry = findIndustry(root.dataset.slug)
 if (industry) {
-  createRoot(root).render(
+  recordVisit()
+
+createRoot(root).render(
     <StrictMode>
       <IndustryPage i={industry} />
     </StrictMode>,

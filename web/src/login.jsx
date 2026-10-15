@@ -1,6 +1,7 @@
 import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { recordVisit } from './lib/visitor.js'
 import Navbar from './components/sections/Navbar.jsx'
 import Field from './components/ui/form/Field.jsx'
 import { TextInput, PasswordInput } from './components/ui/form/inputs.jsx'
@@ -113,9 +114,9 @@ function LoginPage() {
             </button>
 
             <p className="text-center text-sm text-[var(--color-muted)]">
-              ¿Aún no tienes acceso?{' '}
-              <a href="/waitlist.html" className="text-[var(--blue)] hover:underline">
-                Únete a la lista de espera
+              ¿Aún no tienes cuenta?{' '}
+              <a href="/signup.html" className="text-[var(--blue)] hover:underline">
+                Continuar
               </a>
             </p>
           </form>
@@ -124,6 +125,8 @@ function LoginPage() {
     </div>
   )
 }
+
+recordVisit()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

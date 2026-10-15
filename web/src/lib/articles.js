@@ -94,7 +94,7 @@ export const ARTICLES = [
             ['Linux', 'El sistema operativo de nuestros servidores', 'GPLv2'],
             ['PostgreSQL', 'La base de datos donde viven tus datos', 'PostgreSQL (libre)'],
             ['Redis', 'Caché y límites de uso', 'AGPLv3 (desde Redis 8)'],
-            ['Go y Gin', 'El backend: cuentas, recomendaciones, lista de espera', 'BSD y MIT'],
+            ['Go y Gin', 'El backend: cuentas, registro, recomendaciones', 'BSD y MIT'],
             ['React y Vite', 'La interfaz que ves en el navegador', 'MIT'],
             ['Tailwind CSS', 'El diseño visual', 'MIT'],
             ['nginx', 'El servidor web que entrega el sitio', 'BSD'],
@@ -125,7 +125,7 @@ export const ARTICLES = [
       },
       { h2: 'Así trabajamos en AndRho' },
       {
-        p: 'AndRho todavía está en desarrollo, y lo construimos a la vista: nuestro código es público en [GitHub](https://github.com/IngeniosoHacker) y puedes ver [el avance en vivo](/#progreso), commit por commit. Si quieres un sistema que se adapte a tu negocio, que te diga qué está pasando con tus datos y que nunca te encierre, [únete a la lista de espera](/waitlist.html).',
+        p: 'AndRho está en beta, y lo construimos a la vista: nuestro código es público en [GitHub](https://github.com/IngeniosoHacker) y puedes ver [el avance en vivo](/#progreso), commit por commit. Si quieres un sistema que se adapte a tu negocio, que te diga qué está pasando con tus datos y que nunca te encierre, [súbete a bordo](/signup.html): es gratis mientras dure la beta.',
       },
     ],
   },

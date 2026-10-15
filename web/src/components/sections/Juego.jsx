@@ -14,8 +14,9 @@ import { submitGameSession, submitThemeSegments, flushPendingSync } from '../../
 // a random starting theme, rotated unannounced every ROTATION_MS of *active*
 // play, with per-theme results sent as `game_session` / `game_theme_segment`
 // tracker events (read by the dashboard's Minijuego tab and
-// analysis/anova.py). The claim step moved to waitlist.html, which sends the
-// matching `game_registration`.
+// analysis/anova.py). The claim step is the signup (signup.html), which
+// stores the discount with the account and sends the matching
+// `game_registration`.
 const ROTATION_MS = 15000
 const POINTS_PER_KILL = 10
 const POINTS_PER_MISS = -5
@@ -493,13 +494,13 @@ export default function Juego() {
               {result.percent > 0 ? (
                 <MagnetButton
                   as="a"
-                  href={`/waitlist.html?descuento=${result.percent}&destruidos=${result.destroyedCount}&partida=${result.sessionId}`}
+                  href={`/signup.html?descuento=${result.percent}&destruidos=${result.destroyedCount}&partida=${result.sessionId}`}
                 >
                   Reclamar mi {result.percent}% →
                 </MagnetButton>
               ) : (
-                <MagnetButton as="a" href="/waitlist.html">
-                  Unirme a la lista de espera
+                <MagnetButton as="a" href="/signup.html">
+                  Continuar
                 </MagnetButton>
               )}
               <MagnetButton variant="secondary" onClick={startGame} className="text-white! hover:bg-white/10!">

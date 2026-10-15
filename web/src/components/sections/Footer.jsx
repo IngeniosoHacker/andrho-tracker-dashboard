@@ -24,7 +24,7 @@ const LINK_GROUPS = [
   {
     heading: 'Cuenta',
     links: [
-      { label: 'Lista de espera', href: '/waitlist.html' },
+      { label: 'Continuar', href: '/signup.html' },
       { label: 'Iniciar sesión', href: '/login.html' },
     ],
   },

@@ -22,14 +22,14 @@ export default function Hero({ morph: t, titleRef, wordRefs }) {
       style={{ visibility: t >= 1 ? 'hidden' : 'visible' }}
     >
       <div className="mx-auto max-w-4xl text-center">
-        {/* Honest about where we are: the product is still being built. */}
+        {/* Honest about where we are: an open beta, still being built. */}
         <a
           href="#progreso"
           style={rest}
           className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--color-border-strong)] bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-ink-soft)] transition-colors hover:border-[var(--color-ink-soft)]"
         >
           <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-[var(--mint)]" />
-          En desarrollo · mira el avance en vivo
+          Beta abierta · mira el avance en vivo
         </a>
         <h1 className="font-display text-6xl font-bold leading-none tracking-tight text-[var(--color-ink)] sm:text-8xl lg:text-9xl">
           {/* The scramble is decorative; crawlers and screen readers get the
@@ -53,8 +53,8 @@ export default function Hero({ morph: t, titleRef, wordRefs }) {
         </p>
 
         <div style={rest} className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <MagnetButton as="a" href="/waitlist.html">
-            Unirme a la lista de espera →
+          <MagnetButton as="a" href="/signup.html">
+            Continuar →
           </MagnetButton>
           <MagnetButton as="a" href="#relajate" variant="secondary">
             Saber más ↓

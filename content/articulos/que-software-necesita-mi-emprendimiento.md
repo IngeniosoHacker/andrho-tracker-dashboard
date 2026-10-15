@@ -117,4 +117,4 @@ Lo justo para que el tiempo y el dinero que te ahorra sean mayores que lo que pa
 
 ## Que tu emprendimiento despegue con lo que necesita
 
-AndRho está en desarrollo. [Únete a la lista de espera](/waitlist.html), responde unas preguntas sobre tu negocio y te diremos qué paquete te conviene. Los que se suben primero, despegan primero.
+AndRho está en beta y es gratis mientras dure. [Continúa aquí](/signup.html), responde unas preguntas sobre tu negocio y te diremos qué paquete te conviene. Los que se suben primero, despegan primero.

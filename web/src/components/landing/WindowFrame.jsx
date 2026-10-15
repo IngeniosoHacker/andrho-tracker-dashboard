@@ -1,5 +1,5 @@
 // A "window" panel over the space wallpaper (no title bar), as used by
-// waitlist.html and the closing window of the Creators timeline.
+// the short landing, the welcome back and the closing window of the Creators timeline.
 //
 // `plain` drops the frame (background, border, shadow) and keeps only the
 // layout — the landing's sections, which sit on the stage's glass backdrop;

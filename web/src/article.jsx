@@ -1,10 +1,11 @@
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { recordVisit } from './lib/visitor.js'
 import SiteHeader from './components/landing/SiteHeader.jsx'
 import PixelStarfield from './components/ui/PixelStarfield.jsx'
 import Footer from './components/sections/Footer.jsx'
-import SurveyArt from './components/waitlist/SurveyArt.jsx'
+import SurveyArt from './components/survey/SurveyArt.jsx'
 import ArticleBody from './components/articles/ArticleBody.jsx'
 import ArticleCard from './components/articles/ArticleCard.jsx'
 import { findArticle, formatDate } from './lib/articles.js'
@@ -45,10 +46,10 @@ function ArticlePage({ article }) {
 
             <aside className="mt-14 rounded-2xl bg-[var(--color-ink)] p-6 text-white sm:p-8">
               <p className="font-display text-2xl font-bold">Que no te deje la nave.</p>
-              <p className="mt-2 text-white/70">AndRho está en desarrollo. Anótate y te avisamos antes del despegue.</p>
+              <p className="mt-2 text-white/70">AndRho está en beta y es gratis mientras dure. Cuéntanos de tu negocio y sube a bordo.</p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                <a href="/waitlist.html" className="inline-flex h-12 items-center justify-center rounded-[0.6rem] bg-white px-6 font-bold text-black hover:bg-white/85">
-                  Unirme a la lista de espera
+                <a href="/signup.html" className="inline-flex h-12 items-center justify-center rounded-[0.6rem] bg-white px-6 font-bold text-black hover:bg-white/85">
+                  Continuar
                 </a>
                 <a href="/#progreso" className="inline-flex h-12 items-center justify-center rounded-[0.6rem] border border-white/40 px-6 font-bold hover:bg-white/10">
                   Ver el avance en vivo
@@ -122,6 +123,8 @@ function RemoteArticle({ slug }) {
 const root = document.getElementById('root')
 const slug = root.dataset.slug || slugFromUrl()
 const article = findArticle(root.dataset.slug) || inlinedArticle()
+recordVisit()
+
 createRoot(root).render(
   <StrictMode>{article ? <ArticlePage article={article} /> : <RemoteArticle slug={slug} />}</StrictMode>,
 )

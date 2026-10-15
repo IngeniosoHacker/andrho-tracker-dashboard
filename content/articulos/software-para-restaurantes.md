@@ -105,4 +105,4 @@ Midiendo lo que se tira, usando primero lo que vence primero, ajustando las comp
 
 ## Que tu restaurante no se quede en tierra
 
-AndRho está en desarrollo y los restaurantes son uno de los giros para los que lo estamos construyendo. Si quieres que tu restaurante decida con datos, [únete a la lista de espera](/waitlist.html) y cuéntanos cómo trabajas: lo adaptamos a tu cocina, no al revés.
+AndRho está en beta y los restaurantes son uno de los giros para los que lo estamos construyendo. Si quieres que tu restaurante decida con datos, [continúa aquí](/signup.html) y cuéntanos cómo trabajas: lo adaptamos a tu cocina, no al revés. Es gratis mientras dure la beta.

@@ -104,7 +104,6 @@ export default defineConfig(({ mode }) => {
           login: resolvePath('./login.html'),
           signup: resolvePath('./signup.html'),
           acceptInvite: resolvePath('./accept-invite.html'),
-          waitlist: resolvePath('./waitlist.html'),
           articles: resolvePath('./articulos/index.html'),
           'article-template': resolvePath('./articulos/plantilla.html'),
           // One page per business type: software-para/<slug>.html.

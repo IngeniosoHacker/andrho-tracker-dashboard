@@ -9,7 +9,7 @@ import { apiGet } from '../../lib/authApi.js'
 const REPOS = {
   andrho: { label: 'Sitio', body: 'El sitio que estás viendo.', color: '#00e6b8' },
   'andrho-tracker-dashboard': { label: 'Plataforma', body: 'El panel de AndRho y su analítica.', color: '#38d9ff' },
-  'andrho-api': { label: 'Backend', body: 'Cuentas, lista de espera y recomendaciones.', color: '#c084fc' },
+  'andrho-api': { label: 'Backend', body: 'Cuentas, registro, recomendaciones y servicios.', color: '#c084fc' },
 }
 const GITHUB = 'https://github.com/IngeniosoHacker'
 
@@ -42,7 +42,8 @@ function Stat({ value, label }) {
   )
 }
 
-export default function Progreso() {
+// `cta` = false hides "Continuar" (the welcome back: they're already on board).
+export default function Progreso({ cta = true }) {
   const [data, setData] = useState(null)
   const [status, setStatus] = useState('loading') // loading | ready | error
 
@@ -65,14 +66,14 @@ export default function Progreso() {
       <div className="mx-auto max-w-6xl">
         <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-white/50">
           <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-[var(--mint)]" />
-          En desarrollo · código público
+          Beta abierta · código público
         </p>
         <h2 id="progreso-title" className="mt-4 max-w-3xl font-display text-4xl font-bold leading-[1.02] tracking-tight sm:text-6xl">
           No confíes en la palabra, confía en el commit.
         </h2>
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/65">
-          AndRho todavía no está listo, y no lo escondemos. Lo construimos a la vista: estos son los commits de nuestros
-          tres repositorios, en vivo. Mientras tanto, la lista de espera es la única forma de subir a bordo.
+          AndRho está en beta, y no lo escondemos. Lo construimos a la vista: estos son los commits de nuestros tres
+          repositorios, en vivo. Ya puedes subir a bordo, gratis mientras dure la beta.
         </p>
 
         {status === 'loading' && <div className="mt-12 h-72 animate-pulse rounded-3xl bg-white/5" />}
@@ -169,9 +170,11 @@ export default function Progreso() {
         )}
 
         <div className="mt-12 flex flex-col gap-3 sm:flex-row">
-          <a href="/waitlist.html" className="inline-flex h-12 items-center justify-center rounded-[0.6rem] bg-white px-6 font-bold text-black transition-colors hover:bg-white/85">
-            Unirme a la lista de espera
-          </a>
+          {cta && (
+            <a href="/signup.html" className="inline-flex h-12 items-center justify-center rounded-[0.6rem] bg-white px-6 font-bold text-black transition-colors hover:bg-white/85">
+              Continuar
+            </a>
+          )}
           <a href={GITHUB} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center rounded-[0.6rem] border border-white/40 px-6 font-bold transition-colors hover:bg-white/10">
             Ver en GitHub
           </a>

@@ -90,4 +90,4 @@ Si las respuestas te dejan incómodo, no estás comprando software: estás alqui
 
 ## Así trabajamos en AndRho
 
-AndRho todavía está en desarrollo, y lo construimos a la vista: nuestro código es público en [GitHub](https://github.com/IngeniosoHacker) y puedes ver [el avance en vivo](/#progreso), commit por commit. Si quieres un sistema que se adapte a tu negocio, que te diga qué está pasando con tus datos y que nunca te encierre, [únete a la lista de espera](/waitlist.html).
+AndRho está en beta, y lo construimos a la vista: nuestro código es público en [GitHub](https://github.com/IngeniosoHacker) y puedes ver [el avance en vivo](/#progreso), commit por commit. Si quieres un sistema que se adapte a tu negocio, que te diga qué está pasando con tus datos y que nunca te encierre, [súbete a bordo](/signup.html): es gratis mientras dure la beta.

@@ -3,14 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import SiteHeader from './components/landing/SiteHeader.jsx'
 import PixelStarfield from './components/ui/PixelStarfield.jsx'
-import SurveyArt from './components/waitlist/SurveyArt.jsx'
-import QuestionControls from './components/waitlist/QuestionControls.jsx'
-import { CARD, DeckNav, DeckStack, Verdict } from './components/waitlist/Deck.jsx'
+import SurveyArt from './components/survey/SurveyArt.jsx'
+import QuestionControls from './components/survey/QuestionControls.jsx'
+import { CARD, DeckNav, DeckStack, Verdict } from './components/survey/Deck.jsx'
 import Field from './components/ui/form/Field.jsx'
 import { TextInput, PasswordInput } from './components/ui/form/inputs.jsx'
 import { AlertIcon, BuildingIcon, LockIcon, MailIcon, SpinnerIcon } from './components/ui/icons.jsx'
 import { storeTokens, TOKEN_KEYS } from './lib/authApi.js'
-import { resolveStep } from './lib/waitlist.js'
+import { resolveStep } from './lib/survey.js'
 import { useDeck } from './lib/useDeck.js'
 import {
   INITIAL_ANSWERS,
@@ -25,9 +25,28 @@ import {
   register,
   saveDraft,
 } from './lib/signup.js'
-import { buildSubmission } from './lib/waitlist.js'
+import { buildSubmission } from './lib/survey.js'
+import { generateDiscountCode, getDiscountTier } from './lib/discountTiers.js'
+import { submitRegistration } from './lib/gameStorage.js'
+import { markFormDone, recordVisit, trackerVisitorId } from './lib/visitor.js'
 
 // signup.html — see lib/signup.js for the flow.
+
+recordVisit()
+
+// Coming from the landing's game (Juego.jsx) the URL carries the result:
+// ?descuento=10&destruidos=23&partida=<game session id>. The percent is
+// re-derived from the destroyed count so a hand-edited link can't claim a
+// tier it didn't reach (andrho-api checks it again).
+function readGameClaim() {
+  const params = new URLSearchParams(window.location.search)
+  const destroyed = Number.parseInt(params.get('destruidos'), 10)
+  const sessionId = params.get('partida')
+  if (!sessionId || !Number.isFinite(destroyed)) return null
+  const tier = getDiscountTier(destroyed)
+  if (tier.percent <= 0 || String(tier.percent) !== params.get('descuento')) return null
+  return { sessionId, destroyed, percent: tier.percent }
+}
 
 const API_URL = (import.meta.env.VITE_ANDRHO_API_URL || '').replace(/\/+$/, '')
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -133,6 +152,7 @@ function PackageCard({ pkg, selected, onSelect }) {
 
 function SignupPage() {
   const [draft] = useState(loadDraft)
+  const [claim] = useState(readGameClaim)
   const [path, setPath] = useState(draft?.path ?? '')
   const [screen, setScreen] = useState(draft?.screen ?? 'choose')
   const [answers, setAnswers] = useState({ ...INITIAL_ANSWERS, ...(draft?.answers ?? {}) })
@@ -267,6 +287,7 @@ function SignupPage() {
   async function submit() {
     setBusy(true)
     setError('')
+    const discount = claim && { percent: claim.percent, destroyed: claim.destroyed, session_id: claim.sessionId, code: generateDiscountCode(claim.percent) }
     try {
       const res = await register({
         email: account.email.trim(),
@@ -280,9 +301,23 @@ function SignupPage() {
         description: path === 'rapida' ? description.trim() : '',
         phone: account.phone.trim(),
         brand: brand.choice === 'omitir' ? {} : { essence: brand.essence.trim(), help: brand.choice === 'ayuda', logo: brand.choice === 'tengo' ? logo : '' },
+        discount,
+        visitor_id: trackerVisitorId(),
       })
       storeTokens(res)
       saveDraft(null)
+      markFormDone('register')
+      if (res.discount?.percent) {
+        submitRegistration({
+          session_id: claim.sessionId,
+          email: account.email.trim(),
+          commerce_type: (answers.sectors ?? []).join(','),
+          commerce_size: answers.companySize ?? '',
+          destroyed_count: claim.destroyed,
+          discount_percent: res.discount.percent,
+          discount_code: res.discount.code,
+        })
+      }
       setBusy(false)
       transition(1, () => setDone(res), { tone: 'good', text: 'Bienvenido a bordo.' })
     } catch (err) {
@@ -324,6 +359,12 @@ function SignupPage() {
                       <p className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-ink-soft)]">
                         {group(screen, step)} · {index + 1} de {flow.length}
                       </p>
+                      {claim && screen === 'choose' && (
+                        <p className="mt-4 rounded-xl border border-[var(--window-teal)]/40 bg-white/70 px-4 py-3 text-sm">
+                          Tu <strong className="text-[var(--window-teal)]">{claim.percent}% de descuento por 1 año</strong> del juego queda
+                          guardado en tu cuenta.
+                        </p>
+                      )}
                       <Body
                         screen={screen}
                         step={step}
@@ -383,7 +424,7 @@ function art(screen, step) {
 
 function group(screen, step) {
   if (step) return step.group
-  return { choose: 'Crear cuenta', quick: 'Tu negocio', packages: 'Tu paquete', brand: 'Tu marca', account: 'Abordaje' }[screen] ?? ''
+  return { choose: 'Tu cuenta', quick: 'Tu negocio', packages: 'Tu paquete', brand: 'Tu marca', account: 'Abordaje' }[screen] ?? ''
 }
 
 const H1 = 'mt-3 text-3xl font-extrabold leading-[1.02] tracking-[-0.04em] outline-none sm:text-4xl lg:text-5xl'
@@ -631,6 +672,12 @@ function DoneCard({ done, name, className }) {
               </ul>
             ) : (
               <p className="mt-4 text-[var(--color-muted)]">Tus módulos no necesitan instalar nada: entra y empieza.</p>
+            )}
+            {done.discount?.code && (
+              <div className="mt-6 rounded-xl border border-[var(--window-teal)]/40 bg-white/70 px-4 py-3">
+                <p className="font-mono text-xl font-bold">{done.discount.code}</p>
+                <p className="mt-1 text-sm text-[var(--color-muted)]">Tu {done.discount.percent}% del juego, guardado en tu cuenta.</p>
+              </div>
             )}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href="/dashboard/" className="btn-solid">

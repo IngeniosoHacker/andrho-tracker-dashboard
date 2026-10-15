@@ -18,12 +18,12 @@ export default function Navbar({ page = 'home' }) {
           <a href="/#relajate" className="transition-colors hover:text-[var(--color-ink)]">
             El proyecto
           </a>
-          <a href="/waitlist.html" className="transition-colors hover:text-[var(--color-ink)]">
-            Lista de espera
+          <a href="/signup.html" className="transition-colors hover:text-[var(--color-ink)]">
+            Continuar
           </a>
         </div>
 
-        {/* Login + the waiting list (no public sign-up while AndRho is in development) */}
+        {/* Login + continue (the signup) */}
         <div className="flex items-center gap-3">
           {page !== 'login' && (
             <a
@@ -33,8 +33,8 @@ export default function Navbar({ page = 'home' }) {
               Iniciar sesión
             </a>
           )}
-          <a href="/waitlist.html" className="btn-primary rounded-full px-4 py-2 text-sm font-semibold transition-colors">
-            Lista de espera
+          <a href="/signup.html" className="btn-primary rounded-full px-4 py-2 text-sm font-semibold transition-colors">
+            Continuar
           </a>
           <button
             type="button"
@@ -66,8 +66,8 @@ export default function Navbar({ page = 'home' }) {
           <a href="/#relajate" onClick={() => setOpen(false)} className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">
             El proyecto
           </a>
-          <a href="/waitlist.html" onClick={() => setOpen(false)} className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">
-            Lista de espera
+          <a href="/signup.html" onClick={() => setOpen(false)} className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">
+            Continuar
           </a>
           {page !== 'login' && (
             <a href="/login.html" className="rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--color-canvas-soft)] hover:text-[var(--color-ink)]">

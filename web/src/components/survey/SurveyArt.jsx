@@ -1,6 +1,6 @@
 import BoardingIllustration from '../ui/BoardingIllustration.jsx'
 
-// One flat illustration per kind of waitlist question (waitlist.html), in the
+// One flat illustration per kind of survey question (signup.html), in the
 // same mint/teal/ink language as BoardingIllustration. Each scene carries an
 // implicit message (waitinglist.md asks for subliminal cues): things that
 // rise and line up toward the saucer — AndRho — are safe and growing; paper,
@@ -81,7 +81,7 @@ function Meteor({ id, x, y, s = 1, angle = 38 }) {
   )
 }
 
-// The same T-rex as the waitlist window; feet at (x, y), facing right.
+// The same T-rex as the "la nave" window; feet at (x, y), facing right.
 function Dino({ x, y, s = 1, flip = false }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${flip ? -s : s} ${s})`}>
