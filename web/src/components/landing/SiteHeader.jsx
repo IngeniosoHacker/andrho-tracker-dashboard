@@ -2,7 +2,7 @@ import { NAV_LINKS } from '../../lib/landing.js'
 import { easeOutBack, seg } from '../../lib/motion.js'
 import { logo } from '../../lib/assets.js'
 
-// The landing's "taskbar". At morph=0 only the login button exists (top-right of
+// The landing's "taskbar". At morph=0 only the login + waitlist buttons exist (top-right of
 // the white hero); as the hero folds up (`morph` 0 → 1) the white bar
 // fades in around it, the hero title lands as the wordmark, the logo pops in
 // and the bold hero words land as links (the flying copies live in
@@ -89,14 +89,23 @@ export default function SiteHeader({ morph = Infinity, activeId = null, refs, ba
             })}
           </ul>
 
-          {/* While AndRho is in development the only way in is the waiting
-              list (login stays in the footer for the team and beta users). */}
-          <a
-            href="/waitlist.html"
-            className="order-2 ml-auto rounded-full bg-[var(--color-ink)] px-4 py-1.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#1f2937] md:order-3 md:ml-0"
-          >
-            Lista de espera
-          </a>
+          {/* Login for the team and beta users, next to the waiting list
+              (no public sign-up while AndRho is in development). */}
+          <div className="order-2 ml-auto flex items-center gap-2 md:order-3 md:ml-0">
+            <a
+              href="/login.html"
+              className="rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors"
+              style={{ color: ink, borderColor: '#cbd5e1' }}
+            >
+              Iniciar sesión
+            </a>
+            <a
+              href="/waitlist.html"
+              className="rounded-full bg-[var(--color-ink)] px-4 py-1.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#1f2937]"
+            >
+              Lista de espera
+            </a>
+          </div>
         </div>
       </nav>
     </header>
