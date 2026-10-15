@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { apiGet } from '../../lib/authApi.js'
 
 // "Avance en vivo": AndRho is still in development and says so. This shows
-// the real commits of our three repositories, merged into one timeline by
-// andrho-api's GET /progress (cached there, so visitors never hit GitHub's
-// rate limit). If the API can't be reached it falls back to plain links to
+// the activity of our three repositories, from andrho-api's GET /progress
+// (cached there, so visitors never hit GitHub's rate limit): the totals per
+// repo, and who builds it — the person with the most commits and the one
+// behind the latest. What each commit says isn't shown. If the API can't be reached it falls back to plain links to
 // the repos instead of hiding — the point is that anyone can check.
 const REPOS = {
   andrho: { label: 'Sitio', body: 'El sitio que estás viendo.', color: '#00e6b8' },
@@ -32,6 +33,43 @@ function ago(date) {
 }
 
 const monthYear = (date) => new Date(date).toLocaleDateString('es-GT', { month: 'long', year: 'numeric' })
+
+// The two people of the right column: the top contributor and the author
+// of the latest commit, across the three repos.
+function builders(data) {
+  const top = [...data.contributors].sort((a, b) => b.commits - a.commits)[0]
+  const last = [...data.recent].sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+  const profile = (login) => data.contributors.find((c) => c.login === login)
+  return [
+    top && { key: 'top', label: 'Más commits', login: top.login, avatarUrl: top.avatarUrl, url: top.url, detail: `${top.commits.toLocaleString('es-GT')} commits` },
+    last && {
+      key: 'last',
+      label: 'Último commit',
+      login: last.author,
+      avatarUrl: last.avatarUrl || profile(last.author)?.avatarUrl,
+      url: profile(last.author)?.url || `https://github.com/${last.author}`,
+      detail: ago(last.date),
+      date: last.date,
+    },
+  ].filter(Boolean)
+}
+
+function Builder({ b }) {
+  return (
+    <a href={b.url} target="_blank" rel="noreferrer" className="flex items-center gap-5 rounded-3xl border border-white/10 p-6 transition-colors hover:border-white/30 sm:p-8">
+      {b.avatarUrl ? (
+        <img src={b.avatarUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-full border border-white/15 sm:h-24 sm:w-24" />
+      ) : (
+        <span aria-hidden="true" className="h-20 w-20 shrink-0 rounded-full bg-white/10 sm:h-24 sm:w-24" />
+      )}
+      <span className="min-w-0">
+        <span className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--mint)]">{b.label}</span>
+        <span className="mt-1 block truncate font-display text-3xl font-bold sm:text-4xl">@{b.login}</span>
+        <span className="mt-1 block text-sm text-white/55">{b.date ? <time dateTime={b.date}>{b.detail}</time> : b.detail}</span>
+      </span>
+    </a>
+  )
+}
 
 function Stat({ value, label }) {
   return (
@@ -72,7 +110,7 @@ export default function Progreso({ cta = true }) {
           No confíes en la palabra, confía en el commit.
         </h2>
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/65">
-          AndRho está en beta, y no lo escondemos. Lo construimos a la vista: estos son los commits de nuestros tres
+          AndRho está en beta, y no lo escondemos. Lo construimos a la vista: este es el avance de nuestros tres
           repositorios, en vivo. Ya puedes subir a bordo, gratis mientras dure la beta.
         </p>
 
@@ -141,30 +179,12 @@ export default function Progreso({ cta = true }) {
             </div>
 
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/50">Últimos commits, de los tres repos</p>
-              <ol className="mt-4 border-l border-white/15">
-                {data.recent.map((c) => {
-                  const repo = REPOS[c.repo] ?? { label: c.repo, color: '#ffffff' }
-                  return (
-                    <li key={`${c.repo}-${c.sha}`} className="relative pb-5 pl-6 last:pb-0">
-                      <span aria-hidden="true" className="absolute top-1.5 -left-[5px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: repo.color }} />
-                      <a href={c.url} target="_blank" rel="noreferrer" className="group block">
-                        <span className="font-medium leading-snug group-hover:underline">{c.subject}</span>
-                        <span className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-white/45">
-                          <span className="font-mono uppercase tracking-wider" style={{ color: repo.color }}>
-                            {repo.label}
-                          </span>
-                          <span>·</span>
-                          <span>@{c.author}</span>
-                          <span>·</span>
-                          <time dateTime={c.date}>{ago(c.date)}</time>
-                          <span className="font-mono">{c.sha}</span>
-                        </span>
-                      </a>
-                    </li>
-                  )
-                })}
-              </ol>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/50">Quienes empujan la nave</p>
+              <div className="mt-4 grid gap-4">
+                {builders(data).map((b) => (
+                  <Builder key={b.key} b={b} />
+                ))}
+              </div>
             </div>
           </div>
         )}
