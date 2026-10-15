@@ -1,118 +1,205 @@
-import SiteHeader from './components/landing/SiteHeader.jsx'
-import WindowFrame from './components/landing/WindowFrame.jsx'
-import PixelStarfield from './components/ui/PixelStarfield.jsx'
-import SurveyArt from './components/survey/SurveyArt.jsx'
-import Footer from './components/sections/Footer.jsx'
-import { SITE } from './lib/seo.js'
+import Logo from './components/ui/Logo.jsx'
+import { FAQ, SERVICES, SITE } from './lib/seo.js'
 import { completedForm } from './lib/visitor.js'
 
 // The landing for a visitor who comes back without having signed up
-// (lib/visitor.js → 'recurrente'). They already saw the long story, so this
-// is the short close: what happens when they continue, the doubts that
-// usually hold people back, and the button. The full landing stays one link
-// away (?vista=completa).
+// (lib/visitor.js → 'recurrente'). They already saw the long, animated story;
+// now they're looking for information. So this page is plain on purpose: a
+// white page, a static header, an index of anchors, short sections and native
+// <details> for the questions — no starfield, no scroll stage, no
+// transitions. The full landing stays one link away (?vista=completa).
+//
+// "Así que sí te interesa" is said out loud: recognizing a returning visitor
+// and showing them something else is itself something AndRho does for a
+// client's site.
+
+const CTA = { href: '/signup.html', label: 'Continuar' }
+
+const SECTIONS = [
+  { id: 'que-es', label: 'Qué es' },
+  { id: 'incluye', label: 'Qué incluye' },
+  { id: 'empezar', label: 'Cómo empiezas' },
+  { id: 'precio', label: 'Precio' },
+  { id: 'preguntas', label: 'Preguntas' },
+]
 
 const STEPS = [
-  {
-    title: 'Cuéntanos de tu negocio',
-    body: 'Un párrafo o unas preguntas rápidas. AndRho entiende qué vendes, cómo lo vendes y qué te falta.',
-  },
-  {
-    title: 'Elige tu paquete',
-    body: 'Despegue, En Órbita o Galáctico, con los módulos que tu negocio necesita. Quita lo que no quieras.',
-  },
-  {
-    title: 'Sube a bordo',
-    body: 'Entras a tu panel y empezamos a preparar tu ERP, tu WhatsApp y tu sitio web, cada uno con su estado a la vista.',
-  },
+  { title: 'Cuéntanos de tu negocio', body: 'Un párrafo o unas preguntas rápidas: qué vendes, cómo lo vendes y qué te falta.' },
+  { title: 'Elige tu paquete', body: 'Despegue, En Órbita o Galáctico, con los módulos que tu negocio necesita. Quita lo que no quieras.' },
+  { title: 'Entra a tu panel', body: 'Empezamos a preparar tu ERP, tu WhatsApp y tu sitio web, cada uno con su estado a la vista.' },
 ]
 
-const DOUBTS = [
-  { q: '¿Cuánto cuesta?', a: 'Nada mientras dure la beta. Te avisamos antes de que cualquier cosa tenga precio.' },
-  { q: '¿Tengo que cambiar mis sistemas?', a: 'No. AndRho se conecta a lo que ya usas; si no tienes ERP, te levantamos Odoo.' },
-  { q: '¿La IA va a hacer cosas sola?', a: 'No. Los modelos analizan y la IA te lo explica, pero nada se ejecuta sin tu aprobación.' },
-  { q: '¿Está terminado?', a: 'Está en beta y lo construimos a la vista: puedes ver cada commit en el avance en vivo.' },
-]
+const H2 = 'font-display text-2xl font-bold tracking-tight sm:text-3xl'
+const LINK = 'font-semibold text-[var(--color-ink)] underline decoration-[var(--window-teal)] underline-offset-4 hover:decoration-2'
 
 export default function ShortLanding() {
   // Signed up to the old waiting list: their spot is open now.
   const waitlisted = completedForm() === 'waitlist'
-  return (
-    <div className="antialiased">
-      <PixelStarfield mix={1} />
-      <SiteHeader base="/" />
-      <main className="relative z-10 px-3 pb-16 pt-[124px] sm:px-6 md:pt-[104px]">
-        <WindowFrame className="mx-auto">
-          <section aria-labelledby="corta-title" className="grid items-center gap-6 p-6 sm:p-10 md:grid-cols-[1.1fr_0.9fr] md:gap-12 lg:p-14">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-ink-soft)]">
-                {waitlisted ? 'Estabas en la lista: tu lugar está listo' : 'Qué bueno verte de nuevo'}
-              </p>
-              <h1 id="corta-title" className="mt-4 text-5xl font-extrabold leading-[0.95] tracking-[-0.05em] sm:text-6xl lg:text-7xl">
-                Ya conoces AndRho. <span className="text-[var(--window-teal)]">Falta tu negocio.</span>
-              </h1>
-              <p className="mt-5 max-w-xl text-lg leading-snug sm:text-xl">
-                En unos minutos nos cuentas de tu negocio, eliges tu paquete y empezamos a preparar tu nave. Gratis
-                mientras dure la beta.
-              </p>
-              <div className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row">
-                <a href="/signup.html" className="btn-solid sm:flex-1">
-                  Continuar →
-                </a>
-                <a href="/?vista=completa" className="btn-outline sm:flex-1">
-                  Ver el sitio completo
-                </a>
-              </div>
-            </div>
-            <SurveyArt scene="boarding" className="mx-auto max-h-[26svh] w-auto md:max-h-[56svh] md:w-full" />
-          </section>
-        </WindowFrame>
 
-        <WindowFrame className="mx-auto mt-6">
-          <section aria-labelledby="pasos-title" className="p-6 sm:p-10 lg:p-14">
-            <h2 id="pasos-title" className="text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
-              Lo que pasa cuando continúas
-            </h2>
-            <ol className="mt-8 grid gap-4 md:grid-cols-3">
-              {STEPS.map((step, i) => (
-                <li key={step.title} className="rounded-2xl bg-white/70 p-6">
-                  <span className="font-mono text-sm font-bold text-[var(--window-teal)]">0{i + 1}</span>
-                  <h3 className="mt-3 text-2xl font-extrabold tracking-tight">{step.title}</h3>
-                  <p className="mt-2 leading-snug text-[var(--color-ink-soft)]">{step.body}</p>
+  return (
+    <div className="min-h-screen scroll-smooth bg-white text-[var(--color-ink)] motion-reduce:scroll-auto">
+      <header className="border-b border-[var(--color-border)] bg-white">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <a href="/">
+            <Logo />
+          </a>
+          <nav aria-label="Cuenta" className="flex items-center gap-2">
+            <a href="/login.html" className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-[var(--color-canvas-soft)]">
+              Iniciar sesión
+            </a>
+            <a href={CTA.href} className="rounded-full bg-[var(--color-ink)] px-4 py-1.5 text-sm font-semibold text-white hover:bg-[#1f2937]">
+              {CTA.label}
+            </a>
+          </nav>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl px-4 pb-20 sm:px-6">
+        <section aria-labelledby="interes-title" className="pt-12 sm:pt-16">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--color-ink-soft)]">
+            {waitlisted ? 'Estabas en la lista de espera' : 'Volviste'}
+          </p>
+          <h1 id="interes-title" className="mt-3 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+            Así que sí te interesa.
+          </h1>
+          <p className="mt-4 text-lg leading-relaxed text-[var(--color-ink-soft)]">
+            {waitlisted
+              ? 'Tu lugar ya está listo: cuéntanos de tu negocio y sube a bordo, gratis mientras dure la beta.'
+              : 'Ya viste la historia completa, así que aquí va lo concreto: qué es AndRho, qué incluye, cómo empiezas y cuánto cuesta.'}
+          </p>
+          <p className="mt-4 rounded-xl border border-[var(--window-teal)]/40 bg-[var(--window-teal)]/8 px-4 py-3 text-sm leading-relaxed">
+            <strong>¿Notaste el cambio?</strong> Este sitio te reconoció al volver y te muestra otra página. Con AndRho, tu sitio
+            también puede hacerlo con tus clientes: hasta eso puedes controlar.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a href={CTA.href} className="btn-solid">
+              {CTA.label} →
+            </a>
+            <a href="/?vista=completa" className="btn-outline">
+              Ver el sitio completo
+            </a>
+          </div>
+
+          <nav aria-label="En esta página" className="mt-10 border-y border-[var(--color-border)] py-3">
+            <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              {SECTIONS.map((s) => (
+                <li key={s.id}>
+                  <a href={`#${s.id}`} className={LINK}>
+                    {s.label}
+                  </a>
                 </li>
               ))}
-            </ol>
-          </section>
-        </WindowFrame>
+            </ul>
+          </nav>
+        </section>
 
-        <WindowFrame className="mx-auto mt-6">
-          <section aria-labelledby="dudas-title" className="p-6 sm:p-10 lg:p-14">
-            <h2 id="dudas-title" className="text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
-              Lo que suele frenar a la gente
-            </h2>
-            <dl className="mt-8 grid gap-4 sm:grid-cols-2">
-              {DOUBTS.map((d) => (
-                <div key={d.q} className="rounded-2xl bg-white/70 p-6">
-                  <dt className="text-xl font-extrabold tracking-tight">{d.q}</dt>
-                  <dd className="mt-2 leading-snug text-[var(--color-ink-soft)]">{d.a}</dd>
-                </div>
-              ))}
-            </dl>
-            <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <a href="/signup.html" className="btn-solid w-full sm:w-auto sm:px-10">
-                Continuar →
-              </a>
-              <p className="text-[var(--color-ink-soft)]">
-                ¿Otra duda?{' '}
-                <a href={SITE.whatsapp} target="_blank" rel="noreferrer" className="font-semibold text-[var(--color-ink)] underline decoration-[var(--window-teal)] underline-offset-4">
-                  Escríbenos por WhatsApp
-                </a>
-              </p>
-            </div>
-          </section>
-        </WindowFrame>
+        <section id="que-es" aria-labelledby="que-es-title" className="scroll-mt-6 pt-12">
+          <h2 id="que-es-title" className={H2}>
+            Qué es AndRho
+          </h2>
+          <p className="mt-3 leading-relaxed text-[var(--color-ink-soft)]">
+            Un centro de control para pymes: junta los datos de tu ERP y tu marketing, los analiza con modelos estadísticos y
+            la inteligencia artificial te explica en lenguaje claro qué está pasando y qué conviene hacer. Nada se ejecuta sin
+            tu aprobación.
+          </p>
+        </section>
+
+        <section id="incluye" aria-labelledby="incluye-title" className="scroll-mt-6 pt-12">
+          <h2 id="incluye-title" className={H2}>
+            Qué incluye tu cuenta
+          </h2>
+          <ul className="mt-4 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+            <li className="py-3">
+              <strong>Panel con análisis e IA.</strong>{' '}
+              <span className="text-[var(--color-ink-soft)]">Ventas, inventario, sitio y redes en un solo lugar, explicados.</span>
+            </li>
+            {SERVICES.map((s) => (
+              <li key={s.id} className="py-3">
+                <strong>{s.title}.</strong> <span className="text-[var(--color-ink-soft)]">{s.body}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section id="empezar" aria-labelledby="empezar-title" className="scroll-mt-6 pt-12">
+          <h2 id="empezar-title" className={H2}>
+            Cómo empiezas
+          </h2>
+          <ol className="mt-4 space-y-3">
+            {STEPS.map((step, i) => (
+              <li key={step.title} className="flex gap-4">
+                <span className="font-mono text-sm font-bold text-[var(--window-teal)]">0{i + 1}</span>
+                <span>
+                  <strong>{step.title}.</strong> <span className="text-[var(--color-ink-soft)]">{step.body}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section id="precio" aria-labelledby="precio-title" className="scroll-mt-6 pt-12">
+          <h2 id="precio-title" className={H2}>
+            Precio
+          </h2>
+          <p className="mt-3 leading-relaxed text-[var(--color-ink-soft)]">
+            Gratis mientras dure la beta, con cualquiera de los tres paquetes. Te avisamos antes de que algo tenga precio, y
+            el descuento que ganes en el juego queda guardado en tu cuenta.
+          </p>
+        </section>
+
+        <section id="preguntas" aria-labelledby="preguntas-title" className="scroll-mt-6 pt-12">
+          <h2 id="preguntas-title" className={H2}>
+            Preguntas
+          </h2>
+          <div className="mt-4 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+            {FAQ.map(({ q, a }) => (
+              <details key={q} className="group py-3">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
+                  {q}
+                  <span aria-hidden="true" className="font-mono text-[var(--window-teal)] group-open:hidden">
+                    +
+                  </span>
+                  <span aria-hidden="true" className="hidden font-mono text-[var(--window-teal)] group-open:inline">
+                    −
+                  </span>
+                </summary>
+                <p className="mt-2 leading-relaxed text-[var(--color-ink-soft)]">{a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="cierre-title" className="mt-14 rounded-2xl bg-[var(--color-canvas-soft)] p-6 sm:p-8">
+          <h2 id="cierre-title" className={H2}>
+            ¿Listo?
+          </h2>
+          <p className="mt-2 text-[var(--color-ink-soft)]">
+            Toma unos minutos.{' '}
+            <a href={SITE.whatsapp} target="_blank" rel="noreferrer" className={LINK}>
+              ¿Otra duda? Escríbenos por WhatsApp
+            </a>
+            .
+          </p>
+          <a href={CTA.href} className="btn-solid mt-5 inline-flex">
+            {CTA.label} →
+          </a>
+        </section>
       </main>
-      <Footer />
+
+      <footer className="border-t border-[var(--color-border)]">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-6 text-sm text-[var(--color-ink-soft)] sm:px-6">
+          <span>© AndRho</span>
+          <a href="/?vista=completa" className="hover:text-[var(--color-ink)]">
+            Sitio completo
+          </a>
+          <a href="/articulos/" className="hover:text-[var(--color-ink)]">
+            Artículos
+          </a>
+          <a href={SITE.instagram} target="_blank" rel="noreferrer" className="hover:text-[var(--color-ink)]">
+            Instagram {SITE.instagramHandle}
+          </a>
+        </div>
+      </footer>
     </div>
   )
 }
