@@ -41,6 +41,22 @@ function landingSeo() {
   }
 }
 
+// The web tracker, only where VITE_TRACKER_SITE_ID says so. Every page has a
+// <!--tracker--> marker; without the variable it's left empty, so this
+// development site doesn't send visits into the site_id production reports
+// under ("andrho"): the dashboard's Web section must show only real visitors.
+// To test the tracker here, build with a site of its own, e.g.
+// VITE_TRACKER_SITE_ID=andrho-dev (VITE_TRACKER_URL overrides the script URL).
+function trackerTag(env) {
+  const siteId = env.VITE_TRACKER_SITE_ID || ''
+  const src = env.VITE_TRACKER_URL || 'https://webtracker-production-b8d7.up.railway.app/tracker.js'
+  const tag = siteId ? `<script src="${src}" data-site-id="${siteId.replace(/"/g, '')}" defer></script>` : ''
+  return {
+    name: 'andrho-tracker',
+    transformIndexHtml: (html) => html.replace('<!--tracker-->', tag),
+  }
+}
+
 // Same for the articles: /articulos/ (<!--articles:*-->) and each
 // /articulos/<slug>.html (<!--article:*-->, slug from #root's data-slug).
 function articlesSeo() {
@@ -96,7 +112,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), tailwindcss(), landingSeo(), articlesSeo(), industriesSeo()],
+    plugins: [react(), tailwindcss(), trackerTag(env), landingSeo(), articlesSeo(), industriesSeo()],
     build: {
       rollupOptions: {
         input: {
