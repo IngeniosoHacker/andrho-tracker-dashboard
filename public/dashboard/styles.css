@@ -610,3 +610,42 @@ td.mono { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-se
 
 /* The snippet box is already dark: in dark mode it needs an edge */
 :root[data-theme="dark"] .snippet-box { background: #060a16; border-color: var(--border); }
+
+/* ==========================================================================
+   The account's ERP (js/erpstatus.js): the sidebar button with a progress
+   ring around the AndRho mark, and the progress card of the ERP sections
+   ========================================================================== */
+.erp-launch {
+  display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 10px; padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-elevated);
+  color: var(--text-primary); font-family: var(--font-ui); text-align: left; cursor: default;
+}
+.erp-launch.is-ready { cursor: pointer; }
+.erp-launch.is-ready:hover { border-color: var(--mint); }
+.erp-launch[hidden] { display: none; }
+.erp-launch-text { display: flex; flex-direction: column; min-width: 0; }
+.erp-launch-title { font-weight: 600; font-size: 13px; }
+.erp-launch-sub { font-size: 11.5px; color: var(--text-tertiary); font-family: var(--font-mono); }
+.erp-launch.is-ready .erp-launch-sub { color: var(--accent-human); }
+
+.erp-ring { position: relative; display: inline-grid; place-items: center; flex-shrink: 0; }
+.erp-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.erp-ring circle { fill: none; stroke-width: 3; }
+.erp-ring-track { stroke: var(--border); }
+.erp-ring-fill { stroke: var(--accent-human); stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+.erp-ring.is-ready .erp-ring-fill { stroke: var(--mint); }
+.erp-ring img { width: 52%; height: 52%; object-fit: contain; }
+.erp-ring.is-indeterminate svg { animation: erp-spin 1.1s linear infinite; }
+@keyframes erp-spin { to { transform: rotate(270deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .erp-ring.is-indeterminate svg { animation: none; }
+  .erp-ring-fill, .erp-bar > span { transition: none; }
+}
+
+.erp-creating-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.erp-creating-head h2 { margin: 0 0 4px; }
+.erp-creating-head .hint { margin: 0; }
+.erp-bar { display: block; height: 8px; border-radius: 999px; background: var(--bg-elevated-2); overflow: hidden; }
+.erp-bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent-human), var(--mint)); transition: width 0.6s ease; }
+.erp-bar-mini { height: 4px; margin-top: 6px; }
+.erp-creating-detail { display: flex; justify-content: space-between; gap: 12px; margin: 10px 0 0; font-size: 12.5px; color: var(--text-secondary); }

@@ -86,7 +86,7 @@ async function render(el) {
     <div class="card">
       <h2>Lo que AndRho preparó para ti</h2>
       <table><thead><tr><th>Servicio</th><th>Estado</th><th>Detalle</th><th>Actualizado</th></tr></thead><tbody>
-        ${prov.jobs.map((j) => { const [label, cls] = JOB_STATUS[j.status] || [j.status, '']; return `<tr><td>${esc(JOB[j.kind] || j.kind)}</td><td><span class="status-pill ${cls}">${esc(label)}</span></td><td>${esc(j.detail)}</td><td class="mono">${fmtDate(j.updated_at)}</td></tr>`; }).join('')}
+        ${prov.jobs.map((j) => { const [label, cls] = JOB_STATUS[j.status] || [j.status, '']; return `<tr><td>${esc(JOB[j.kind] || j.kind)}</td><td><span class="status-pill ${cls}">${esc(label)}${j.status === 'en_proceso' && j.progress ? ` · ${j.progress}%` : ''}</span></td><td>${esc(j.detail)}</td><td class="mono">${fmtDate(j.updated_at)}</td></tr>`; }).join('')}
         ${prov.tasks.map((t) => `<tr><td>${esc(t.title)}</td><td><span class="status-pill ${t.status === 'entregada' ? 'status-terminada' : 'status-proceso'}">${t.status === 'entregada' ? 'Entregado' : t.status === 'aceptada' ? 'Un Creator trabaja en ello' : 'Esperando Creator'}</span></td>
           <td>${t.delivery_url ? `<a href="${esc(t.delivery_url)}" target="_blank" rel="noopener">${esc(t.delivery_url)}</a>` : esc(t.notes || '')}</td><td class="mono">${fmtDate(t.updated_at)}</td></tr>`).join('')}
       </tbody></table>

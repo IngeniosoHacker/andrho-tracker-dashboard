@@ -9,6 +9,7 @@ import {
 import { NAV, STAFF_NAV, FOOTER_NAV, ICONS, findNav } from './nav.js';
 import { loadInsights } from './insights.js';
 import { setupThemeToggle } from './theme.js';
+import { setupErpButton } from './erpstatus.js';
 
 import inicio from './views/inicio.js';
 import web from './views/web.js';
@@ -127,6 +128,7 @@ async function boot() {
 
   drawSidebar();
   setupPresence();
+  setupErpButton(document.getElementById('erpLaunch'));
   // A Creator (not an admin) lands on their tasks.
   if (!window.location.hash && a.staffRole === 'creator') history.replaceState(null, '', '#/creators');
   window.addEventListener('hashchange', route);
@@ -138,6 +140,8 @@ els.menu.addEventListener('click', () => document.body.classList.toggle('nav-ope
 els.insightsToggle.addEventListener('click', () => document.body.classList.toggle('insights-open'));
 // Charts take their colors when drawn, so a theme change redraws the view.
 setupThemeToggle(document.getElementById('themeToggle'), () => { currentKey = null; route(); });
+// A view asks to be drawn again (e.g. the ERP became ready: views/erp.js).
+window.addEventListener('andrho:reload', () => { currentKey = null; route(); });
 document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 document.getElementById('drawerBackdrop').addEventListener('click', closeDrawer);
 document.getElementById('navBackdrop').addEventListener('click', () => document.body.classList.remove('nav-open'));

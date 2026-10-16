@@ -3,6 +3,7 @@
 // Each card loads on its own; one that has no data (no ERP, no tracker
 // yet) says so instead of breaking the page.
 import { andrhoApi, siteApi, esc, fmtNum, fmtMoney, session } from '../core.js';
+import { erpStatus, onErpStatus } from '../erpstatus.js';
 
 const WIDGETS = {
   ventas_hoy: {
@@ -84,6 +85,24 @@ function cardsHtml(keys) {
     </a>`).join('');
 }
 
+// An ERP card while the ERP is being created: its progress, and the real
+// numbers as soon as it's ready.
+async function showErpProgress(card) {
+  const s = await erpStatus().catch(() => null);
+  if (!s || s.state !== 'creando') return;
+  const paint = (st) => {
+    card.querySelector('.kpi-sub').innerHTML = `Creando tu ERP · ${Math.round(st.progress)}%
+      <span class="erp-bar erp-bar-mini"><span style="width:${Math.max(st.progress, 3)}%"></span></span>`;
+  };
+  paint(s);
+  card.href = '#/inicio';
+  const off = onErpStatus((next) => {
+    if (!card.isConnected) { off(); return; }
+    if (next.state === 'listo') { off(); fill(card); return; }
+    paint(next);
+  });
+}
+
 async function fill(card) {
   const w = WIDGETS[card.dataset.widget];
   try {
@@ -96,6 +115,7 @@ async function fill(card) {
     card.querySelector('.kpi-value').innerHTML = '<span class="hint">—</span>';
     card.querySelector('.kpi-sub').textContent = err.message === 'erp_not_connected' ? 'Conecta tu ERP para verlo' : 'Sin datos todavía';
     card.href = err.message === 'erp_not_connected' ? '#/configuracion' : '#/inicio';
+    if (err.message === 'erp_not_connected') showErpProgress(card);
   }
 }
 
