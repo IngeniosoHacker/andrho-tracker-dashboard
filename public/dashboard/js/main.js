@@ -8,6 +8,7 @@ import {
 } from './core.js';
 import { NAV, STAFF_NAV, FOOTER_NAV, ICONS, findNav } from './nav.js';
 import { loadInsights } from './insights.js';
+import { setupThemeToggle } from './theme.js';
 
 import inicio from './views/inicio.js';
 import web from './views/web.js';
@@ -135,6 +136,8 @@ async function boot() {
 els.logout.addEventListener('click', logout);
 els.menu.addEventListener('click', () => document.body.classList.toggle('nav-open'));
 els.insightsToggle.addEventListener('click', () => document.body.classList.toggle('insights-open'));
+// Charts take their colors when drawn, so a theme change redraws the view.
+setupThemeToggle(document.getElementById('themeToggle'), () => { currentKey = null; route(); });
 document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 document.getElementById('drawerBackdrop').addEventListener('click', closeDrawer);
 document.getElementById('navBackdrop').addEventListener('click', () => document.body.classList.remove('nav-open'));

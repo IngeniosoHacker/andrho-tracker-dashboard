@@ -1,6 +1,7 @@
-// Sparse black pixel stars on white -- the landing's opening sky (see
-// web/src/components/ui/PixelStarfield.jsx at mix = 0), minus the scroll
-// transition. Purely decorative; respects prefers-reduced-motion.
+// Sparse pixel stars -- the landing's sky (see
+// web/src/components/ui/PixelStarfield.jsx), minus the scroll transition:
+// ink stars on white, light ones in dark mode (the --star token, re-read on
+// 'andrho:theme'). Purely decorative; respects prefers-reduced-motion.
 (function () {
   var canvas = document.getElementById('starfield');
   if (!canvas) return;
@@ -9,6 +10,10 @@
   var PX = 2;
   var stars = [];
   var W = 0, H = 0, dpr = 1;
+  var color = '#0b1020';
+  function readColor() {
+    color = getComputedStyle(document.documentElement).getPropertyValue('--star').trim() || '#0b1020';
+  }
 
   function build() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -31,7 +36,7 @@
   function frame(now) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#0b1020';
+    ctx.fillStyle = color;
     for (var i = 0; i < stars.length; i++) {
       var s = stars[i];
       var tw = reduced ? 1 : 0.55 + 0.45 * Math.sin((now / 1000) * s.speed + s.phase);
@@ -44,7 +49,9 @@
     if (!reduced) requestAnimationFrame(frame);
   }
 
+  readColor();
   build();
   requestAnimationFrame(frame);
+  window.addEventListener('andrho:theme', function () { readColor(); if (reduced) requestAnimationFrame(frame); });
   window.addEventListener('resize', function () { build(); if (reduced) requestAnimationFrame(frame); });
 })();

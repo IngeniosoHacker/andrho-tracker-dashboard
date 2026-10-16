@@ -31,6 +31,43 @@
   --radius: 14px;
   --radius-sm: 8px;
   --shadow-card: 0 18px 40px -30px rgba(11, 16, 32, 0.25);
+
+  --on-mint: #0b1020;        /* text on mint buttons, both themes */
+  --border-strong: #cbd5e1;  /* outlined buttons */
+  --panel-sidebar: rgba(248, 250, 252, 0.92);
+  --panel-insights: rgba(255, 255, 255, 0.94);
+  --star: #0b1020;           /* starfield.js reads it */
+  color-scheme: light;
+}
+
+/* Dark theme: the landing's night sky (light stars on deep ink). Follows the
+   system unless the theme button (js/theme.js) picked one: data-theme on
+   <html>. Chart colors come from these same tokens. */
+:root[data-theme="dark"] {
+  --bg: #0b1020;
+  --bg-elevated: #121a2e;
+  --bg-elevated-2: #1a2440;
+  --bg-sidebar: #0f1628;
+  --border: #26324d;
+  --border-soft: #1c2640;
+  --border-strong: #34425f;
+
+  --text-primary: #e6ebf5;
+  --text-secondary: #b3bdd3;
+  --text-tertiary: #7f8ba6;
+
+  --accent-human: #2ee6bd;
+  --accent-human-dim: #1f6b5c;
+  --accent-ai: #f0a43a;
+  --accent-ai-dim: #6b4a1c;
+  --accent-violet: #a78bfa;
+  --accent-danger: #fb7185;
+
+  --shadow-card: 0 18px 40px -30px rgba(0, 0, 0, 0.7);
+  --panel-sidebar: rgba(15, 22, 40, 0.92);
+  --panel-insights: rgba(18, 26, 46, 0.94);
+  --star: #e6ebf5;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -45,7 +82,7 @@ body {
 }
 code { font-family: var(--font-mono); }
 :focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
-::selection { background: var(--mint-soft); color: var(--text-primary); }
+::selection { background: var(--mint-soft); color: var(--on-mint); }
 
 /* Fixed pixel-star sky behind everything (starfield.js) */
 .starfield { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
@@ -72,7 +109,7 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 .sidebar {
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
   display: flex; flex-direction: column; gap: 4px;
-  padding: 22px 14px 18px; background: rgba(248, 250, 252, 0.92); backdrop-filter: blur(6px);
+  padding: 22px 14px 18px; background: var(--panel-sidebar); backdrop-filter: blur(6px);
   border-right: 1px solid var(--border-soft);
 }
 .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text-primary); text-decoration: none; padding: 0 10px; margin-bottom: 18px; }
@@ -92,7 +129,7 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 }
 .side-link svg { width: 18px; height: 18px; flex-shrink: 0; }
 .side-link:hover { color: var(--text-primary); background: var(--bg-elevated-2); }
-.side-link.active { color: var(--text-primary); background: #fff; box-shadow: inset 3px 0 0 var(--mint), 0 6px 18px -14px rgba(11,16,32,0.4); font-weight: 600; }
+.side-link.active { color: var(--text-primary); background: var(--bg-elevated); box-shadow: inset 3px 0 0 var(--mint), 0 6px 18px -14px rgba(11,16,32,0.4); font-weight: 600; }
 .side-logout { margin-top: 6px; border-top: 1px solid var(--border-soft); border-radius: 0; padding-top: 14px; }
 .side-logout:hover { color: var(--accent-danger); background: none; }
 .role-badge {
@@ -109,7 +146,7 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 .view-head .hint { margin: 4px 0 0; }
 .view-meta { display: flex; align-items: center; gap: 12px; color: var(--text-tertiary); font-size: 12px; font-family: var(--font-mono); }
 .icon-btn {
-  display: inline-flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid #cbd5e1;
+  display: inline-flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--border-strong);
   color: var(--text-primary); border-radius: 999px; padding: 7px 12px; cursor: pointer;
   font-family: var(--font-ui); font-size: 12.5px; font-weight: 600;
 }
@@ -134,7 +171,7 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 .insights {
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
   display: flex; flex-direction: column;
-  background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(6px);
+  background: var(--panel-insights); backdrop-filter: blur(6px);
   border-left: 1px solid var(--border-soft); padding: 26px 20px 24px;
 }
 .insights-head { position: relative; }
@@ -143,14 +180,14 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 .insights-top { padding-bottom: 18px; border-bottom: 1px solid var(--border-soft); }
 .insights-bottom { padding-top: 16px; }
 .insights-bottom h3 { margin: 0 0 8px; font-size: 15px; }
-.insight-summary { background: linear-gradient(135deg, rgba(0,230,184,0.10), #fff); border: 1px solid var(--accent-human-dim); border-radius: var(--radius-sm); padding: 12px 14px; }
+.insight-summary { background: linear-gradient(135deg, rgba(0,230,184,0.10), var(--bg-elevated)); border: 1px solid var(--accent-human-dim); border-radius: var(--radius-sm); padding: 12px 14px; }
 .insight-summary p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
 
 @media (max-width: 1279px) {
   .app { grid-template-columns: 236px minmax(0, 1fr); }
   .insights-toggle { display: inline-flex; }
   .insights-close { display: block; }
-  .insights { background: #fff; }
+  .insights { background: var(--bg-elevated); }
   .insights {
     position: fixed; z-index: 40; top: 0; right: 0; bottom: 0; width: min(360px, 92vw);
     transform: translateX(100%); transition: transform 0.18s ease, visibility 0.18s; visibility: hidden;
@@ -182,7 +219,7 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
    ========================================================================== */
 .section-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
 .suggestions-btn {
-  flex-shrink: 0; background: var(--bg); border: 1px solid #cbd5e1; color: var(--text-primary);
+  flex-shrink: 0; background: var(--bg); border: 1px solid var(--border-strong); color: var(--text-primary);
   padding: 8px 16px; border-radius: 999px; cursor: pointer; font-family: var(--font-ui); font-size: 12.5px; font-weight: 600;
   white-space: nowrap; transition: border-color 0.2s ease, background-color 0.2s ease;
 }
@@ -241,7 +278,7 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
   padding: 9px 12px; border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: 13.5px; text-transform: none; letter-spacing: normal;
 }
 .invite-form button[type="submit"] {
-  background: var(--mint); color: var(--text-primary); border: none; font-weight: 600;
+  background: var(--mint); color: var(--on-mint); border: none; font-weight: 600;
   padding: 11px 16px; border-radius: 999px; cursor: pointer; font-size: 13px;
   box-shadow: 0 10px 28px -12px rgba(0, 230, 184, 0.55);
 }
@@ -362,7 +399,7 @@ td.mono { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-se
   padding: 8px 10px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 13px;
 }
 .goal-form button {
-  background: var(--mint); color: var(--text-primary); border: none; font-weight: 600;
+  background: var(--mint); color: var(--on-mint); border: none; font-weight: 600;
   padding: 8px 16px; border-radius: 999px; cursor: pointer; font-size: 12.5px;
 }
 .goal-form button:hover { background: #38d9ff; }
@@ -459,7 +496,7 @@ td.mono { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-se
 .head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .file-btn { display: inline-flex; align-items: center; cursor: pointer; padding: 8px 14px; border-radius: 999px; font-weight: 600; }
 .primary-btn {
-  background: var(--mint); color: var(--text-primary); border: none; font-weight: 600; font-family: var(--font-ui);
+  background: var(--mint); color: var(--on-mint); border: none; font-weight: 600; font-family: var(--font-ui);
   padding: 9px 16px; border-radius: 999px; cursor: pointer; font-size: 12.5px; text-decoration: none;
   box-shadow: 0 10px 28px -12px rgba(0, 230, 184, 0.55);
 }
@@ -563,3 +600,13 @@ td.mono { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-se
 .home-pick li { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border: 1px solid var(--border-soft); border-radius: var(--radius-sm); font-size: 13.5px; }
 .home-pick label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
 .section-head .welcome { margin: 0; }
+
+/* Theme button in the view header (js/theme.js) */
+.theme-toggle { padding: 7px; }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .icon-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+/* The snippet box is already dark: in dark mode it needs an edge */
+:root[data-theme="dark"] .snippet-box { background: #060a16; border-color: var(--border); }
