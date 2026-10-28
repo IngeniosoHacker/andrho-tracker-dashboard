@@ -3,16 +3,19 @@ import { INITIAL_ANSWERS, STEPS, buildSubmission } from './survey.js'
 
 // The signup (signup.html): two ways in, one way out.
 //
-//   rápida        a paragraph about the business; the Analyzer reads it
-//                 (POST /analyzer/describe, Claude or keyword rules)
-//   personalizada the survey's questions; the Analyzer reads the answers
-//                 (POST /analyzer)
+//   rápida        a paragraph about the business. POST /analyzer/describe
+//                 (Claude, or keyword rules) reads it into the survey's
+//                 answers and the boarding pass; only the questions it
+//                 didn't answer are asked.
+//   personalizada every question of the survey.
 //
-// Both lead to the three packages (Despegue, En Órbita, Galáctico), the
-// modules of the chosen one (any can be unchecked; none can exceed the plan's
-// limit), "Cuéntanos de tu negocio" (brand essence, logo) and the account,
-// then POST /auth/register, which creates the account and sets up its
-// services. Everything is free during the beta.
+// Then, in both, the brand (essence, logo), and only once everything is
+// known, the suggestion: POST /analyzer/suggest blends the rules' ranking of
+// modules with Claude's, into three packages (Despegue, En Órbita,
+// Galáctico) whose modules can be unchecked (none can exceed the plan's
+// limit). Last, the boarding pass (pre-filled from the paragraph) and POST
+// /auth/register, which creates the account and sets up its services.
+// Everything is free during the beta.
 
 // The survey's questions minus the open-text ones and the ones the signup
 // asks on cards of its own (plan and contact).
@@ -22,13 +25,60 @@ export const questionSteps = (answers) => QUESTION_STEPS.filter((s) => !s.when |
 
 export { INITIAL_ANSWERS }
 
-export const analyzeAnswers = (answers) => apiPost('/analyzer', buildSubmission(answers))
+// Shorter than this, a description isn't worth reading (the API agrees).
+export const MIN_DESCRIPTION = 15
 
-// A description too short to read gets the analysis of no answers at all:
-// the essentials, Galáctico still recommended.
-export async function analyzeDescription(text) {
-  if (text.trim().length < 15) return { description: null, analysis: await apiPost('/analyzer', {}) }
-  return apiPost('/analyzer/describe', { description: text.trim() })
+// What the paragraph says: { answers, contact, brand, details, summary, source }.
+export const describeBusiness = async (text) => (await apiPost('/analyzer/describe', { description: text.trim() })).description
+
+// The suggestion, from everything the signup knows.
+export const suggestSetup = (answers, description, brand) =>
+  apiPost('/analyzer/suggest', { ...buildSubmission(answers), description: description.trim(), brand: { choice: brand.choice, essence: brand.essence.trim() } })
+
+// The description's answers in the survey's shape: every field present,
+// multi-select sector answers as lists (the API sends "a,b").
+function surveyShape(extracted) {
+  const a = { ...INITIAL_ANSWERS, sectorAnswers: {} }
+  for (const [k, v] of Object.entries(extracted ?? {})) {
+    if (k === 'sectorAnswers') continue
+    if (k in a && v !== null && v !== undefined) a[k] = v
+  }
+  for (const [k, v] of Object.entries(extracted?.sectorAnswers ?? {})) {
+    const step = QUESTION_STEPS.find((s) => s.id === k)
+    a.sectorAnswers[k] = step?.kind === 'multi' ? String(v).split(',').filter(Boolean) : v
+  }
+  return a
+}
+
+const isEmpty = (v) => v === '' || v === 0 || v === null || v === undefined || (Array.isArray(v) && v.length === 0)
+
+// Folds a description into the signup: answers fill only what's still
+// empty (what the person already answered wins), and `covered` lists the
+// question steps the paragraph answered, which the quick setup skips.
+export function applyDescription(answers, d) {
+  const extracted = { ...surveyShape(d.answers), ...d.details }
+  const merged = { ...answers, sectorAnswers: { ...answers.sectorAnswers } }
+  for (const [k, v] of Object.entries(extracted)) {
+    if (k === 'sectorAnswers') {
+      for (const [sk, sv] of Object.entries(v)) if (isEmpty(merged.sectorAnswers[sk])) merged.sectorAnswers[sk] = sv
+    } else if (k in merged && isEmpty(merged[k]) && !isEmpty(v)) merged[k] = v
+  }
+  const covered = QUESTION_STEPS.filter((s) => (!s.when || s.when(extracted)) && s.valid(extracted)).map((s) => s.id)
+  return { answers: merged, covered }
+}
+
+// The boarding pass and the brand, filled from the description where the
+// person hasn't written anything yet.
+export function prefillAccount(account, contact = {}) {
+  const next = { ...account }
+  for (const k of ['name', 'company', 'email', 'phone']) if (!next[k]?.trim() && contact[k]) next[k] = contact[k]
+  return next
+}
+export function prefillBrand(brand, b = {}) {
+  if (brand.choice) return brand
+  if (b.essence) return { choice: b.has_brand === false ? 'ayuda' : 'tengo', essence: b.essence }
+  if (b.has_brand === false) return { ...brand, choice: 'ayuda' }
+  return brand
 }
 
 export const register = (payload) => apiPost('/auth/register', payload)

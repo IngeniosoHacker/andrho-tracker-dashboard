@@ -16,14 +16,18 @@ import {
   INITIAL_ANSWERS,
   JOB_LABELS,
   JOB_STATUS,
-  analyzeAnswers,
-  analyzeDescription,
+  MIN_DESCRIPTION,
+  applyDescription,
   defaultModules,
+  describeBusiness,
   loadDraft,
+  prefillAccount,
+  prefillBrand,
   questionSteps,
   readLogo,
   register,
   saveDraft,
+  suggestSetup,
 } from './lib/signup.js'
 import { buildSubmission } from './lib/survey.js'
 import { generateDiscountCode, getDiscountTier } from './lib/discountTiers.js'
@@ -49,6 +53,14 @@ function readGameClaim() {
 }
 
 const API_URL = (import.meta.env.VITE_ANDRHO_API_URL || '').replace(/\/+$/, '')
+
+// The cards, in order. Both paths ask their questions, then the brand, and
+// only then the suggestion (it needs all of it) and the boarding pass. The
+// quick path skips the questions its paragraph already answered (`covered`).
+function buildFlow(path, answers, covered) {
+  const steps = questionSteps(answers).filter((s) => path === 'personalizada' || !covered.includes(s.id))
+  return ['choose', ...(path === 'rapida' ? ['quick'] : []), ...steps.map((s) => `q:${s.id}`), 'brand', 'packages', 'account']
+}
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function Check() {
@@ -158,6 +170,8 @@ function SignupPage() {
   const [answers, setAnswers] = useState({ ...INITIAL_ANSWERS, ...(draft?.answers ?? {}) })
   const [description, setDescription] = useState(draft?.description ?? '')
   const [analysis, setAnalysis] = useState(null) // { key, data, summary }
+  // What the quick setup's paragraph gave: { key, covered, summary, prefilled }.
+  const [extracted, setExtracted] = useState(draft?.extracted ?? null)
   const [plan, setPlan] = useState(draft?.plan ?? 'galactico')
   const [modules, setModules] = useState(draft?.modules ?? null)
   const [brand, setBrand] = useState(draft?.brand ?? { choice: '', essence: '' })
@@ -171,7 +185,7 @@ function SignupPage() {
   const firstRender = useRef(true)
 
   const qSteps = questionSteps(answers)
-  const flow = ['choose', ...(path === 'personalizada' ? qSteps.map((s) => `q:${s.id}`) : ['quick']), 'packages', 'brand', 'account']
+  const flow = buildFlow(path, answers, extracted?.covered ?? [])
   const index = Math.max(0, flow.indexOf(screen))
   const step = screen.startsWith('q:') ? resolveStep(qSteps.find((s) => `q:${s.id}` === screen) ?? qSteps[0], answers, {}) : null
   const pkgs = analysis?.data?.packages ?? []
@@ -181,8 +195,8 @@ function SignupPage() {
   const needsWhatsApp = chosen.includes('whatsapp')
 
   useEffect(() => {
-    if (!done) saveDraft({ path, screen, answers, description, plan, modules, brand: { choice: brand.choice, essence: brand.essence }, account: { ...account, password: '' } })
-  }, [path, screen, answers, description, plan, modules, brand, account, done])
+    if (!done) saveDraft({ path, screen, answers, description, extracted, plan, modules, brand: { choice: brand.choice, essence: brand.essence }, account: { ...account, password: '' } })
+  }, [path, screen, answers, description, extracted, plan, modules, brand, account, done])
 
   useEffect(() => {
     if (firstRender.current) {
@@ -214,14 +228,13 @@ function SignupPage() {
     return true
   })()
 
+  const text = path === 'rapida' ? description : ''
+
   async function runAnalysis() {
-    const key = path === 'rapida' ? `d:${description.trim()}` : `a:${JSON.stringify(buildSubmission(answers))}`
+    const key = JSON.stringify([buildSubmission(answers), text.trim(), brand.choice, brand.essence.trim()])
     if (analysis?.key === key) return analysis
-    const res =
-      path === 'rapida'
-        ? await analyzeDescription(description)
-        : { analysis: await analyzeAnswers(answers), description: null }
-    const next = { key, data: res.analysis, summary: res.description?.summary ?? '' }
+    const data = await suggestSetup(answers, text, brand)
+    const next = { key, data, summary: data.summary ?? '' }
     setAnalysis(next)
     // New analysis, new defaults for the package's modules.
     setModules(null)
@@ -233,10 +246,50 @@ function SignupPage() {
     transition(dir, () => setScreen(target), message)
   }
 
+  // The quick setup's paragraph: read it once per text, fold what it says
+  // into the answers, the brand and the boarding pass, and jump to the
+  // first question it didn't answer.
+  async function readDescription() {
+    const key = description.trim()
+    let covered = extracted?.covered ?? []
+    let merged = answers
+    let summary = extracted?.summary ?? ''
+    if (extracted?.key !== key) {
+      covered = []
+      summary = ''
+      if (key.length >= MIN_DESCRIPTION) {
+        const d = await describeBusiness(key)
+        ;({ answers: merged, covered } = applyDescription(answers, d))
+        summary = d.summary ?? ''
+        const filled = prefillAccount(account, d.contact)
+        setAnswers(merged)
+        setAccount(filled)
+        setBrand(prefillBrand(brand, d.brand))
+        setExtracted({ key, covered, summary, prefilled: ['name', 'company', 'email', 'phone'].filter((k) => filled[k] !== account[k]) })
+      } else setExtracted({ key, covered, summary: '', prefilled: [] })
+    }
+    const nextFlow = buildFlow(path, merged, covered)
+    const left = nextFlow.filter((c) => c.startsWith('q:')).length
+    const message = left
+      ? `${summary ? `${summary} ` : ''}${left === 1 ? 'Solo falta una pregunta.' : `Solo faltan ${left} preguntas.`}`
+      : summary || 'Entendimos tu negocio.'
+    go(1, nextFlow[nextFlow.indexOf('quick') + 1], { tone: 'neutral', text: message })
+  }
+
   async function next() {
     if (moving || busy || !valid) return
     const target = flow[index + 1]
     if (screen === 'account') return submit()
+    if (screen === 'quick') {
+      setBusy(true)
+      try {
+        await readDescription()
+      } catch (err) {
+        setError(err.message || 'No pudimos leer tu descripción. Intenta de nuevo.')
+      }
+      setBusy(false)
+      return
+    }
     if (target === 'packages') {
       setBusy(true)
       try {
@@ -297,7 +350,7 @@ function SignupPage() {
         setup: path,
         plan,
         modules: chosen,
-        answers: path === 'personalizada' ? buildSubmission(answers) : null,
+        answers: buildSubmission(answers),
         description: path === 'rapida' ? description.trim() : '',
         phone: account.phone.trim(),
         brand: brand.choice === 'omitir' ? {} : { essence: brand.essence.trim(), help: brand.choice === 'ayuda', logo: brand.choice === 'tengo' ? logo : '' },
@@ -369,7 +422,7 @@ function SignupPage() {
                         screen={screen}
                         step={step}
                         headingRef={headingRef}
-                        state={{ path, setPath, answers, setAnswers, description, setDescription, analysis, pkgs, plan, pickPlan, chosen, limit, toggleModule, brand, setBrand, logo, setLogo, onLogo, account, setAccount, needsWhatsApp }}
+                        state={{ path, setPath, answers, setAnswers, description, setDescription, analysis, pkgs, plan, pickPlan, chosen, limit, toggleModule, brand, setBrand, logo, setLogo, onLogo, account, setAccount, needsWhatsApp, prefilled: extracted?.prefilled ?? [] }}
                         onSubmitKey={next}
                       />
                       {error && (
@@ -459,7 +512,7 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
             selected={s.path === 'rapida'}
             onClick={() => s.setPath('rapida')}
             title="Configuración rápida"
-            body="Cuéntanos de tu negocio en un párrafo y AndRho elige los módulos por ti."
+            body="Cuéntanos de tu negocio en un párrafo. AndRho lo lee y solo te pregunta lo que falte."
           />
           <Choice
             selected={s.path === 'personalizada'}
@@ -476,14 +529,17 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
     return (
       <>
         {title('Cuéntanos de tu negocio')}
-        <p className="mt-3 text-[var(--color-ink-soft)]">Qué vendes, cómo lo vendes, con qué te organizas hoy y qué te quita el sueño. Si prefieres, déjalo en blanco.</p>
+        <p className="mt-3 text-[var(--color-ink-soft)]">
+          Quién eres, cómo se llama tu negocio, qué vendes y cómo, con qué te organizas hoy y qué te quita el sueño. Mientras más nos cuentes, menos
+          preguntas te hacemos. Si prefieres, déjalo en blanco y te preguntamos todo.
+        </p>
         <textarea
           aria-labelledby="signup-title"
           className={`${TEXTAREA} mt-7`}
           value={s.description}
           maxLength={2000}
           onChange={(e) => s.setDescription(e.target.value)}
-          placeholder="Ej.: Tengo un restaurante con 8 empleados. Llevo todo en Excel, vendemos por WhatsApp e Instagram y se me vencen los ingredientes."
+          placeholder="Ej.: Soy Ana López y tengo Pan de Ana, una panadería con 8 empleados. Llevo todo en Excel, vendemos en el local, por WhatsApp e Instagram, y se me vencen los ingredientes. Mi WhatsApp es +502 5555 5555."
         />
         <p className="mt-2 text-right font-mono text-xs text-[var(--color-muted)]">{s.description.length}/2000</p>
       </>
@@ -534,7 +590,9 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
                     </span>
                     <span>
                       <span className="block font-semibold">{m.name}</span>
-                      <span className="text-[var(--color-muted)]">{full ? 'Disponible en un paquete mayor.' : m.description}</span>
+                      <span className="text-[var(--color-muted)]">
+                        {full ? 'Disponible en un paquete mayor.' : (best?.module_reasons?.[m.key] ?? m.description)}
+                      </span>
                     </span>
                   </button>
                 )
@@ -600,7 +658,9 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
     return (
       <>
         {title('Tu pase de abordaje')}
-        <p className="mt-3 text-[var(--color-ink-soft)]">Con esto entras a tu panel. Nada de spam.</p>
+        <p className="mt-3 text-[var(--color-ink-soft)]">
+          {s.prefilled.length ? 'Lo llenamos con lo que nos contaste: revísalo y elige tu contraseña.' : 'Con esto entras a tu panel. Nada de spam.'}
+        </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <Field label="Tu nombre" required>
             <TextInput autoComplete="name" value={s.account.name} onChange={set('name')} placeholder="Ana López" maxLength={120} />
