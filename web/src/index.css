@@ -31,6 +31,21 @@
   --window-bar: #d5dde8;
   --window-line: #cbd5e1;
   --window-teal: #4fb39b;
+
+  /* Illustration palette (rebrand 2.0.1) — for SVG illustrations only,
+     the site colors above stay as they are */
+  --andrho-space: #1b1640;
+  --andrho-space-ground: #2a2260;
+  --andrho-ufo: #6c5ce7;
+  --andrho-ufo-light: #b8afff;
+  --andrho-alien: #7ce38b;
+  --andrho-dome: #bff5ee;
+  --andrho-dino: #2ec4b6;
+  --andrho-dino-shade: #25a99c;
+  --andrho-beam: #ffe66d;
+  --andrho-coral: #ff8a65;
+  --andrho-cow-nose: #ffb4c6;
+  --andrho-ink: #16213e;
 }
 
 * {

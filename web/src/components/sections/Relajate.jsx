@@ -1,5 +1,5 @@
 import TextType from '../ui/TextType.jsx'
-import { illustrations } from '../../lib/assets.js'
+import { brand } from '../../lib/assets.js'
 import { ACTIVITIES } from '../../lib/seo.js'
 
 // Window view, opens the "relájate" group (from sections.pdf, page 1). "vender" types through different
@@ -36,12 +36,13 @@ export default function Relajate() {
         </div>
       </div>
       <img
-        src={illustrations.alienRelax}
-        alt="Un alienígena relajado en su sillón, con limonada y el teléfono en la mano"
-        width="743"
-        height="688"
+        src={brand.abductionScene}
+        alt="Platillo con un alien abduciendo una vaca mientras un dinosaurio observa"
+        width="420"
+        height="400"
+        loading="lazy"
         draggable="false"
-        className="mx-auto max-h-[24svh] w-auto md:max-h-[64svh] md:w-full md:max-w-full md:object-contain"
+        className="mx-auto max-h-[24svh] w-auto max-w-full rounded-3xl md:max-h-[64svh] md:w-full md:object-contain"
       />
     </div>
   )

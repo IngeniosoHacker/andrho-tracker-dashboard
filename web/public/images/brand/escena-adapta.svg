@@ -1,0 +1,67 @@
+<svg width="420" height="400" viewBox="0 0 420 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Un dinosaurio confundido con piezas que no encajan mientras un platillo baja con su rayo la pieza exacta">
+  <rect width="420" height="400" fill="#1B1640"/>
+  <circle cx="30" cy="150" r="2.5" fill="#FFFFFF"/>
+  <circle cx="96" cy="24" r="2" fill="#FFFFFF"/>
+  <circle cx="160" cy="70" r="2" fill="#FFFFFF"/>
+  <circle cx="252" cy="20" r="2.5" fill="#FFFFFF"/>
+  <circle cx="368" cy="26" r="2.5" fill="#FFFFFF"/>
+  <circle cx="400" cy="176" r="2" fill="#FFFFFF"/>
+  <circle cx="200" cy="150" r="2" fill="#FFFFFF"/>
+  <path d="M190 30 l5 10 l10 5 l-10 5 l-5 10 l-5 -10 l-10 -5 l10 -5 Z" fill="#FFE66D"/>
+  <circle cx="58" cy="70" r="18" fill="#FF8A65"/>
+  <ellipse cx="58" cy="70" rx="31" ry="6.5" fill="none" stroke="#FFE66D" stroke-width="3" transform="rotate(-20 58 70)"/>
+
+  <polygon points="272,104 308,104 336,306 244,306" fill="#FFE66D" opacity="0.26"/>
+
+  <path d="M0 334 Q 210 300 420 334 L420 400 L0 400 Z" fill="#2A2260"/>
+
+  <rect x="226" y="300" width="128" height="34" rx="9" fill="#6C5CE7"/>
+  <rect x="226" y="296" width="128" height="26" rx="9" fill="#B8AFFF"/>
+  <circle cx="250" cy="309" r="7" fill="#16213E"/>
+  <rect x="320" y="302" width="14" height="14" rx="2.5" fill="#16213E"/>
+  <path d="M290 204 L294.1 214.3 L305.2 215.1 L296.7 222.2 L299.4 232.9 L290 227 L280.6 232.9 L283.3 222.2 L274.8 215.1 L285.9 214.3 Z" fill="#16213E" transform="translate(290 309) scale(0.62) translate(-290 -219)"/>
+
+  <g transform="rotate(10 290 219)">
+    <path d="M290 204 L294.1 214.3 L305.2 215.1 L296.7 222.2 L299.4 232.9 L290 227 L280.6 232.9 L283.3 222.2 L274.8 215.1 L285.9 214.3 Z" fill="#FF8A65" stroke="#FF8A65" stroke-width="3" stroke-linejoin="round"/>
+  </g>
+  <circle cx="268" cy="196" r="3" fill="#FFE66D"/>
+  <circle cx="314" cy="240" r="2.4" fill="#FFE66D"/>
+  <path d="M316 196 l2 4 l4 2 l-4 2 l-2 4 l-2 -4 l-4 -2 l4 -2 Z" fill="#FFFFFF"/>
+
+  <ellipse cx="290" cy="74" rx="27" ry="22" fill="#BFF5EE"/>
+  <line x1="286" y1="62" x2="280" y2="50" stroke="#7CE38B" stroke-width="3" stroke-linecap="round"/>
+  <line x1="294" y1="62" x2="300" y2="50" stroke="#7CE38B" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="280" cy="49" r="3.5" fill="#FFE66D"/>
+  <circle cx="300" cy="49" r="3.5" fill="#FF8A65"/>
+  <ellipse cx="290" cy="76" rx="11" ry="13" fill="#7CE38B"/>
+  <ellipse cx="285.5" cy="74" rx="3.4" ry="4.8" fill="#16213E" transform="rotate(-10 285.5 74)"/>
+  <ellipse cx="294.5" cy="74" rx="3.4" ry="4.8" fill="#16213E" transform="rotate(10 294.5 74)"/>
+  <circle cx="286.5" cy="72" r="1.2" fill="#FFFFFF"/>
+  <circle cx="295.5" cy="72" r="1.2" fill="#FFFFFF"/>
+  <path d="M286 82 q 4 3 8 0" stroke="#16213E" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="290" cy="94" rx="72" ry="16" fill="#6C5CE7"/>
+  <ellipse cx="290" cy="89" rx="72" ry="7" fill="#B8AFFF" opacity="0.6"/>
+  <circle cx="238" cy="98" r="3.5" fill="#FFE66D"/>
+  <circle cx="264" cy="103" r="3.5" fill="#FF8A65"/>
+  <circle cx="290" cy="105" r="3.5" fill="#FFE66D"/>
+  <circle cx="316" cy="103" r="3.5" fill="#FF8A65"/>
+  <circle cx="342" cy="98" r="3.5" fill="#FFE66D"/>
+
+  <path d="M72 326 C 54 330, 38 338, 22 352" stroke="#2EC4B6" stroke-width="13" fill="none" stroke-linecap="round"/>
+  <line x1="84" y1="332" x2="82" y2="360" stroke="#25A99C" stroke-width="11" stroke-linecap="round"/>
+  <line x1="102" y1="336" x2="102" y2="364" stroke="#25A99C" stroke-width="11" stroke-linecap="round"/>
+  <line x1="126" y1="336" x2="128" y2="364" stroke="#25A99C" stroke-width="11" stroke-linecap="round"/>
+  <line x1="142" y1="330" x2="146" y2="358" stroke="#25A99C" stroke-width="11" stroke-linecap="round"/>
+  <ellipse cx="112" cy="322" rx="46" ry="24" fill="#2EC4B6"/>
+  <path d="M140 310 C 160 276, 166 238, 150 206" stroke="#2EC4B6" stroke-width="17" fill="none" stroke-linecap="round"/>
+  <ellipse cx="156" cy="200" rx="20" ry="12" fill="#2EC4B6" transform="rotate(24 156 200)"/>
+  <circle cx="156" cy="194" r="4" fill="#16213E"/>
+  <circle cx="157.5" cy="192.5" r="1.3" fill="#FFFFFF"/>
+  <circle cx="171" cy="208" r="3" fill="#16213E"/>
+  <path d="M136 162 m -10 0 a 10 8 0 1 1 20 0 a 7 6 0 1 1 -14 0 a 3.5 3 0 1 1 7 0" stroke="#FF8A65" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <rect x="166" y="344" width="20" height="20" rx="3" fill="#FF8A65" transform="rotate(16 176 354)"/>
+  <polygon points="196,372 220,372 208,352" fill="#FFE66D" stroke="#FFE66D" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M150 372 a 13 13 0 0 1 26 0 h -7 a 6 6 0 0 0 -12 0 Z" fill="#B8AFFF"/>
+  <circle cx="232" cy="368" r="7" fill="#FFFFFF"/>
+</svg>

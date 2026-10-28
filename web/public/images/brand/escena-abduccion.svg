@@ -1,0 +1,54 @@
+<svg width="420" height="400" viewBox="0 0 210 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Platillo con un alien abduciendo una vaca mientras un dinosaurio observa">
+  <rect width="210" height="200" fill="#1B1640"/>
+  <circle cx="18" cy="20" r="1.6" fill="#FFFFFF"/>
+  <circle cx="48" cy="12" r="1.2" fill="#FFFFFF"/>
+  <circle cx="170" cy="14" r="1.6" fill="#FFFFFF"/>
+  <circle cx="196" cy="40" r="1.2" fill="#FFFFFF"/>
+  <circle cx="12" cy="70" r="1.2" fill="#FFFFFF"/>
+  <circle cx="190" cy="78" r="1.6" fill="#FFFFFF"/>
+  <circle cx="30" cy="118" r="1.2" fill="#FFFFFF"/>
+  <path d="M150 20 l3 6 l6 3 l-6 3 l-3 6 l-3 -6 l-6 -3 l6 -3 Z" fill="#FFE66D"/>
+  <circle cx="28" cy="46" r="11" fill="#FF8A65"/>
+  <ellipse cx="28" cy="46" rx="18" ry="4" fill="none" stroke="#FFE66D" stroke-width="2" transform="rotate(-20 28 46)"/>
+  <polygon points="88,56 122,56 152,166 58,166" fill="#FFE66D" opacity="0.28"/>
+  <g transform="rotate(-18 105 112)">
+    <line x1="92" y1="120" x2="89" y2="140" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="100" y1="121" x2="99" y2="142" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="111" y1="121" x2="113" y2="142" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="119" y1="119" x2="122" y2="139" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M83 108 C 76 110, 74 116, 72 120" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="105" cy="111" rx="23" ry="12" fill="#FFFFFF"/>
+    <ellipse cx="97" cy="107" rx="7" ry="4.5" fill="#16213E"/>
+    <ellipse cx="113" cy="115" rx="5" ry="3" fill="#16213E"/>
+    <path d="M124 98 l-3 -6 M132 98 l3 -6" stroke="#FFE66D" stroke-width="2.5" stroke-linecap="round"/>
+    <ellipse cx="128" cy="104" rx="9" ry="7.5" fill="#FFFFFF"/>
+    <ellipse cx="134" cy="107" rx="5.5" ry="4" fill="#FFB4C6"/>
+    <circle cx="126" cy="102" r="1.6" fill="#16213E"/>
+  </g>
+  <ellipse cx="105" cy="36" rx="20" ry="16" fill="#BFF5EE"/>
+  <line x1="101" y1="28" x2="97" y2="20" stroke="#7CE38B" stroke-width="2" stroke-linecap="round"/>
+  <line x1="109" y1="28" x2="113" y2="20" stroke="#7CE38B" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="97" cy="20" r="2.2" fill="#7CE38B"/>
+  <circle cx="113" cy="20" r="2.2" fill="#7CE38B"/>
+  <ellipse cx="105" cy="36" rx="8" ry="9" fill="#7CE38B"/>
+  <ellipse cx="101.5" cy="35" rx="2.4" ry="3.4" fill="#16213E"/>
+  <ellipse cx="108.5" cy="35" rx="2.4" ry="3.4" fill="#16213E"/>
+  <ellipse cx="105" cy="48" rx="52" ry="12" fill="#6C5CE7"/>
+  <ellipse cx="105" cy="45" rx="52" ry="6" fill="#B8AFFF" opacity="0.6"/>
+  <circle cx="70" cy="50" r="3" fill="#FFE66D"/>
+  <circle cx="88" cy="53" r="3" fill="#FF8A65"/>
+  <circle cx="105" cy="54" r="3" fill="#FFE66D"/>
+  <circle cx="122" cy="53" r="3" fill="#FF8A65"/>
+  <circle cx="140" cy="50" r="3" fill="#FFE66D"/>
+  <path d="M0 180 Q 105 166 210 180 L210 200 L0 200 Z" fill="#2A2260"/>
+  <path d="M150 176 C 136 178, 126 182, 116 186" stroke="#2EC4B6" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <rect x="158" y="174" width="7" height="14" rx="3" fill="#25A99C"/>
+  <rect x="178" y="174" width="7" height="14" rx="3" fill="#25A99C"/>
+  <ellipse cx="170" cy="172" rx="24" ry="13" fill="#2EC4B6"/>
+  <path d="M184 166 C 194 150, 196 128, 190 108" stroke="#2EC4B6" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <ellipse cx="184" cy="104" rx="11" ry="7" fill="#2EC4B6" transform="rotate(-25 184 104)"/>
+  <circle cx="182" cy="101" r="1.8" fill="#16213E"/>
+  <path d="M176 108 q 4 3 8 0" stroke="#16213E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <circle cx="164" cy="168" r="3" fill="#FFE66D"/>
+  <circle cx="175" cy="173" r="2.4" fill="#FFE66D"/>
+</svg>

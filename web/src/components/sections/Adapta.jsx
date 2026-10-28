@@ -1,16 +1,17 @@
-import { illustrations } from '../../lib/assets.js'
+import { brand } from '../../lib/assets.js'
 
 // Window view, opens the "adapta" group (from sections.pdf, page 2).
 export default function Adapta() {
   return (
     <div className="grid items-center gap-6 p-6 sm:p-10 md:grid-cols-[1fr_1.1fr] md:gap-12 md:p-14 lg:p-16">
       <img
-        src={illustrations.astronautPuzzle}
-        alt="Un astronauta abrumado rodeado de piezas que no encajan"
-        width="608"
-        height="576"
+        src={brand.adaptaScene}
+        alt="Un dinosaurio confundido con piezas que no encajan mientras un platillo baja con su rayo la pieza exacta"
+        width="420"
+        height="400"
+        loading="lazy"
         draggable="false"
-        className="order-2 mx-auto max-h-[24svh] w-auto md:order-1 md:max-h-none md:w-full"
+        className="order-2 mx-auto max-h-[24svh] w-auto max-w-full rounded-3xl md:order-1 md:max-h-none md:w-full"
       />
       <div className="order-1 text-center md:order-2">
         <p className="mb-5 font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-ink-soft)]">

@@ -6,8 +6,6 @@ const ILLUSTRATIONS_DIR = '/images/illustrations'
 
 export const illustrations = {
   alienWave: `${ILLUSTRATIONS_DIR}/alien-wave.svg`,
-  alienRelax: `${ILLUSTRATIONS_DIR}/alien-relax.webp`,
-  astronautPuzzle: `${ILLUSTRATIONS_DIR}/astronaut-puzzle.webp`,
   alienThinking: `${ILLUSTRATIONS_DIR}/alien-thinking.svg`,
   alienHello: `${ILLUSTRATIONS_DIR}/alien-hello.svg`,
   alienWorking: `${ILLUSTRATIONS_DIR}/alien-working.svg`,
@@ -18,6 +16,18 @@ export const illustrations = {
   planet: `${ILLUSTRATIONS_DIR}/planet.svg`,
   rocket: `${ILLUSTRATIONS_DIR}/rocket.svg`,
   spaceDoodle: `${ILLUSTRATIONS_DIR}/space-doodle.svg`,
+}
+
+// Rebrand 2.0.1 illustrations (style guide: flat, space + prehistoric,
+// palette in index.css --andrho-*). firma-juampa.png must stay at this exact
+// public URL: the iPhone mail signature loads it from andrho.com.
+const BRAND_DIR = '/images/brand'
+
+export const brand = {
+  abductionScene: `${BRAND_DIR}/escena-abduccion.svg`,
+  adaptaScene: `${BRAND_DIR}/escena-adapta.svg`,
+  avatarJuampa: `${BRAND_DIR}/avatar-juampa.svg`,
+  emailSignature: `${BRAND_DIR}/firma-juampa.png`,
 }
 
 export const logo = {
