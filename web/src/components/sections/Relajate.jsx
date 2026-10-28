@@ -36,8 +36,8 @@ export default function Relajate() {
         </div>
       </div>
       <img
-        src={brand.abductionScene}
-        alt="Platillo con un alien abduciendo una vaca mientras un dinosaurio observa"
+        src={brand.alienRelax}
+        alt="Un alien relajado en su sillón, con limonada y el teléfono en la mano"
         width="420"
         height="400"
         loading="lazy"

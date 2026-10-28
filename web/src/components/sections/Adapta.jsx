@@ -5,8 +5,8 @@ export default function Adapta() {
   return (
     <div className="grid items-center gap-6 p-6 sm:p-10 md:grid-cols-[1fr_1.1fr] md:gap-12 md:p-14 lg:p-16">
       <img
-        src={brand.adaptaScene}
-        alt="Un dinosaurio confundido con piezas que no encajan mientras un platillo baja con su rayo la pieza exacta"
+        src={brand.astronautPuzzle}
+        alt="Un astronauta abrumado rodeado de piezas que no encajan"
         width="420"
         height="400"
         loading="lazy"

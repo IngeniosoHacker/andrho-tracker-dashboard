@@ -25,7 +25,8 @@ const BRAND_DIR = '/images/brand'
 
 export const brand = {
   abductionScene: `${BRAND_DIR}/escena-abduccion.svg`,
-  adaptaScene: `${BRAND_DIR}/escena-adapta.svg`,
+  alienRelax: `${BRAND_DIR}/alien-relax.svg`,
+  astronautPuzzle: `${BRAND_DIR}/astronaut-puzzle.svg`,
   avatarJuampa: `${BRAND_DIR}/avatar-juampa.svg`,
   emailSignature: `${BRAND_DIR}/firma-juampa.png`,
 }

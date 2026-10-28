@@ -1,0 +1,64 @@
+<svg width="420" height="400" viewBox="0 0 420 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Un alien relajado en su sillón, con limonada y el teléfono en la mano">
+  <rect width="420" height="400" fill="#1B1640"/>
+  <circle cx="30" cy="160" r="2" fill="#FFFFFF"/>
+  <circle cx="120" cy="30" r="2.5" fill="#FFFFFF"/>
+  <circle cx="190" cy="90" r="2" fill="#FFFFFF"/>
+  <circle cx="250" cy="28" r="2" fill="#FFFFFF"/>
+  <circle cx="395" cy="40" r="2.5" fill="#FFFFFF"/>
+  <circle cx="400" cy="190" r="2" fill="#FFFFFF"/>
+  <circle cx="140" cy="200" r="2.5" fill="#FFFFFF"/>
+  <path d="M352 70 l5 10 l10 5 l-10 5 l-5 10 l-5 -10 l-10 -5 l10 -5 Z" fill="#FFE66D"/>
+  <circle cx="62" cy="76" r="20" fill="#FF8A65"/>
+  <ellipse cx="62" cy="76" rx="34" ry="7" fill="none" stroke="#FFE66D" stroke-width="3" transform="rotate(-20 62 76)"/>
+
+  <path d="M0 336 Q 210 312 420 336 L420 400 L0 400 Z" fill="#2A2260"/>
+
+  <line x1="228" y1="300" x2="204" y2="362" stroke="#B8AFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="276" y1="300" x2="300" y2="362" stroke="#B8AFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="252" y1="304" x2="252" y2="366" stroke="#B8AFFF" stroke-width="5" stroke-linecap="round"/>
+  <path d="M168 262 C 160 200, 220 150, 290 160 C 350 170, 360 240, 330 284 C 300 316, 196 318, 168 262 Z" fill="#6C5CE7"/>
+  <path d="M188 268 C 186 230, 230 200, 290 206 C 330 212, 334 260, 312 284 C 286 304, 206 304, 188 268 Z" fill="#B8AFFF"/>
+
+  <rect x="42" y="304" width="78" height="48" rx="14" fill="#25A99C"/>
+  <ellipse cx="81" cy="306" rx="39" ry="11" fill="#2EC4B6"/>
+
+  <path d="M214 268 C 176 262, 132 276, 94 292" stroke="#7CE38B" stroke-width="13" fill="none" stroke-linecap="round"/>
+  <path d="M220 284 C 182 288, 140 298, 102 308" stroke="#7CE38B" stroke-width="13" fill="none" stroke-linecap="round"/>
+  <ellipse cx="86" cy="291" rx="12" ry="7" fill="#7CE38B" transform="rotate(-20 86 291)"/>
+  <ellipse cx="94" cy="308" rx="12" ry="7" fill="#7CE38B" transform="rotate(-10 94 308)"/>
+  <ellipse cx="228" cy="276" rx="36" ry="20" fill="#16213E" transform="rotate(-8 228 276)"/>
+  <ellipse cx="262" cy="238" rx="32" ry="40" fill="#FFFFFF" transform="rotate(-22 262 238)"/>
+  <path d="M262 206 l10 14 l10 -10" stroke="#B8AFFF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M240 222 C 220 222, 206 206, 204 182" stroke="#7CE38B" stroke-width="11" fill="none" stroke-linecap="round"/>
+  <g transform="rotate(-14 206 158)">
+    <rect x="194" y="136" width="24" height="42" rx="5" fill="#16213E"/>
+    <rect x="198" y="142" width="16" height="28" rx="2" fill="#BFF5EE"/>
+  </g>
+  <circle cx="205" cy="180" r="8" fill="#7CE38B"/>
+
+  <line x1="282" y1="206" x2="278" y2="192" stroke="#7CE38B" stroke-width="13" stroke-linecap="round"/>
+  <ellipse cx="282" cy="152" rx="36" ry="42" fill="#7CE38B" transform="rotate(-12 282 152)"/>
+  <ellipse cx="266" cy="156" rx="9" ry="14" fill="#16213E" transform="rotate(30 266 156)"/>
+  <ellipse cx="296" cy="152" rx="9" ry="14" fill="#16213E" transform="rotate(-28 296 152)"/>
+  <circle cx="263" cy="151" r="2.6" fill="#FFFFFF"/>
+  <circle cx="293" cy="147" r="2.6" fill="#FFFFFF"/>
+  <path d="M276 176 q 8 6 16 -1" stroke="#16213E" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="268" cy="118" rx="12" ry="8" fill="#16213E" transform="rotate(-14 268 118)"/>
+  <ellipse cx="296" cy="114" rx="12" ry="8" fill="#16213E" transform="rotate(-14 296 114)"/>
+  <path d="M279 116 l6 -1 M307 110 l14 12" stroke="#16213E" stroke-width="3" stroke-linecap="round"/>
+
+  <path d="M312 194 L 290 176" stroke="#FF8A65" stroke-width="3" stroke-linecap="round"/>
+  <rect x="300" y="194" width="26" height="38" rx="5" fill="#BFF5EE"/>
+  <rect x="303" y="206" width="20" height="23" rx="3" fill="#FFE66D"/>
+  <circle cx="302" cy="196" r="7" fill="#FFE66D"/>
+  <circle cx="302" cy="196" r="3.5" fill="#FFFFFF"/>
+  <path d="M262 250 C 284 262, 304 254, 312 234" stroke="#7CE38B" stroke-width="11" fill="none" stroke-linecap="round"/>
+  <circle cx="313" cy="230" r="8" fill="#7CE38B"/>
+
+  <line x1="368" y1="318" x2="356" y2="252" stroke="#2EC4B6" stroke-width="7" stroke-linecap="round"/>
+  <line x1="370" y1="318" x2="378" y2="236" stroke="#25A99C" stroke-width="7" stroke-linecap="round"/>
+  <line x1="372" y1="318" x2="398" y2="262" stroke="#2EC4B6" stroke-width="7" stroke-linecap="round"/>
+  <line x1="366" y1="318" x2="340" y2="276" stroke="#25A99C" stroke-width="7" stroke-linecap="round"/>
+  <rect x="348" y="312" width="44" height="40" rx="7" fill="#FFFFFF"/>
+</svg>
