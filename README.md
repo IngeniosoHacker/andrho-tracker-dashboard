@@ -18,8 +18,10 @@ This Express service now serves three things:
 This is a **separate Railway service** from `analytics-tracker` — it doesn't
 touch Redis, doesn't ingest tracking data, and never writes to the
 `sessions`/`pageviews` tables. The only writes it performs are to
-`ai_visibility_goals` (setting a monthly AI-crawler target), which is
-intentionally a dashboard-owned feature.
+`ai_visibility_goals` (setting a monthly AI-crawler target) and to the SEO
+tables (`seo_settings`, `seo_keywords`, `seo_keyword_metrics`,
+`seo_api_cache`, `seo_api_usage`), all dashboard-owned features whose schema
+WebTracker migrates.
 this is bassically the final product interface
 
 ---
@@ -152,6 +154,41 @@ and scores it. The origin comes from the site's own tracked sessions, never
 from the request; every fetch is SSRF-guarded (public IPs only, ports 80/443,
 redirects re-checked, 6 s / 1 MB caps) and results are cached 15 min.
 
+### SEO tools: Keywords, Posiciones, Competencia, Auditoría
+
+Web has four SEO tabs, the feature set of
+[OpenSEO](https://github.com/every-app/open-seo) (MIT) ported onto the
+tracker's own data. Paid data comes from DataForSEO through
+`src/lib/dataforseo.js` (same file as WebTracker's; keep them in sync):
+cached in `seo_api_cache` (a week for research, a day for the domain
+overview), every call's cost logged in `seo_api_usage`, and capped per site by
+`seo_settings.monthly_budget_usd` (default US$5; only the owner can raise it,
+to US$50 max).
+
+Routes (`src/routes/seo.js`, all under `/api/sites/:siteId`, editor+ to write):
+
+| Route | What |
+|---|---|
+| `GET/PUT /seo/settings` | Domain (suggested from tracked visits), market, device, competitors; this month's spend. |
+| `GET /seo/suggestions[?refresh=1]` | The keyword suggestions (below). |
+| `GET /seo/research?q=` | Keyword suggestions + related keywords for a phrase, interleaved. |
+| `GET/POST /seo/keywords`, `DELETE /seo/keywords/:id` | Rank tracking: tracked keywords with their last/previous/best position and 90-day history. Positions are checked by WebTracker's `rankWorker`. |
+| `GET /seo/competition` | Domain overview, competitors (yours or detected), comparison, backlinks, referring domains. |
+| `GET /seo/gap?competitor=` | Keywords the competitor ranks top-20 for and you don't. |
+| `GET /seo/pages` | On-page audit of every tracked page from `pageviews.seo_meta` (no paid data). |
+
+**How keywords are suggested** (`src/lib/seoSuggest.js`, `src/lib/seoText.js`):
+candidates come from keywords the domain already ranks 4–20 for ("casi en
+primera página"), the gap with up to two competitors, keyword ideas seeded
+with the site's own key phrases (TF-IDF over the page text the tracker
+stores), and searches visitors actually typed. Each one is scored by the
+extra monthly visits it can bring (volume × CTR gain from its position to a
+reachable one, discounted by difficulty, weighted by intent and by how well it
+fits the site's content), gets the page that should rank for it, and concrete
+actions checked against that page's real title, h1, meta description and
+text. One page gets one main keyword; the rest get a section, or a new page.
+Without DataForSEO it still runs on the tracker's data alone.
+
 ### Articles
 
 Two sources, one look:
@@ -195,6 +232,9 @@ Root `.env` (Express backend) — see `.env.example`:
 | `JWT_SECRET` | **must match** the secret `andrho-api` signs JWTs with. The server refuses to start without it. |
 | `ANDRHO_API_URL` | public/local URL of `andrho-api`. Injected into `public/dashboard/index.html` as `window.ANDRHO_API_URL`, and used to build the CSP `connect-src` allowance. Also where the server reads the uploaded articles. |
 | `ARTICLES_SITE_ID` | site id whose uploaded articles are rendered into `/articulos/` (default `andrho`, AndRho's own site). |
+| `DATAFORSEO_API_KEY` | DataForSEO "Base64" credentials for the SEO tabs. Without it, Keywords works from tracker data only and the rest say so. |
+| `DATAFORSEO_BASE_URL` | Optional; `https://sandbox.dataforseo.com` for free fake data. |
+| `SEO_MAX_TRACKED_KEYWORDS` | Max keywords a site can track (default 100). |
 
 `web/.env` (Vite build-time) — see `web/.env.example`:
 

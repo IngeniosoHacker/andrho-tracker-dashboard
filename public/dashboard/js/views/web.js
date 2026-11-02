@@ -1,13 +1,15 @@
 // Web: everything the WebTracker measures on the account's site, with the
 // tab-per-report layout the dashboard had before the sidebar (f33d39b):
-// Resumen, Sesiones, Páginas, Tráfico & Keywords, Geografía, Visibilidad IA
-// and Minijuego. The tab lives in the route (#/web/sesiones) so a reload or
+// Resumen, Sesiones, Páginas, Tráfico, the SEO tabs (Keywords, Posiciones,
+// Competencia, Auditoría: views/seo.js), Geografía, Visibilidad IA,
+// Minijuego and Artículos. The tab lives in the route (#/web/sesiones) so a reload or
 // a shared link opens the same report.
 import {
   session, siteApi, esc, fmtMs, fmtNum, fmtDate, sourceBadge, cssVar, chart, barChartOptions,
   openDrawer, tabStrip, wireTabs, withPanel, setSubRoute
 } from '../core.js';
 import { renderArticles } from './articles.js';
+import { renderKeywords, renderRanks, renderCompetition, renderAudit } from './seo.js';
 
 const TRACKER_SCRIPT_ORIGIN = 'https://webtracker-production-b8d7.up.railway.app';
 
@@ -15,7 +17,11 @@ const TABS = [
   { key: 'resumen', label: 'Resumen' },
   { key: 'sesiones', label: 'Sesiones' },
   { key: 'paginas', label: 'Páginas' },
-  { key: 'trafico', label: 'Tráfico &amp; Keywords' },
+  { key: 'trafico', label: 'Tráfico' },
+  { key: 'keywords', label: 'Keywords' },
+  { key: 'posiciones', label: 'Posiciones' },
+  { key: 'competencia', label: 'Competencia' },
+  { key: 'auditoria', label: 'Auditoría' },
   { key: 'geografia', label: 'Geografía' },
   { key: 'ia', label: 'Visibilidad IA' },
   { key: 'minijuego', label: 'Minijuego' },
@@ -27,6 +33,10 @@ const RENDER = {
   sesiones: renderSessions,
   paginas: renderPages,
   trafico: renderTraffic,
+  keywords: renderKeywords,
+  posiciones: renderRanks,
+  competencia: renderCompetition,
+  auditoria: renderAudit,
   geografia: renderGeo,
   ia: renderAI,
   minijuego: renderGame,

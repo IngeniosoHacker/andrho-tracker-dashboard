@@ -6,6 +6,7 @@ const pool = require('../config/db');
 const { requireAuth } = require('../middleware/auth');
 const { auditSite } = require('../lib/seoAudit');
 const { contentPerformance } = require('../lib/contentPerformance');
+const seoRoutes = require('./seo');
 
 router.use(express.json());
 
@@ -22,6 +23,9 @@ router.use('/sites/:siteId', requireAuth, (req, res, next) => {
   }
   next();
 });
+
+// Keyword research, rank tracking, competitors, on-page audit: routes/seo.js.
+router.use('/sites/:siteId', seoRoutes);
 
 // ---------------------------------------------------------------------------
 // Overview (KPI cards)
