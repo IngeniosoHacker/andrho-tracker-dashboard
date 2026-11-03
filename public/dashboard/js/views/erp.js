@@ -48,3 +48,21 @@ export function odooDate(s) {
   if (!s) return null;
   return new Date(String(s).replace(' ', 'T') + 'Z');
 }
+
+// The ERP doesn't have the app a section needs (d.missing from andrho-api):
+// AndRho proposes turning it on in the panel on the right; the owner only
+// accepts and AndRho installs it.
+export function missingModuleCard(missing, what) {
+  return `
+    <div class="card empty-card">
+      <p class="empty-card-icon">⚙</p>
+      <h2>Tu ERP todavía no tiene ${missing.label}</h2>
+      <p class="empty-card-body">Por eso aquí no hay ${what} todavía. AndRho puede activarlo por ti: no tienes que instalar ni configurar nada.</p>
+      <p style="margin:14px 0 0"><button type="button" class="primary-btn" data-open-insights>Ver la sugerencia de AndRho</button></p>
+    </div>`;
+}
+
+export function wireMissingModule(el) {
+  const b = el.querySelector('[data-open-insights]');
+  if (b) b.addEventListener('click', () => document.body.classList.add('insights-open'));
+}

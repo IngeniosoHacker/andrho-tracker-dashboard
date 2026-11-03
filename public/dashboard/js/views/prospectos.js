@@ -1,7 +1,7 @@
 // Prospectos: people who showed interest and haven't bought: the ERP's
 // CRM opportunities (or contacts without purchases when there's no CRM).
 import { esc, fmtNum, fmtMoney, fmtDate } from '../core.js';
-import { erpGet, odooDate } from './erp.js';
+import { erpGet, odooDate, missingModuleCard, wireMissingModule } from './erp.js';
 
 export default {
   title: 'Prospectos',
@@ -10,7 +10,13 @@ export default {
     const d = await erpGet(el, '/leads');
     if (!d) return;
     const pipeline = d.leads.reduce((n, l) => n + (l.expected || 0), 0);
+    if (d.missing && !d.leads.length) {
+      el.innerHTML = missingModuleCard(d.missing, 'prospectos: tu ERP aún no guarda a las personas interesadas');
+      wireMissingModule(el);
+      return;
+    }
     el.innerHTML = `
+      ${d.missing ? `<p class="kpi-sub">Estos son contactos que nunca te compraron. Con el CRM activo, AndRho les da seguimiento por ti: <button type="button" class="link-btn" data-open-insights>ver la sugerencia</button>.</p>` : ''}
       <div class="kpi-grid">
         <div class="kpi-card"><p class="kpi-label">Prospectos</p><p class="kpi-value">${fmtNum(d.leads.length)}</p></div>
         ${d.source === 'crm' ? `<div class="kpi-card"><p class="kpi-label">En juego</p><p class="kpi-value">${fmtMoney(pipeline)}</p><p class="kpi-sub">ingreso esperado</p></div>` : ''}
@@ -26,5 +32,6 @@ export default {
         </tbody></table>` : '<p class="empty-state">Sin prospectos todavía.</p>'}
       </div>
     `;
+    wireMissingModule(el);
   }
 };

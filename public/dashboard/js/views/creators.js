@@ -1,6 +1,9 @@
-// Creators (AndRho staff): the work customers asked for, a website at
-// signup for now. Open tasks can be accepted; your own can be delivered
-// (with a link) or given back. Admins see every task.
+// Creators (AndRho staff): the work customers asked for: a website at
+// signup, and every suggestion a customer accepts (assigned by andrho-api's
+// internal/matching from your skills, load and availability). Open tasks can
+// be accepted; your own can be delivered (with a link) or given back.
+// Delivering a suggestion's task closes the suggestion for the customer.
+// Admins see every task.
 import {
   andrhoApi, getAccessToken, ANDRHO_API_URL, esc, fmtDate, session, tabStrip, wireTabs, setSubRoute, withPanel, emptyState
 } from '../core.js';
@@ -11,7 +14,11 @@ const TABS = [
   { key: 'entregadas', label: 'Entregadas' }
 ];
 
-const KIND = { website: 'Sitio web', brand: 'Marca' };
+const KIND = {
+  website: 'Sitio web', brand: 'Marca', web: 'Web', social: 'Redes sociales', erp: 'ERP',
+  contenido: 'Contenido', diseno: 'Diseño', general: 'General'
+};
+const SKILLS = { web: 'Web', social: 'Redes', erp: 'ERP', contenido: 'Contenido', diseno: 'Diseño' };
 const STATUS = { abierta: ['Disponible', 'status-sugerida'], aceptada: ['En curso', 'status-proceso'], entregada: ['Entregada', 'status-terminada'] };
 
 const MODULE_NAMES = {
@@ -57,6 +64,15 @@ function taskCard(t) {
         </div>
         <span class="status-pill ${cls}">${esc(label)}</span>
       </header>
+      ${b.suggestion ? `
+      <div class="task-body" style="display:block">
+        <p class="eyebrow" style="margin:0 0 4px">Sugerencia que aceptó el cliente</p>
+        <p style="margin:0 0 6px"><strong>${esc(b.suggestion)}</strong></p>
+        <p class="kpi-sub" style="margin:0 0 8px">${esc(b.body || '')}</p>
+        ${b.evidence ? `<p class="mono hint" style="margin:0 0 8px;font-size:11.5px">Datos: ${esc(b.evidence)}</p>` : ''}
+        ${t.match && t.match.reasons ? `<p class="hint" style="margin:0">Te la asignamos porque: ${t.match.reasons.map(esc).join(' · ')}</p>` : ''}
+        <p class="hint" style="margin:4px 0 0">Entrega: ${t.due_at ? fmtDate(t.due_at) : '—'}</p>
+      </div>` : `
       <div class="task-body">
         <img class="task-logo" alt="Logo de ${esc(t.company_name || '')}" hidden data-logo="${b.has_logo ? '1' : ''}" />
         <dl class="detail-kv">
@@ -69,7 +85,7 @@ function taskCard(t) {
           ${t.delivery_url ? `<dt>Enlace</dt><dd><a href="${esc(t.delivery_url)}" target="_blank" rel="noopener">${esc(t.delivery_url)}</a></dd>` : ''}
           ${t.notes ? `<dt>Notas</dt><dd>${esc(t.notes)}</dd>` : ''}
         </dl>
-      </div>
+      </div>`}
       <footer class="task-actions">
         ${t.status === 'abierta' ? '<button type="button" class="primary-btn" data-act="aceptar">Aceptar tarea</button>' : ''}
         ${t.status === 'aceptada' && mine ? `
@@ -95,7 +111,7 @@ async function renderTab(tab) {
   panelEl.querySelectorAll('[data-task]').forEach((card) => {
     const id = card.dataset.task;
     const img = card.querySelector('.task-logo');
-    if (img.dataset.logo) loadLogo(img, id); else img.remove();
+    if (img) { if (img.dataset.logo) loadLogo(img, id); else img.remove(); }
     const act = async (body) => {
       card.querySelectorAll('button').forEach((b) => (b.disabled = true));
       try {
@@ -132,11 +148,30 @@ function show(tab) {
   return withPanel(panelEl, () => load(tab));
 }
 
+// What the matching knows you do best.
+async function renderSkills(box) {
+  let d;
+  try { d = await andrhoApi('/creators/skills'); } catch { box.remove(); return; }
+  const mine = new Set(d.skills);
+  box.innerHTML = `
+    <p class="kpi-sub" style="margin:0 0 8px">Tus habilidades: AndRho te asigna las sugerencias que aceptan los clientes según esto, tu carga y tu disponibilidad. Sin ninguna marcada, recibes de todo.</p>
+    <p class="keyword-cloud" style="margin:0">${d.options.map((k) => `
+      <button type="button" class="tab ${mine.has(k) ? 'active' : ''}" data-skill="${k}" aria-pressed="${mine.has(k)}">${esc(SKILLS[k] || k)}</button>`).join('')}</p>`;
+  box.querySelectorAll('[data-skill]').forEach((b) => b.addEventListener('click', async () => {
+    const k = b.dataset.skill;
+    if (mine.has(k)) mine.delete(k); else mine.add(k);
+    b.classList.toggle('active', mine.has(k));
+    b.setAttribute('aria-pressed', mine.has(k));
+    try { await andrhoApi('/creators/skills', { method: 'PUT', body: JSON.stringify({ skills: [...mine] }) }); } catch (err) { alert(err.message); }
+  }));
+}
+
 export default {
   title: 'Creators',
-  hint: 'sitios y marcas que los clientes esperan',
+  hint: 'sitios, marcas y sugerencias que los clientes aceptaron',
   async render(el, route) {
-    el.innerHTML = `${tabStrip('creatorTabs', TABS, 'mias')}<div class="panel" id="creatorPanel"></div>`;
+    el.innerHTML = `<div class="card" id="creatorSkills"></div>${tabStrip('creatorTabs', TABS, 'mias')}<div class="panel" id="creatorPanel"></div>`;
+    renderSkills(el.querySelector('#creatorSkills'));
     panelEl = el.querySelector('#creatorPanel');
     wireTabs(el.querySelector('#creatorTabs'), show);
     await show(route.sub);

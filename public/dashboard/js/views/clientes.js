@@ -1,7 +1,7 @@
 // Clientes: who already bought, from the ERP's point of sale: how much,
 // how often, and the regulars who stopped coming.
 import { esc, fmtNum, fmtMoney, fmtDate } from '../core.js';
-import { erpGet, odooDate } from './erp.js';
+import { erpGet, odooDate, missingModuleCard, wireMissingModule } from './erp.js';
 import { openMigration } from './migrate.js';
 import { roleAtLeast, withPanel } from '../core.js';
 
@@ -12,6 +12,11 @@ export default {
     const self = this;
     const d = await erpGet(el, '/customers');
     if (!d) return;
+    if (d.missing) {
+      el.innerHTML = missingModuleCard(d.missing, 'clientes: tu ERP aún no registra ventas');
+      wireMissingModule(el);
+      return;
+    }
     const s = d.summary;
     const risk = d.customers.filter((c) => c.at_risk);
     el.innerHTML = `
