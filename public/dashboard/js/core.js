@@ -16,7 +16,7 @@ const ROLE_RANK = { viewer: 1, editor: 2, admin: 3, owner: 4 };
 export const ANDRHO_API_URL = (window.ANDRHO_API_URL || '').replace(/\/+$/, '');
 
 // The logged-in user + account, filled by boot() in main.js.
-// { userId, accountId, email, displayName, role, staffRole, siteId, companyName, plan }
+// { userId, accountId, email, displayName, role, staffRole, siteId, companyName, plan, businessType }
 export const session = { account: null };
 
 export function getAccessToken() { return localStorage.getItem(LS_ACCESS); }
@@ -108,7 +108,8 @@ export async function fetchMe() {
     staffRole: data.staff_role || '',
     siteId: data.site_id,
     companyName: data.company_name,
-    plan: data.plan
+    plan: data.plan,
+    businessType: data.business_type || ''
   };
 }
 

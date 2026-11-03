@@ -6,7 +6,7 @@ import {
   session, getAccessToken, fetchMe, tryRefresh, clearTokensAndRedirect, logout,
   esc, isStaff, ROLE_LABEL, closeDrawer, parseRoute, withPanel, andrhoApi
 } from './core.js';
-import { NAV, STAFF_NAV, FOOTER_NAV, ICONS, findNav } from './nav.js';
+import { STAFF_NAV, FOOTER_NAV, ICONS, findNav, orderedNav } from './nav.js';
 import { loadInsights } from './insights.js';
 import { setupThemeToggle } from './theme.js';
 import { setupErpButton } from './erpstatus.js';
@@ -50,7 +50,7 @@ function navItem(n) {
 function drawSidebar() {
   const staff = STAFF_NAV.filter((n) => isStaff(n.staff));
   els.nav.innerHTML = `
-    ${NAV.map(navItem).join('')}
+    ${orderedNav(session.account.businessType).map(navItem).join('')}
     ${staff.length ? `<p class="side-group">AndRho</p>${staff.map(navItem).join('')}` : ''}
     <div class="side-spacer"></div>
     ${FOOTER_NAV.map(navItem).join('')}
@@ -142,6 +142,12 @@ els.insightsToggle.addEventListener('click', () => document.body.classList.toggl
 setupThemeToggle(document.getElementById('themeToggle'), () => { currentKey = null; route(); });
 // A view asks to be drawn again (e.g. the ERP became ready: views/erp.js).
 window.addEventListener('andrho:reload', () => { currentKey = null; route(); });
+// The type of business changed (Configuración): new sidebar order.
+window.addEventListener('andrho:business-type', (e) => {
+  session.account.businessType = e.detail || '';
+  drawSidebar();
+  markActive(currentKey);
+});
 document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 document.getElementById('drawerBackdrop').addEventListener('click', closeDrawer);
 document.getElementById('navBackdrop').addEventListener('click', () => document.body.classList.remove('nav-open'));

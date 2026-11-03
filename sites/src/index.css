@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* AndRho's tokens (../web/src/index.css), so every client site starts on the
+   same visual system. Creators change --brand to the client's color. */
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --color-ink: #0b1020;
+  --color-ink-soft: #3f4a63;
+  --color-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-canvas-soft: #f8fafc;
+  --color-brand: #00e6b8;
+  --color-brand-2: #00b4ff;
+  --color-violet: #8b5cf6;
+}
+
+html { -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: #ffffff; color: var(--color-ink); font-family: var(--font-sans); }
+
+@keyframes andrho-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 0px, #e2e8f0 120px, #f1f5f9 240px);
+  background-size: 800px 100%;
+  animation: andrho-shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }

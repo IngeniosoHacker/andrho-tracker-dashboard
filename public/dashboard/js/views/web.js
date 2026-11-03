@@ -5,7 +5,7 @@
 // Minijuego and Artículos. The tab lives in the route (#/web/sesiones) so a reload or
 // a shared link opens the same report.
 import {
-  session, siteApi, esc, fmtMs, fmtNum, fmtDate, sourceBadge, cssVar, chart, barChartOptions,
+  session, siteApi, andrhoApi, esc, fmtMs, fmtNum, fmtDate, sourceBadge, cssVar, chart, barChartOptions,
   openDrawer, tabStrip, wireTabs, withPanel, setSubRoute
 } from '../core.js';
 import { renderArticles } from './articles.js';
@@ -147,6 +147,7 @@ async function renderOverview(panel) {
     </div>
   `;
   panel.querySelector('#trackerCardBtn').addEventListener('click', openTrackerDrawer);
+  renderSiteCard(panel);
 
   const palette = {
     ai_crawler: cssVar('--accent-ai'), ai_referral: cssVar('--accent-ai-dim'), search_bot: cssVar('--text-tertiary'),
@@ -170,6 +171,30 @@ async function renderOverview(panel) {
       cutout: '65%'
     }
   });
+}
+
+// The account's AndRho website (sites service): where it lives and whether
+// it's still "en construcción" while a Creator builds it.
+async function renderSiteCard(panel) {
+  let d;
+  try { d = await andrhoApi('/account/site'); } catch { return; }
+  if (!d || !d.site) return;
+  const s = d.site;
+  const live = s.status === 'publicado';
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="seo-audit-head" style="margin:0">
+      <div>
+        <p class="eyebrow" style="margin:0 0 6px">Tu sitio web</p>
+        <p style="margin:0"><a class="mono" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.host)}</a></p>
+        <p class="kpi-sub" style="margin:4px 0 0">${live
+          ? 'Publicado: es el sitio que hizo tu Creator, y el rastreador ya mide sus visitas.'
+          : 'En construcción: un Creator de AndRho lo está haciendo. Mientras tanto, quien entra ve que viene en camino.'}</p>
+      </div>
+      <span class="status-pill ${live ? 'status-terminada' : 'status-proceso'}">${live ? 'Publicado' : 'En construcción'}</span>
+    </div>`;
+  panel.insertBefore(card, panel.querySelector('.kpi-grid'));
 }
 
 // ---------------------------------------------------------------------

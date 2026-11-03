@@ -1,0 +1,28 @@
+{
+  "name": "andrho-sites",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AndRho client websites on Railway: one service answers every client's host (web.<site_id>.andrho.com) with an 'en construcción' page from its data, then with the Creator's site once published. The React + Vite + Tailwind app in src/ is also the template Creators start from.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node server.js",
+    "test": "node --test test/"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "helmet": "^7.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "vite": "^7.1.7"
+  }
+}

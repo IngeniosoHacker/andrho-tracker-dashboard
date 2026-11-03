@@ -81,6 +81,10 @@ function taskCard(t) {
           <dt>Giro</dt><dd>${(b.sectors || []).map(esc).join(', ') || '—'}</dd>
           <dt>Módulos</dt><dd>${(b.modules || []).map((m) => esc(MODULE_NAMES[m] || m)).join(', ') || '—'}</dd>
           <dt>Client id</dt><dd class="mono">${esc(b.client_id || '')}</dd>
+          ${b.business_type ? `<dt>Tipo</dt><dd>${esc(b.business_type)}</dd>` : ''}
+          ${b.site_host ? `<dt>Vive en</dt><dd><a class="mono" href="https://${esc(b.site_host)}" target="_blank" rel="noopener">${esc(b.site_host)}</a> <span class="hint">(hoy: en construcción)</span></dd>` : ''}
+          ${b.site && b.site.sections ? `<dt>Estructura</dt><dd>${b.site.sections.map((x) => esc(x.title)).join(' · ')}<br><span class="hint">Llamada a la acción: ${esc(b.site.cta || '')}</span></dd>` : ''}
+          ${t.kind === 'website' ? `<dt>Cómo entregar</dt><dd class="hint">Parte de la plantilla <span class="mono">andrho-tracker-dashboard/sites</span> (React + Vite + Tailwind; <span class="mono">npm run dev</span>, <span class="mono">?vista=inicio</span>). Despliégalo en Railway y entrega su URL <span class="mono">https://…up.railway.app</span>: AndRho lo publica en la dirección del cliente.</dd>` : ''}
           <dt>Entrega</dt><dd>${t.due_at ? fmtDate(t.due_at) : '—'}</dd>
           ${t.delivery_url ? `<dt>Enlace</dt><dd><a href="${esc(t.delivery_url)}" target="_blank" rel="noopener">${esc(t.delivery_url)}</a></dd>` : ''}
           ${t.notes ? `<dt>Notas</dt><dd>${esc(t.notes)}</dd>` : ''}

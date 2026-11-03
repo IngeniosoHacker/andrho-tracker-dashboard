@@ -10,12 +10,35 @@ function quotaLabel(quota) {
   return `${Math.max(0, quota.remaining)} de ${quota.limit} sugerencias restantes este mes`;
 }
 
+// The type of business: AndRho's configuration on top of the analysis
+// (what it suggests, the ERP's apps, the order of the sections, the site).
+function businessCard(biz, canEdit) {
+  const p = biz.profile;
+  return `
+    <div class="card" id="businessCard">
+      <h2>Tipo de negocio <span class="hint">AndRho ajusta sus sugerencias, tu ERP y tu sitio a esto</span></h2>
+      <div class="plan-grid">
+        ${biz.options.map((o) => `
+          <div class="plan-card ${o.key === biz.business_type ? 'plan-card-active' : ''}" style="text-align:left">
+            <p class="plan-card-name" style="margin:0 0 4px">${esc(o.name)}</p>
+            <p class="hint" style="margin:0 0 10px">${esc(o.description)}</p>
+            <p class="hint" style="margin:0 0 12px">Ej.: ${o.examples.map(esc).join(', ')}</p>
+            ${canEdit ? `<button type="button" class="copy-btn" data-set-type="${o.key}" ${o.key === biz.business_type ? 'disabled' : ''}>${o.key === biz.business_type ? 'Tu tipo de negocio' : 'Elegir'}</button>` : ''}
+          </div>`).join('')}
+      </div>
+      ${p ? `<p class="kpi-sub" style="margin:14px 0 6px">En un negocio de ${esc(p.name.toLowerCase())}, AndRho se fija primero en:</p>
+        <ul class="issue-list" style="max-height:none">${p.focus.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>`
+        : '<p class="kpi-sub" style="margin:14px 0 0">Sin tipo: AndRho se guía solo por lo que contaste al registrarte.</p>'}
+    </div>`;
+}
+
 async function render(el) {
   el.innerHTML = '<p class="loading-state">cargando…</p>';
-  const [usersData, planData, erp, prov] = await Promise.all([
+  const [usersData, planData, erp, prov, biz] = await Promise.all([
     andrhoApi('/account/users'), andrhoApi('/account/plan'),
     andrhoApi('/erp/status').catch(() => ({ connected: false })),
-    andrhoApi('/account/provisioning').catch(() => ({ jobs: [], tasks: [] }))
+    andrhoApi('/account/provisioning').catch(() => ({ jobs: [], tasks: [] })),
+    andrhoApi('/account/business-type').catch(() => null)
   ]);
   const canManageTeam = roleAtLeast('admin');
   const isOwner = roleAtLeast('owner');
@@ -47,6 +70,8 @@ async function render(el) {
         </tbody>
       </table>
     </div>
+
+    ${biz ? businessCard(biz, roleAtLeast('admin')) : ''}
 
     <div class="card">
       <h2>Plan actual: ${esc(PLAN_LABEL[planData.plan] || planData.plan)}</h2>
@@ -127,6 +152,12 @@ async function render(el) {
     if (!confirm('¿Quitar a esta persona del equipo?')) return;
     act(() => andrhoApi(`/account/users/${encodeURIComponent(btn.dataset.removeUser)}`, { method: 'DELETE' }), 'No se pudo quitar a esta persona.');
   }));
+
+  el.querySelectorAll('[data-set-type]').forEach((btn) => btn.addEventListener('click', () => act(async () => {
+    const t = btn.dataset.setType;
+    await andrhoApi('/account/business-type', { method: 'PUT', body: JSON.stringify({ business_type: t }) });
+    window.dispatchEvent(new CustomEvent('andrho:business-type', { detail: t }));
+  }, 'No se pudo cambiar el tipo de negocio.')));
 
   el.querySelectorAll('[data-set-plan]').forEach((btn) => btn.addEventListener('click', () => act(
     () => andrhoApi('/account/plan', { method: 'PATCH', body: JSON.stringify({ plan: btn.dataset.setPlan }) }),

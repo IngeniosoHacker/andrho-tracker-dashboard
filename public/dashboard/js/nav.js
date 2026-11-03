@@ -48,3 +48,19 @@ export const FOOTER_NAV = [
 export function findNav(key) {
   return [...NAV, ...STAFF_NAV, ...FOOTER_NAV].find((n) => n.key === key);
 }
+
+// The sidebar order for a type of business (andrho-api internal/business:
+// Profile.Sections). Sections the profile doesn't list keep their place
+// after the listed ones.
+export const SECTION_ORDER = {
+  servicios: ['inicio', 'prospectos', 'clientes', 'web', 'social', 'resumen', 'inventario', 'sucursales', 'usuarios'],
+  restaurantes: ['inicio', 'inventario', 'clientes', 'sucursales', 'web', 'social', 'resumen', 'prospectos', 'usuarios'],
+  ventas: ['inicio', 'inventario', 'clientes', 'web', 'social', 'sucursales', 'prospectos', 'resumen', 'usuarios']
+};
+
+export function orderedNav(businessType) {
+  const order = SECTION_ORDER[businessType];
+  if (!order) return NAV;
+  const rank = (k) => { const i = order.indexOf(k); return i < 0 ? order.length : i; };
+  return NAV.slice().sort((a, b) => rank(a.key) - rank(b.key));
+}
