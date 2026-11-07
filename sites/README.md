@@ -1,19 +1,19 @@
 # andrho-sites
 
-Every AndRho client website, as **one Railway service** (this folder, root
-directory `sites` of the andrho-tracker-dashboard repo).
+AndRho client websites on Railway, in the **`Clients` project**. One
+codebase (this folder, root directory `sites` of the
+andrho-tracker-dashboard repo), two modes (`SITE_MODE`):
 
-- A client without a website gets one at signup:
-  `web.<site_id>.andrho.com` (andrho-api `internal/sites`, `SITE_HOST_PATTERN`).
-- While a Creator builds it, the host shows **"en construcción"**: the
-  business' name and logo, the structure its site will have (from its type
-  of business: servicios, restaurantes or ventas, andrho-api
-  `internal/business`) and AndRho's tracker, so visits count from day one.
-  It's marked `noindex` until the real site is up.
-- When the Creator delivers (a Railway deployment, `https://…up.railway.app`),
-  this service serves that deployment **on the same host** (reverse proxy),
-  so the client's address never changes. Only https URLs on
-  `SITES_LIVE_HOSTS` are proxied, never an arbitrary one.
+| Mode | Service | What it does |
+|---|---|---|
+| `router` (default) | **sites-router**, owns `*.web.andrho.com` | Resolves the `Host` with andrho-api (`GET /public/site?host=`, cached 60 s) and forwards the request to the client's service at `http://site-<account_id>.railway.internal:<port>`, keeping path, query and headers and adding `X-Forwarded-Host` / `X-Forwarded-Proto: https`. Unknown host → 404 (generic page, `X-Robots-Tag: noindex`); not deployed yet → 503 with `Retry-After`; an old `web.<name>.andrho.com` host (or the subdomain of a site with its own domain) → 301 to the public host. |
+| `site` | **site-&lt;account_id&gt;**, one per client, created by andrho-api | Serves that client's site (`SITE_ID`) with its own SEO: `robots.txt` and `sitemap.xml` with absolute URLs of its host, `<link rel="canonical">` to the public host, `<meta name="google-site-verification">`, `lang="es-GT"`, `LocalBusiness` per branch. The plan's SEO comes as flags: `features.store` adds `sitemap-productos.xml`, `features.full_site` a page per branch (`/sucursales/<slug>`). Until the Creator delivers (`published`), it shows "en construcción" with `noindex`. A request on `*.up.railway.app` gets a 301 to the public host. |
+
+A client's service never has a public `*.up.railway.app` domain (andrho-api
+removes it): the same content on two hosts would split it for Google. It's
+only reached through sites-router, which works because Railway's private
+network (`*.railway.internal`) spans one project and environment, so
+sites-router lives in `Clients` too.
 
 ## The template
 
@@ -29,22 +29,32 @@ npm run dev                       # the "en construcción" page
 
 `src/Inicio.jsx` renders a header, a hero with the type's call to action
 and one block per section of the type (`src/sections/Section.jsx` is the
-placeholder; replace it per section). Copy this folder to a new repo, build
-the real site, deploy it on Railway and deliver its URL in the Creator task.
+placeholder; replace it per section). The Creator builds the real site on a
+copy of this folder **keeping `server.js`** (it serves the SEO), connects it
+as the source of the client's service (`railway_service` in the task's
+brief, `site-<account_id>`), and delivers the task with its link. Delivering
+marks the site `published`: the home stops being "en construcción" and
+becomes indexable.
 
 ## Railway
 
-| Variable | Notes |
-|---|---|
-| `ANDRHO_API_URL` | andrho-api's URL (required): `GET /public/site?host=` and the logo. |
-| `TRACKER_SCRIPT_ORIGIN` | WebTracker's URL (default the production one). |
-| `SITES_LIVE_HOSTS` | Hosts a published site may be proxied from (default `.up.railway.app`). |
+**sites-router** (once, by hand): new service in `Clients` → `production`
+from this repo, *Root Directory* `sites`, and the custom domain
+`*.web.andrho.com` (Railway asks for a wildcard CNAME, an `_acme-challenge`
+CNAME and a TXT; `go run ./cmd/sites-wildcard` in andrho-api adds the domain
+and creates the records in Porkbun).
 
-Each client host must be a custom domain of this service. andrho-api adds it
-by itself with `RAILWAY_API_TOKEN`, `RAILWAY_SITES_SERVICE_ID`,
-`RAILWAY_ENVIRONMENT_ID` and creates the DNS records in Porkbun with
-`PORKBUN_API_KEY`, `PORKBUN_SECRET_KEY`; without them it records what's
-missing (`account_sites.domain_state`) for staff to do by hand.
+| Variable | sites-router | site-&lt;id&gt; (set by andrho-api) |
+|---|---|---|
+| `SITE_MODE` | `router` (or unset) | `site` |
+| `ANDRHO_API_URL` | andrho-api's URL (required) | `SITES_API_URL` of andrho-api |
+| `SITE_ID` | — | the client's `site_id` |
+| `PORT` | Railway's | `8080` |
+| `TRACKER_SCRIPT_ORIGIN` | — | optional, WebTracker's URL |
+| `SITES_INTERNAL_SUFFIX` | optional, default `.railway.internal` | — |
 
-`npm test` covers the host lookup, the injected data (escaped), the tracker,
-404 for unknown hosts and the proxy allow-list.
+The server listens on `::` so the private network (IPv6) reaches it.
+
+`npm test` covers the router (forwarding, 404/503/301, only private
+targets) and the site (escaped data, canonical, verification, robots,
+sitemaps, LocalBusiness, branch pages, the 301 from Railway's domain).

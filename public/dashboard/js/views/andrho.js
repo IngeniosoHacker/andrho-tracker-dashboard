@@ -26,7 +26,7 @@ const L = {
   mas_clientes: 'Más clientes', vender_mas: 'Vender más', organizarse: 'Organizarse', digitalizarse: 'Digitalizarse', automatizar: 'Automatizar',
   decidir_mejor: 'Decidir mejor', reducir_perdidas: 'Reducir pérdidas', mas_vistas: 'Más vistas', mas_seguidores: 'Más seguidores',
   basico: 'Lo esencial', crecer: 'Crecer', todo: 'Todo mi negocio',
-  despegue: 'Despegue', en_orbita: 'En Órbita', galactico: 'Galáctico', base: 'Base', rapida: 'Rápida', personalizada: 'Personalizada'
+  despegue: 'Despegue', en_orbita: 'En órbita', galaxy: 'Galaxy', galactico: 'Galaxy', plataforma: 'Plataforma', base: 'Base', rapida: 'Rápida', personalizada: 'Personalizada'
 };
 const label = (v) => L[v] || v;
 

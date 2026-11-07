@@ -2,7 +2,7 @@
   "name": "andrho-sites",
   "private": true,
   "version": "1.0.0",
-  "description": "AndRho client websites on Railway: one service answers every client's host (web.<site_id>.andrho.com) with an 'en construcción' page from its data, then with the Creator's site once published. The React + Vite + Tailwind app in src/ is also the template Creators start from.",
+  "description": "AndRho client websites on Railway (Clients project): SITE_MODE=router is sites-router, which owns *.web.andrho.com and forwards each host to its client's service over the private network; SITE_MODE=site is each client's service (site-<account_id>) with its own SEO. The React + Vite + Tailwind app in src/ is also the template Creators start from.",
   "type": "module",
   "scripts": {
     "dev": "vite",

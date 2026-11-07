@@ -25,7 +25,7 @@ const SECTIONS = [
 
 const STEPS = [
   { title: 'Cuéntanos de tu negocio', body: 'Un párrafo o unas preguntas rápidas: qué vendes, cómo lo vendes y qué te falta.' },
-  { title: 'Elige tu paquete', body: 'Despegue, En Órbita o Galáctico, con los módulos que tu negocio necesita. Quita lo que no quieras.' },
+  { title: 'Elige tu paquete', body: 'De Base a Galaxy, con los módulos que tu negocio necesita. Quita lo que no quieras y suma solo lo que te interese.' },
   { title: 'Entra a tu panel', body: 'Empezamos a preparar tu ERP, tu WhatsApp y tu sitio web, cada uno con su estado a la vista.' },
 ]
 
@@ -142,8 +142,8 @@ export default function ShortLanding() {
             Precio
           </h2>
           <p className="mt-3 leading-relaxed text-[var(--color-ink-soft)]">
-            Gratis mientras dure la beta, con cualquiera de los tres paquetes. Te avisamos antes de que algo tenga precio, y
-            el descuento que ganes en el juego queda guardado en tu cuenta.
+            Cada paquete muestra su precio al registrarte, pero hoy no te cobramos: tu cuenta se crea sin pago y te avisamos
+            antes de activarlo. El descuento que ganes en el juego queda guardado en tu cuenta.
           </p>
         </section>
 

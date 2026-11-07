@@ -23,9 +23,12 @@ import {
   loadDraft,
   prefillAccount,
   prefillBrand,
+  checkout,
+  formatQ,
+  normalizePlan,
   questionSteps,
+  quotePlan,
   readLogo,
-  register,
   saveDraft,
   suggestSetup,
 } from './lib/signup.js'
@@ -59,7 +62,7 @@ const API_URL = (import.meta.env.VITE_ANDRHO_API_URL || '').replace(/\/+$/, '')
 // quick path skips the questions its paragraph already answered (`covered`).
 function buildFlow(path, answers, covered) {
   const steps = questionSteps(answers).filter((s) => path === 'personalizada' || !covered.includes(s.id))
-  return ['choose', ...(path === 'rapida' ? ['quick'] : []), ...steps.map((s) => `q:${s.id}`), 'brand', 'packages', 'account']
+  return ['choose', ...(path === 'rapida' ? ['quick'] : []), ...steps.map((s) => `q:${s.id}`), 'brand', 'packages', 'extras', 'account']
 }
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -102,8 +105,8 @@ function Choice({ selected, onClick, title, body, badge }) {
   )
 }
 
-// One of the three packages. Galáctico is dark, larger and labelled; the
-// smaller ones list, crossed out, what stays behind.
+// One package per plan. Galaxy is dark and labelled; the smaller ones
+// list, crossed out, what stays behind. The price is the catalog's.
 function PackageCard({ pkg, selected, onSelect }) {
   const hero = pkg.recommended
   return (
@@ -112,9 +115,9 @@ function PackageCard({ pkg, selected, onSelect }) {
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className={`relative flex h-full flex-col rounded-3xl border p-5 text-left transition-all sm:p-6 ${
+      className={`relative flex h-full flex-col rounded-3xl border p-5 text-left transition-all ${
         hero
-          ? 'border-[var(--window-teal)] bg-[var(--color-ink)] text-white shadow-[0_30px_80px_-30px_rgba(0,230,184,0.55)] lg:-my-3 lg:py-9'
+          ? 'border-[var(--window-teal)] bg-[var(--color-ink)] text-white shadow-[0_30px_80px_-30px_rgba(0,230,184,0.55)] xl:-my-3 xl:py-8'
           : 'border-[var(--window-line)] bg-white/75 hover:bg-white'
       } ${selected ? 'ring-4 ring-[var(--window-teal)]/60' : ''}`}
     >
@@ -125,7 +128,11 @@ function PackageCard({ pkg, selected, onSelect }) {
       )}
       <span className="flex items-baseline justify-between gap-3">
         <span className="font-display text-2xl font-bold tracking-tight">{pkg.name}</span>
-        <span className={`font-mono text-[11px] uppercase tracking-wider ${hero ? 'text-[var(--mint)]' : 'text-[var(--color-muted)]'}`}>Gratis en beta</span>
+        <span className={`font-mono text-[11px] uppercase tracking-wider ${hero ? 'text-[var(--mint)]' : 'text-[var(--color-muted)]'}`}>{pkg.label}</span>
+      </span>
+      <span className="mt-1 font-display text-xl font-bold">
+        {formatQ(pkg.price)}
+        <span className={`text-sm font-normal ${hero ? 'text-white/60' : 'text-[var(--color-muted)]'}`}>/mes</span>
       </span>
       <span className={`mt-1 text-sm ${hero ? 'text-white/70' : 'text-[var(--color-ink-soft)]'}`}>{pkg.tagline}</span>
 
@@ -172,8 +179,12 @@ function SignupPage() {
   const [analysis, setAnalysis] = useState(null) // { key, data, summary }
   // What the quick setup's paragraph gave: { key, covered, summary, prefilled }.
   const [extracted, setExtracted] = useState(draft?.extracted ?? null)
-  const [plan, setPlan] = useState(draft?.plan ?? 'galactico')
+  const [plan, setPlan] = useState(normalizePlan(draft?.plan) ?? 'galaxy')
   const [modules, setModules] = useState(draft?.modules ?? null)
+  // Add-ons of the next plan picked on "Te puede interesar": { featureId: qty }.
+  const [addons, setAddons] = useState(draft?.addons ?? {})
+  // POST /plans/quote for the plan and add-ons: { key, data }.
+  const [offer, setOffer] = useState(null)
   const [brand, setBrand] = useState(draft?.brand ?? { choice: '', essence: '' })
   const [logo, setLogo] = useState('')
   const [account, setAccount] = useState({ name: '', company: '', email: '', phone: '', ...(draft?.account ?? {}), password: '' })
@@ -195,8 +206,30 @@ function SignupPage() {
   const needsWhatsApp = chosen.includes('whatsapp')
 
   useEffect(() => {
-    if (!done) saveDraft({ path, screen, answers, description, extracted, plan, modules, brand: { choice: brand.choice, essence: brand.essence }, account: { ...account, password: '' } })
-  }, [path, screen, answers, description, extracted, plan, modules, brand, account, done])
+    if (!done) saveDraft({ path, screen, answers, description, extracted, plan, modules, addons, brand: { choice: brand.choice, essence: brand.essence }, account: { ...account, password: '' } })
+  }, [path, screen, answers, description, extracted, plan, modules, addons, brand, account, done])
+
+  // "Te puede interesar": what the plan includes, what the next one adds
+  // (most needed first) and the price of the add-ons, recomputed by
+  // andrho-api whenever the plan or the add-ons change.
+  const needs = (analysis?.data?.needs ?? []).map((m) => m.key)
+  const offerKey = JSON.stringify([plan, addons, needs])
+  useEffect(() => {
+    if (screen !== 'extras' || offer?.key === offerKey) return
+    let live = true
+    quotePlan(plan, addons, needs)
+      .then((data) => live && setOffer({ key: offerKey, data }))
+      .catch((err) => {
+        if (!live) return
+        // A stale selection (e.g. from an old draft): start the add-ons over.
+        if (err.status === 400 && Object.keys(addons).length) setAddons({})
+        else setError(err.message || 'No pudimos calcular tu plan.')
+      })
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, offerKey])
 
   useEffect(() => {
     if (firstRender.current) {
@@ -216,6 +249,7 @@ function SignupPage() {
     if (screen === 'choose') return path !== ''
     if (step) return step.valid(answers)
     if (screen === 'packages') return !!pkg && chosen.length > 0
+    if (screen === 'extras') return offer?.key === offerKey
     if (screen === 'brand') return brand.choice !== 'tengo' || brand.essence.trim().length > 0 || !!logo
     if (screen === 'account')
       return (
@@ -304,8 +338,9 @@ function SignupPage() {
     }
     let message = step?.verdict?.(answers, {})
     if (screen === 'choose') message = { tone: 'neutral', text: path === 'rapida' ? 'Cuéntanos. Nosotros armamos la nave.' : 'Pieza por pieza, a tu medida.' }
-    if (screen === 'packages')
-      message = plan === 'galactico' ? { tone: 'good', text: 'Tus hijos te lo agradecerán.' } : { tone: 'warn', text: 'El dinosaurio también creyó que tenía tiempo.' }
+    if (screen === 'packages' && plan !== 'galaxy') message = { tone: 'neutral', text: 'Mira lo que te puede interesar.' }
+    if (screen === 'extras')
+      message = plan === 'galaxy' ? { tone: 'good', text: 'Tus hijos te lo agradecerán.' } : { tone: 'warn', text: 'El dinosaurio también creyó que tenía tiempo.' }
     if (screen === 'brand' && brand.choice) message = { tone: 'good', text: brand.choice === 'ayuda' ? 'Te la diseñamos.' : 'Una marca clara vende sola.' }
     go(1, target, message)
   }
@@ -316,8 +351,20 @@ function SignupPage() {
   }
 
   function pickPlan(key) {
+    if (key === plan) return
     setPlan(key)
     setModules(null)
+    setAddons({})
+  }
+
+  // An add-on on or off (qty 1), or its quantity (0 = off).
+  function setAddon(featureId, qty) {
+    setAddons((a) => {
+      const next = { ...a }
+      if (qty > 0) next[featureId] = qty
+      else delete next[featureId]
+      return next
+    })
   }
 
   function toggleModule(key) {
@@ -342,13 +389,14 @@ function SignupPage() {
     setError('')
     const discount = claim && { percent: claim.percent, destroyed: claim.destroyed, session_id: claim.sessionId, code: generateDiscountCode(claim.percent) }
     try {
-      const res = await register({
+      const res = await checkout({
+        plan,
+        addons,
         email: account.email.trim(),
         password: account.password,
         company_name: account.company.trim(),
         display_name: account.name.trim(),
         setup: path,
-        plan,
         modules: chosen,
         answers: buildSubmission(answers),
         description: path === 'rapida' ? description.trim() : '',
@@ -380,7 +428,7 @@ function SignupPage() {
   }
 
   const progress = done ? 100 : Math.round((index / flow.length) * 100)
-  const wide = screen === 'packages' && !done
+  const wide = (screen === 'packages' || screen === 'extras') && !done
 
   return (
     <div className="fixed inset-0 overflow-hidden">
@@ -422,7 +470,7 @@ function SignupPage() {
                         screen={screen}
                         step={step}
                         headingRef={headingRef}
-                        state={{ path, setPath, answers, setAnswers, description, setDescription, analysis, pkgs, plan, pickPlan, chosen, limit, toggleModule, brand, setBrand, logo, setLogo, onLogo, account, setAccount, needsWhatsApp, prefilled: extracted?.prefilled ?? [] }}
+                        state={{ path, setPath, answers, setAnswers, description, setDescription, analysis, pkgs, plan, pickPlan, chosen, limit, toggleModule, brand, setBrand, logo, setLogo, onLogo, account, setAccount, needsWhatsApp, prefilled: extracted?.prefilled ?? [], offer: offer?.key === offerKey ? offer.data : offer?.data, loadingOffer: offer?.key !== offerKey, addons, setAddon, next }}
                         onSubmitKey={next}
                       />
                       {error && (
@@ -477,7 +525,7 @@ function art(screen, step) {
 
 function group(screen, step) {
   if (step) return step.group
-  return { choose: 'Tu cuenta', quick: 'Tu negocio', packages: 'Tu paquete', brand: 'Tu marca', account: 'Abordaje' }[screen] ?? ''
+  return { choose: 'Tu cuenta', quick: 'Tu negocio', packages: 'Tu paquete', extras: 'Tu paquete', brand: 'Tu marca', account: 'Abordaje' }[screen] ?? ''
 }
 
 const H1 = 'mt-3 text-3xl font-extrabold leading-[1.02] tracking-[-0.04em] outline-none sm:text-4xl lg:text-5xl'
@@ -506,7 +554,7 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
     return (
       <>
         {title('¿Cómo quieres armar tu AndRho?')}
-        <p className="mt-3 text-[var(--color-ink-soft)]">Por ahora todo es gratis. Puedes cambiar cualquier cosa después.</p>
+        <p className="mt-3 text-[var(--color-ink-soft)]">Hoy no te cobramos nada. Puedes cambiar cualquier cosa después.</p>
         <div role="radiogroup" aria-labelledby="signup-title" className="mt-7 grid gap-3">
           <Choice
             selected={s.path === 'rapida'}
@@ -549,12 +597,12 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
     const best = s.analysis?.data
     return (
       <>
-        {title('Tu nave, en tres tamaños')}
+        {title('Tu nave, en cinco tamaños')}
         <p className="mt-3 max-w-3xl text-[var(--color-ink-soft)]">
           {s.analysis?.summary ? `${s.analysis.summary} ` : ''}
           {best?.reasons?.length ? `Por lo que nos contaste: ${best.reasons.join(' ')}` : 'Elige con cuánto despega tu negocio.'}
         </p>
-        <div role="radiogroup" aria-label="Paquetes" className="mt-7 grid gap-4 lg:grid-cols-3 lg:items-stretch">
+        <div role="radiogroup" aria-label="Paquetes" className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:items-stretch">
           {s.pkgs.map((p) => (
             <PackageCard key={p.key} pkg={p} selected={s.plan === p.key} onSelect={() => s.pickPlan(p.key)} />
           ))}
@@ -603,6 +651,8 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
       </>
     )
   }
+
+  if (screen === 'extras') return <Extras s={s} title={title} />
 
   if (screen === 'brand') {
     const setChoice = (choice) => s.setBrand({ ...s.brand, choice })
@@ -684,6 +734,172 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
   return null
 }
 
+// "Te puede interesar" (after picking a plan): what the plan includes, the
+// next plan's features as add-ons (locked until picked), the two ways to
+// unlock them and the monthly total. Every number comes from POST
+// /plans/quote; "Continuar" is the deck's button.
+function Extras({ s, title }) {
+  const o = s.offer
+  if (!o) {
+    return (
+      <>
+        {title('Tu paquete')}
+        <p className="mt-6 flex items-center gap-2 text-[var(--color-muted)]">
+          <SpinnerIcon className="h-4 w-4 animate-spin" /> Calculando tu plan…
+        </p>
+      </>
+    )
+  }
+  const { plan, next_plan: next, features, quote } = o
+  const picked = quote.addons.length > 0
+  const hasSite = plan.capabilities.website || !!s.addons.sitio_web_basico
+  return (
+    <>
+      {title(`${plan.name}: lo que incluye`)}
+      <p className="mt-3 max-w-3xl text-[var(--color-ink-soft)]">
+        {plan.tagline} Hoy no te cobramos: tu cuenta se crea y el pago se activa más adelante.
+      </p>
+
+      <div className={`mt-6 grid gap-6 ${s.loadingOffer ? 'opacity-70' : ''} lg:grid-cols-[1fr_1.2fr]`}>
+        <section aria-labelledby="incluye" className="rounded-2xl border border-[var(--window-line)] bg-white/75 p-5">
+          <h2 id="incluye" className="font-display text-lg font-bold">
+            Incluido en {plan.name} · {formatQ(plan.price)}/mes
+          </h2>
+          <ul className="mt-3 space-y-1.5 text-sm">
+            {plan.includes.map((line) => (
+              <li key={line} className="flex items-start gap-2">
+                <span className="mt-0.5 text-[var(--window-teal)]">
+                  <Check />
+                </span>
+                {line}
+              </li>
+            ))}
+          </ul>
+          <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${hasSite ? 'border-[var(--window-teal)]/50 bg-[var(--window-teal)]/8' : 'border-dashed border-[var(--window-line)]'}`}>
+            <p className="font-semibold">Tu sitio web</p>
+            <p className="text-[var(--color-muted)]">
+              {hasSite
+                ? 'Incluido: tu sitio en tunegocio.web.andrho.com, hecho por Creators y listo para Google.'
+                : 'Te guardamos tu dirección tunegocio.web.andrho.com. Se construye con Despegue o con el complemento Sitio web básico.'}
+            </p>
+          </div>
+        </section>
+
+        <section aria-labelledby="interesar">
+          {next ? (
+            <>
+              <h2 id="interesar" className="font-display text-lg font-bold">
+                Te puede interesar
+              </h2>
+              <p className="mt-1 text-sm text-[var(--color-muted)]">Lo que suma {next.name}. Agrégalo suelto o desbloquea todo con el plan.</p>
+              <ul className="mt-3 grid gap-2">
+                {features.map((f) => {
+                  const qty = s.addons[f.featureId] ?? 0
+                  const on = qty > 0
+                  const max = f.addon?.max_qty ?? 1
+                  const missing = f.requires.filter((r) => !r.met)
+                  return (
+                    <li
+                      key={f.featureId}
+                      className={`flex items-start gap-3 rounded-xl border px-3.5 py-3 text-sm transition-colors ${
+                        on ? 'border-[var(--window-teal)] bg-white' : 'border-[var(--window-line)] bg-white/45 text-[var(--color-ink-soft)]'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="mt-1 h-4 w-4 accent-[var(--window-teal)]"
+                        checked={on}
+                        disabled={!f.selectable}
+                        onChange={() => s.setAddon(f.featureId, on ? 0 : 1)}
+                        aria-label={`${f.label}, +${formatQ(f.addon?.price)}${f.addon?.per_unit ? ' c/u' : ''} al mes`}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="flex flex-wrap items-center gap-2 font-semibold">
+                          {!on && <LockIcon className="h-3.5 w-3.5 opacity-60" />}
+                          {f.label}
+                          {f.needed && (
+                            <span className="rounded-full bg-[var(--mint)]/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-black">Lo pediste</span>
+                          )}
+                        </span>
+                        <span className="block text-[var(--color-muted)]">{f.detail}</span>
+                        {missing.length > 0 && <span className="mt-1 block text-[var(--violet-deep)]">Necesitas antes: {missing.map((r) => r.label).join(', ')}.</span>}
+                        {on && f.addon?.per_unit && (
+                          <span className="mt-2 flex items-center gap-2">
+                            <button type="button" className="btn-outline !h-8 !px-3" onClick={() => s.setAddon(f.featureId, qty - 1)} aria-label={`Menos ${f.label}`}>
+                              −
+                            </button>
+                            <span className="w-6 text-center font-mono">{qty}</span>
+                            <button
+                              type="button"
+                              className="btn-outline !h-8 !px-3 disabled:opacity-35"
+                              disabled={qty >= max}
+                              onClick={() => s.setAddon(f.featureId, qty + 1)}
+                              aria-label={`Más ${f.label}`}
+                            >
+                              +
+                            </button>
+                            <span className="text-xs text-[var(--color-muted)]">hasta {max}</span>
+                          </span>
+                        )}
+                      </span>
+                      <span className="shrink-0 font-mono text-sm font-semibold">
+                        +{formatQ(f.addon?.price)}
+                        {f.addon?.per_unit ? ' c/u' : ''}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <button type="button" className="btn-solid" onClick={() => s.pickPlan(next.id)}>
+                  Desbloquear con {next.name} — {formatQ(next.price)}/mes
+                </button>
+                {picked && (
+                  <button type="button" className="btn-outline" onClick={s.next}>
+                    Desbloquear por +{formatQ(quote.addonsTotal)}
+                  </button>
+                )}
+              </div>
+              {picked && quote.upgradeIsCheaper && (
+                <p role="status" className="mt-2 text-sm font-semibold text-[var(--violet-deep)]">
+                  Por {formatQ(quote.nextPlanPrice - quote.basePrice)} más tienes todo {next.name}.
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="rounded-2xl border border-[var(--window-teal)]/40 bg-white/70 p-5">
+              <span className="block font-display text-lg font-bold">Tienes todo AndRho.</span>
+              <span className="text-sm text-[var(--color-muted)]">Galaxy no deja nada en tierra.</span>
+            </p>
+          )}
+        </section>
+      </div>
+
+      <section aria-label="Resumen" className="mt-6 rounded-2xl border border-[var(--window-line)] bg-white/95 p-4 text-sm">
+        <dl className="grid gap-1">
+          <div className="flex justify-between gap-4">
+            <dt>Plan {plan.name}</dt>
+            <dd className="font-mono">{formatQ(quote.basePrice)}</dd>
+          </div>
+          {quote.addons.map((a) => (
+            <div key={a.featureId} className="flex justify-between gap-4 text-[var(--color-ink-soft)]">
+              <dt>
+                {a.label}
+                {a.qty > 1 ? ` × ${a.qty}` : ''}
+              </dt>
+              <dd className="font-mono">+{formatQ(a.price)}</dd>
+            </div>
+          ))}
+          <div className="mt-1 flex justify-between gap-4 border-t border-[var(--window-line)] pt-2 text-base font-bold">
+            <dt>Total mensual</dt>
+            <dd className="font-mono">{formatQ(quote.total)}</dd>
+          </div>
+        </dl>
+      </section>
+    </>
+  )
+}
+
 // The last card: welcome, and what AndRho is setting up (polls the jobs).
 function DoneCard({ done, name, className }) {
   const [jobs, setJobs] = useState(done.provisioning ?? [])
@@ -732,6 +948,17 @@ function DoneCard({ done, name, className }) {
               </ul>
             ) : (
               <p className="mt-4 text-[var(--color-muted)]">Tus módulos no necesitan instalar nada: entra y empieza.</p>
+            )}
+            {done.checkout?.quote && (
+              <p className="mt-4 text-sm text-[var(--color-muted)]">
+                Tu plan: {formatQ(done.checkout.quote.total)} al mes.
+                {done.checkout.payment_skipped ? ' Hoy no te cobramos; te avisamos antes de activar el pago.' : ''}
+              </p>
+            )}
+            {done.site?.status === 'offered' && (
+              <p className="mt-2 text-sm text-[var(--color-muted)]">
+                Te guardamos {done.site.host} para tu sitio web. Se construye cuando tu plan lo incluya.
+              </p>
             )}
             {done.discount?.code && (
               <div className="mt-6 rounded-xl border border-[var(--window-teal)]/40 bg-white/70 px-4 py-3">

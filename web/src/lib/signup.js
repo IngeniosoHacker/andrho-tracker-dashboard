@@ -11,11 +11,14 @@ import { INITIAL_ANSWERS, STEPS, buildSubmission } from './survey.js'
 //
 // Then, in both, the brand (essence, logo), and only once everything is
 // known, the suggestion: POST /analyzer/suggest blends the rules' ranking of
-// modules with Claude's, into three packages (Despegue, En Órbita,
-// Galáctico) whose modules can be unchecked (none can exceed the plan's
-// limit). Last, the boarding pass (pre-filled from the paragraph) and POST
-// /auth/register, which creates the account and sets up its services.
-// Everything is free during the beta.
+// modules with Claude's, into one package per plan of the catalog (Base,
+// Plataforma, Despegue, En órbita, Galaxy) whose modules can be unchecked
+// (none can exceed the plan's limit). Then "Te puede interesar": POST
+// /plans/quote says what the plan includes, what the next one adds and the
+// price with the add-ons picked. Last, the boarding pass (pre-filled from
+// the paragraph) and checkout(), which creates the account and sets up its
+// services. Prices and limits only come from andrho-api (internal/plans);
+// nothing is charged yet (PAYMENTS_ENABLED=false).
 
 // The survey's questions minus the open-text ones and the ones the signup
 // asks on cards of its own (plan and contact).
@@ -82,6 +85,26 @@ export function prefillBrand(brand, b = {}) {
 }
 
 export const register = (payload) => apiPost('/auth/register', payload)
+
+// The plan picked, what the next plan adds (most needed first) and the
+// price of the add-ons selected: { plan, next_plan, features, quote }.
+// `addons` is { featureId: qty }.
+export const quotePlan = (plan, addons, needs) =>
+  apiPost('/plans/quote', { plan, addons: addonList(addons), needs })
+
+export const addonList = (addons) => Object.entries(addons ?? {}).filter(([, q]) => q > 0).map(([feature_id, qty]) => ({ feature_id, qty }))
+
+// "Continuar": the one way to buy. Today it creates the account without a
+// payment (andrho-api stores account_plan with billing_status
+// 'pending_payment'); when payments exist, andrho-api's PaymentProvider
+// charges here and nothing in the UI changes.
+export const checkout = ({ plan, addons, ...account }) => register({ ...account, plan, addons: addonList(addons) })
+
+// Quetzales as the catalog writes them: Q1,200.
+export const formatQ = (n) => `Q${Number(n || 0).toLocaleString('en-US')}`
+
+// Plan ids before the catalog: Galáctico is now Galaxy.
+export const normalizePlan = (id) => (id === 'galactico' ? 'galaxy' : id)
 
 // The modules a package starts with for this business (the API's order).
 export const defaultModules = (pkg) => pkg.modules.map((m) => m.key)

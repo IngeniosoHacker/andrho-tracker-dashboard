@@ -176,7 +176,8 @@ export function fmtMoney(n, currency) {
 }
 
 export const ROLE_LABEL = { owner: 'Dueño', admin: 'Administrador', editor: 'Editor', viewer: 'Solo lectura' };
-export const PLAN_LABEL = { base: 'Base', despegue: 'Despegue', en_orbita: 'En Órbita', galactico: 'Galáctico' };
+// Plan names only; prices and limits come from andrho-api's GET /plans.
+export const PLAN_LABEL = { base: 'Base', plataforma: 'Plataforma', despegue: 'Despegue', en_orbita: 'En órbita', galaxy: 'Galaxy', galactico: 'Galaxy' };
 
 export function sourceBadge(type) {
   const map = {

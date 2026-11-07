@@ -1,5 +1,5 @@
 // The business this site is for. The sites service injects it as
-// window.__SITE__ (from andrho-api's GET /public/site). In `npm run dev`
+// window.__SITE__ (from andrho-api's GET /public/sites/:siteId). In `npm run dev`
 // there's no server, so a sample stands in; ?tipo=servicios|restaurantes|ventas
 // switches it and ?vista=inicio previews the full template.
 const SAMPLE = {
@@ -42,12 +42,13 @@ const SAMPLE = {
 const params = new URLSearchParams(window.location.search)
 
 export const site = window.__SITE__ || Object.assign(
-  { site_id: 'demo', status: 'construyendo', has_logo: false },
+  { site_id: 'demo', published: false, has_logo: false },
   SAMPLE[params.get('tipo')] || SAMPLE.servicios
 )
 
-// The whole template (for Creators) vs. the "en construcción" page.
-export const view = params.get('vista') === 'inicio' ? 'inicio' : (site.status === 'construyendo' ? 'construyendo' : 'inicio')
+// The whole template (for Creators) vs. the "en construcción" page, shown
+// until the Creator delivers the real site (published, from andrho-api).
+export const view = params.get('vista') === 'inicio' || site.published ? 'inicio' : 'construyendo'
 
 // The general structure when the business has no type yet.
 export const sections = (site.site && site.site.sections && site.site.sections.length) ? site.site.sections : [

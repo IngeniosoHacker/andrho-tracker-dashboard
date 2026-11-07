@@ -1,5 +1,50 @@
 // Configuración: team management (invites, roles) and the account's plan.
-import { andrhoApi, esc, fmtDate, roleAtLeast, openDrawer, ROLE_LABEL, PLAN_LABEL } from '../core.js';
+import { andrhoApi, andrhoApiFetch, esc, fmtDate, roleAtLeast, openDrawer, ROLE_LABEL, PLAN_LABEL } from '../core.js';
+
+const formatQ = (n) => `Q${Number(n || 0).toLocaleString('en-US')}`;
+const SITE_STATUS = { offered: ['Reservado, sin construir', 'status-sugerida'], deploying: ['Publicándose', 'status-proceso'], live: ['En línea', 'status-terminada'] };
+
+// One branch per line: "Nombre | Dirección | Teléfono | Horario" (for
+// Google's LocalBusiness data).
+const branchesToText = (list) => (list || []).map((b) => [b.name, b.address, b.phone, b.hours].map((v) => v || '').join(' | ').replace(/( \| )+$/, '')).join('\n');
+const textToBranches = (text) => text.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
+  const [name, address, phone, hours] = l.split('|').map((v) => v.trim());
+  return { name, address: address || '', phone: phone || '', hours: hours || '' };
+});
+
+// The account's website: where it lives, its state, and its SEO (Search
+// Console's verification code included). An offered site says how to
+// turn it on.
+function siteCard(site, canEdit) {
+  if (!site) return '';
+  const [label, cls] = SITE_STATUS[site.status] || [site.status, ''];
+  const seo = site.seo || {};
+  return `
+    <div class="card" id="siteCard">
+      <h2>Tu sitio web <span class="hint">SEO ${esc(site.seo_level || 'sin sitio')}</span></h2>
+      <dl class="detail-kv">
+        <dt>Dirección</dt><dd>${site.status === 'live' ? `<a href="${esc(site.url)}" target="_blank" rel="noopener">${esc(site.url)}</a>` : esc(site.url)}</dd>
+        <dt>Estado</dt><dd><span class="status-pill ${cls}">${esc(label)}</span></dd>
+      </dl>
+      ${site.offer ? `<p class="hint">${esc(site.offer)}</p>` : ''}
+      ${canEdit && site.status !== 'offered' ? `
+        <details>
+          <summary class="hint" style="cursor:pointer">SEO y Google Search Console</summary>
+          <form class="invite-form" id="seoForm" style="margin-top:12px">
+            <label>Título (hasta 70)<input name="title" maxlength="70" value="${esc(seo.title)}" /></label>
+            <label>Descripción (hasta 160)<input name="description" maxlength="160" value="${esc(seo.description)}" /></label>
+            <label>Imagen para compartir (https)<input name="og_image" type="url" value="${esc(seo.og_image)}" /></label>
+            <label>Código de verificación de Google Search Console
+              <input name="gsc_token" value="${esc(seo.gsc_token)}" placeholder="Pega el código o la etiqueta &lt;meta name=&quot;google-site-verification&quot; …&gt;" /></label>
+            <p class="hint" style="margin:0">En Search Console agrega una propiedad de <strong>prefijo de URL</strong> con ${esc(site.url)}/ y elige la verificación por etiqueta HTML.</p>
+            <label>Sucursales, una por línea: Nombre | Dirección | Teléfono | Horario
+              <textarea name="branches" rows="3" placeholder="Zona 10 | 4a Av 1-2, Zona 10 | +502 5555 5555 | Mo-Fr 08:00-18:00">${esc(branchesToText(seo.branches))}</textarea></label>
+            <p class="form-error" hidden></p>
+            <button type="submit">Guardar</button>
+          </form>
+        </details>` : ''}
+    </div>`;
+}
 
 const JOB = { erp: 'ERP (Odoo)', whatsapp: 'WhatsApp', website: 'Sitio web', meta: 'Facebook e Instagram' };
 const JOB_STATUS = { pendiente: ['En cola', 'status-sugerida'], en_proceso: ['En proceso', 'status-proceso'], listo: ['Listo', 'status-terminada'], esperando_vps: ['Preparando el servidor', 'status-proceso'], esperando_meta: ['Esperando a Meta', 'status-sugerida'], error: ['Se reintentará', 'status-rechazada'] };
@@ -34,11 +79,13 @@ function businessCard(biz, canEdit) {
 
 async function render(el) {
   el.innerHTML = '<p class="loading-state">cargando…</p>';
-  const [usersData, planData, erp, prov, biz] = await Promise.all([
+  const [usersData, planData, erp, prov, biz, catalog, siteData] = await Promise.all([
     andrhoApi('/account/users'), andrhoApi('/account/plan'),
     andrhoApi('/erp/status').catch(() => ({ connected: false })),
     andrhoApi('/account/provisioning').catch(() => ({ jobs: [], tasks: [] })),
-    andrhoApi('/account/business-type').catch(() => null)
+    andrhoApi('/account/business-type').catch(() => null),
+    andrhoApiFetch('/plans').catch(() => ({ plans: [] })),
+    andrhoApi('/account/site').catch(() => ({ site: null }))
   ]);
   const canManageTeam = roleAtLeast('admin');
   const isOwner = roleAtLeast('owner');
@@ -77,14 +124,17 @@ async function render(el) {
       <h2>Plan actual: ${esc(PLAN_LABEL[planData.plan] || planData.plan)}</h2>
       <p class="hint" style="margin:0 0 16px">${esc(quotaLabel(planData.suggestions_quota))} · cambiar de plan aquí no genera ningún cobro todavía; solo ajusta qué ve tu cuenta.</p>
       <div class="plan-grid">
-        ${['base', 'despegue', 'en_orbita', 'galactico'].map((p) => `
-          <div class="plan-card ${p === planData.plan ? 'plan-card-active' : ''}">
-            <p class="plan-card-name">${esc(PLAN_LABEL[p])}</p>
-            ${isOwner ? `<button type="button" class="copy-btn" data-set-plan="${p}" ${p === planData.plan ? 'disabled' : ''}>${p === planData.plan ? 'Plan actual' : 'Cambiar a este plan'}</button>` : ''}
+        ${catalog.plans.map((p) => `
+          <div class="plan-card ${p.id === planData.plan ? 'plan-card-active' : ''}">
+            <p class="plan-card-name">${esc(p.name)}</p>
+            <p class="hint" style="margin:0 0 10px">${esc(p.label)} · ${formatQ(p.price)}/mes</p>
+            ${isOwner ? `<button type="button" class="copy-btn" data-set-plan="${p.id}" ${p.id === planData.plan ? 'disabled' : ''}>${p.id === planData.plan ? 'Plan actual' : 'Cambiar a este plan'}</button>` : ''}
           </div>
         `).join('')}
       </div>
     </div>
+
+    ${siteCard(siteData.site, canManageTeam)}
 
     <div class="card" id="erp">
       <h2>Tu ERP</h2>
@@ -117,6 +167,25 @@ async function render(el) {
       </tbody></table>
     </div>` : ''}
   `;
+
+  const seoForm = el.querySelector('#seoForm');
+  if (seoForm) seoForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = seoForm.elements;
+    const err = seoForm.querySelector('.form-error');
+    const btn = seoForm.querySelector('button');
+    btn.disabled = true;
+    err.hidden = true;
+    try {
+      await andrhoApi('/account/site/seo', { method: 'PUT', body: JSON.stringify({ title: f.title.value, description: f.description.value,
+        og_image: f.og_image.value, gsc_token: f.gsc_token.value, branches: textToBranches(f.branches.value) }) });
+      render(el);
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+      btn.disabled = false;
+    }
+  });
 
   const erpForm = el.querySelector('#erpForm');
   if (erpForm) erpForm.addEventListener('submit', async (e) => {
