@@ -48,8 +48,8 @@ export default function Hero({ morph: t, titleRef, wordRefs }) {
             the measured start point of their flight into the navbar. */}
         <p style={{ opacity: rest.opacity }} className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-[var(--color-ink-soft)]">
           AndRho es el centro de control que unifica tu ERP, tu marketing y tu equipo, lo analiza con modelos
-          estadísticos y, con inteligencia artificial, te lo traduce en decisiones — no en más pestañas. Así que {word('relajate', 'relájate')}: la plataforma se {word('adapta', 'adapta')} a
-          tu operación.
+          estadísticos y, con inteligencia artificial, te lo traduce en decisiones — no en más pestañas. Así que {word('relajate', 'relájate')}: con {word('precios', 'precios')} claros,
+          la plataforma se {word('adapta', 'adapta')} a tu operación.
         </p>
 
         <div style={rest} className="mt-10 flex flex-wrap items-center justify-center gap-4">

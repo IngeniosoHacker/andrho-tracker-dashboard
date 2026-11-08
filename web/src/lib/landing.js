@@ -23,12 +23,15 @@ export const MORPH_LENGTH = 0.6
 export const WINDOWS = [
   { id: 'relajate', fadeIn: [0.5, 0.8], fadeOut: [1.5, 1.65], anchor: 0.9 },
   { id: 'como-funciona', nav: 'relajate', fadeIn: [1.65, 1.8], fadeOut: [2.45, 2.6], anchor: 1.9 },
-  { id: 'ia-con-criterio', nav: 'relajate', bare: true, fadeIn: [2.6, 2.8], fadeOut: [3.75, 3.85], anchor: 2.9 },
-  { id: 'adapta', framed: true, fadeIn: [3.85, 4.0], fadeOut: [4.55, 4.7], anchor: 4.05 },
-  { id: 'todo-en-una-cuenta', nav: 'adapta', fadeIn: [4.7, 4.85], fadeOut: [5.5, 5.65], anchor: 4.95 },
-  { id: 'nave', fadeIn: [5.65, 5.8], anchor: 5.9 },
+  // Pricing is the third window, ~15% into the page: most visitors never
+  // scroll past the first fifth.
+  { id: 'precios', fadeIn: [2.6, 2.75], fadeOut: [3.6, 3.75], anchor: 2.85 },
+  { id: 'ia-con-criterio', nav: 'relajate', bare: true, fadeIn: [3.75, 3.95], fadeOut: [4.9, 5.0], anchor: 4.05 },
+  { id: 'adapta', framed: true, fadeIn: [5.0, 5.15], fadeOut: [5.7, 5.85], anchor: 5.2 },
+  { id: 'todo-en-una-cuenta', nav: 'adapta', fadeIn: [5.85, 6.0], fadeOut: [6.65, 6.8], anchor: 6.1 },
+  { id: 'nave', fadeIn: [6.8, 6.95], anchor: 7.05 },
 ]
-export const STAGE_LENGTH = 6.4
+export const STAGE_LENGTH = 7.55
 
 // Creators timeline (Creators.jsx): its own pinned section after the stage.
 // The first CREATORS_TRACK viewport-heights of scroll slide the horizontal
@@ -39,13 +42,15 @@ export const CREATORS_LENGTH = 5.4
 
 // Navbar entries, in order. `fromHero` ones are the bold words in the hero
 // copy — they physically fly up into the navbar during the morph. The rest
-// fade in next to them once the bar has formed.
+// fade in next to them once the bar has formed. `wide` ones only show from
+// the sm breakpoint (the phone bar has no room for all of them).
 export const NAV_LINKS = [
   { id: 'relajate', label: 'relájate', fromHero: true },
+  { id: 'precios', label: 'precios', fromHero: true },
   { id: 'adapta', label: 'adapta', fromHero: true },
   { id: 'nave', label: 'la nave' },
   { id: 'creators', label: 'creators' },
-  { id: 'juego', label: 'juego' },
+  { id: 'juego', label: 'juego', wide: true },
 ]
 
 // Background palette: the hero starts as an inverted, black-on-white night

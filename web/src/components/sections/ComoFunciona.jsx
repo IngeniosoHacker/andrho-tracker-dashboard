@@ -40,8 +40,8 @@ export default function ComoFunciona() {
         <a href="/signup.html" className="btn-solid sm:flex-1">
           Continuar
         </a>
-        <a href="#ia-con-criterio" className="btn-outline sm:flex-1">
-          ¿Y la IA?
+        <a href="#precios" className="btn-outline sm:flex-1">
+          Ver precios
         </a>
       </div>
     </div>

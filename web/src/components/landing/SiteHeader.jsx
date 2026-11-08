@@ -58,14 +58,14 @@ export default function SiteHeader({ morph = Infinity, activeId = null, refs, ba
 
           <ul
             inert={morph < 0.9}
-            className="order-3 flex h-10 w-full items-center justify-center gap-5 border-t md:order-2 md:h-14 md:w-auto md:flex-1 md:gap-9 md:border-t-0"
+            className="order-3 flex h-10 w-full items-center justify-center gap-4 border-t sm:gap-5 md:order-2 md:h-14 md:w-auto md:flex-1 md:gap-9 md:border-t-0"
             style={{ borderColor: `rgba(11, 16, 32, ${0.08 * bar})` }}
           >
             {NAV_LINKS.map((link) => {
               const active = link.id === activeId
               const opacity = formed ? 1 : link.fromHero ? 0 : seg(morph, 0.84, 1)
               return (
-                <li key={link.id} className="relative">
+                <li key={link.id} className={`relative ${link.wide ? 'hidden sm:block' : ''}`}>
                   <a
                     ref={refs?.links?.[link.id]}
                     href={`${base}#${link.id}`}

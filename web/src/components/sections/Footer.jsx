@@ -7,6 +7,7 @@ const LINK_GROUPS = [
     heading: 'Explora',
     links: [
       { label: 'Relájate', href: '/#relajate' },
+      { label: 'Precios', href: '/#precios' },
       { label: 'IA con criterio', href: '/#ia-con-criterio' },
       { label: 'Adapta a tu operación', href: '/#adapta' },
       { label: 'Todo en una cuenta', href: '/#todo-en-una-cuenta' },

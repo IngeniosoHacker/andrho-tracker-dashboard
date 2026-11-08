@@ -7,6 +7,7 @@ import IaConCriterio from '../sections/IaConCriterio.jsx'
 import Adapta from '../sections/Adapta.jsx'
 import TodoEnUnaCuenta from '../sections/TodoEnUnaCuenta.jsx'
 import LaNave from '../sections/LaNave.jsx'
+import Precios from '../sections/Precios.jsx'
 import ScrambleLogo from '../ui/ScrambleLogo.jsx'
 import { BareScene, DesktopWindow } from './WindowFrame.jsx'
 import { MORPH_LENGTH, NAV_LINKS, STAGE_LENGTH, WINDOWS } from '../../lib/landing.js'
@@ -17,6 +18,7 @@ const HERO_WORDS = NAV_LINKS.filter((l) => l.fromHero)
 const WINDOW_CONTENT = {
   relajate: Relajate,
   'como-funciona': ComoFunciona,
+  precios: Precios,
   'ia-con-criterio': IaConCriterio,
   adapta: Adapta,
   'todo-en-una-cuenta': TodoEnUnaCuenta,
@@ -142,7 +144,7 @@ export default function Stage({ t, stageRef, navRefs }) {
       </div>
 
       {/* Nav targets: plain anchors at the scroll offset where each window is
-          fully open, so #relajate / #adapta / #nave work natively. */}
+          fully open, so #relajate / #precios / #adapta / #nave work natively. */}
       {WINDOWS.map((win) => (
         <span
           key={win.id}
