@@ -562,6 +562,9 @@ export const STEPS = [
 export const INITIAL_ANSWERS = {
   sectors: [],
   companySize: '',
+  // The long signup asks for numbers (signup.jsx "people" and "access").
+  teamSize: 0,
+  accessUsers: 0,
   salesMethods: [],
   sectorAnswers: {},
   restaurantExpiry: '',

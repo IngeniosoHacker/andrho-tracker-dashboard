@@ -1,5 +1,7 @@
-// Configuración: team management (invites, roles) and the account's plan.
+// Configuración: team management (invites, roles), the account's plan and
+// its brand and data (kit.js: what the signup left pending).
 import { andrhoApi, andrhoApiFetch, esc, fmtDate, roleAtLeast, openDrawer, ROLE_LABEL, PLAN_LABEL } from '../core.js';
+import { kitCard, wireKit } from './kit.js';
 
 const formatQ = (n) => `Q${Number(n || 0).toLocaleString('en-US')}`;
 const SITE_STATUS = { offered: ['Reservado, sin construir', 'status-sugerida'], deploying: ['Publicándose', 'status-proceso'], live: ['En línea', 'status-terminada'] };
@@ -79,13 +81,14 @@ function businessCard(biz, canEdit) {
 
 async function render(el) {
   el.innerHTML = '<p class="loading-state">cargando…</p>';
-  const [usersData, planData, erp, prov, biz, catalog, siteData] = await Promise.all([
+  const [usersData, planData, erp, prov, biz, catalog, siteData, kitData] = await Promise.all([
     andrhoApi('/account/users'), andrhoApi('/account/plan'),
     andrhoApi('/erp/status').catch(() => ({ connected: false })),
     andrhoApi('/account/provisioning').catch(() => ({ jobs: [], tasks: [] })),
     andrhoApi('/account/business-type').catch(() => null),
     andrhoApiFetch('/plans').catch(() => ({ plans: [] })),
-    andrhoApi('/account/site').catch(() => ({ site: null }))
+    andrhoApi('/account/site').catch(() => ({ site: null })),
+    andrhoApi('/account/assets').catch(() => null)
   ]);
   const canManageTeam = roleAtLeast('admin');
   const isOwner = roleAtLeast('owner');
@@ -119,6 +122,8 @@ async function render(el) {
     </div>
 
     ${biz ? businessCard(biz, roleAtLeast('admin')) : ''}
+
+    ${kitCard(kitData, roleAtLeast('admin'))}
 
     <div class="card">
       <h2>Plan actual: ${esc(PLAN_LABEL[planData.plan] || planData.plan)}</h2>
@@ -208,6 +213,8 @@ async function render(el) {
   const act = async (fn, msg) => {
     try { await fn(); render(el); } catch (err) { alert(err.message || msg); }
   };
+
+  wireKit(el, kitData, () => render(el));
 
   const inviteBtn = el.querySelector('#inviteBtn');
   if (inviteBtn) inviteBtn.addEventListener('click', openInviteDrawer);

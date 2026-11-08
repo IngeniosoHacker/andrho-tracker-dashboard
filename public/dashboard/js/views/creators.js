@@ -7,6 +7,7 @@
 import {
   andrhoApi, getAccessToken, ANDRHO_API_URL, esc, fmtDate, session, tabStrip, wireTabs, setSubRoute, withPanel, emptyState
 } from '../core.js';
+import { DATA_STATUS, dataTables, download, fileSize, loadImage, swatches } from './kit.js';
 
 const TABS = [
   { key: 'mias', label: 'Mis tareas' },
@@ -15,7 +16,7 @@ const TABS = [
 ];
 
 const KIND = {
-  website: 'Sitio web', brand: 'Marca', web: 'Web', social: 'Redes sociales', erp: 'ERP',
+  website: 'Sitio web', brand: 'Marca', datos: 'Datos', web: 'Web', social: 'Redes sociales', erp: 'ERP',
   contenido: 'Contenido', diseno: 'Diseño', general: 'General'
 };
 const SKILLS = { web: 'Web', social: 'Redes', erp: 'ERP', contenido: 'Contenido', diseno: 'Diseño' };
@@ -51,6 +52,36 @@ async function loadLogo(img, taskId) {
   } catch { img.remove(); }
 }
 
+const ASSET_KIND = { logo: 'Logo', brand_image: 'Imagen de marca', data: 'Datos' };
+
+// What the Creator has to do (andrho-api provision.Instructions), the
+// brand's palette and the files the business uploaded (signup or later).
+function kitBlock(t) {
+  const steps = t.instructions || [];
+  const files = t.assets || [];
+  const palette = t.kind === 'datos' ? [] : t.palette || [];
+  if (!steps.length && !files.length && !palette.length) return '';
+  const src = (a) => `/creators/tasks/${encodeURIComponent(t.id)}/assets/${encodeURIComponent(a.id)}`;
+  return `
+      <div class="task-body" style="display:block">
+        ${steps.length ? `<p class="eyebrow" style="margin:0 0 4px">Qué hacer</p><ol class="task-instructions">${steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
+        ${palette.length ? `<p class="eyebrow" style="margin:0 0 4px">Paleta</p>${swatches(palette)}` : ''}
+        ${files.length ? `<p class="eyebrow" style="margin:12px 0 0">Archivos adjuntos (${files.length})</p>
+        <div class="task-files">${files.map((a) => {
+          const [label, cls] = a.kind === 'data' ? (DATA_STATUS[a.status] || [a.status, '']) : ['', ''];
+          return `<div class="task-file">
+            ${a.kind === 'data' ? '' : `<img alt="${esc(a.filename)}" hidden data-asset-img="${esc(src(a))}">`}
+            <div style="flex:1;min-width:0">
+              <strong>${esc(a.filename)}</strong> <span class="hint">${esc(ASSET_KIND[a.kind] || a.kind)} · ${fileSize(a.size)}</span>
+              ${label ? ` <span class="status-pill ${cls}">${esc(label)}</span>` : ''}
+              ${a.kind === 'data' ? dataTables(a, true) : ''}
+            </div>
+            <button type="button" class="copy-btn" data-download="${esc(src(a))}" data-name="${esc(a.filename)}">Descargar</button>
+          </div>`;
+        }).join('')}</div>` : ''}
+      </div>`;
+}
+
 function taskCard(t) {
   const b = t.brief || {};
   const [label, cls] = STATUS[t.status] || [t.status, ''];
@@ -76,6 +107,7 @@ function taskCard(t) {
       <div class="task-body">
         <img class="task-logo" alt="Logo de ${esc(t.company_name || '')}" hidden data-logo="${b.has_logo ? '1' : ''}" />
         <dl class="detail-kv">
+          ${t.kind === 'datos' ? `<dt>Client id</dt><dd class="mono">${esc(b.client_id || '')}</dd><dt>Entrega</dt><dd>${t.due_at ? fmtDate(t.due_at) : '—'}</dd>` : `
           <dt>Esencia</dt><dd>${b.essence ? esc(b.essence) : '<span class="hint">Sin descripción</span>'}</dd>
           <dt>Marca</dt><dd>${b.brand_help ? 'No tiene: proponer una' : b.has_logo ? 'Tiene logo' : 'Sin logo'}</dd>
           <dt>Giro</dt><dd>${(b.sectors || []).map(esc).join(', ') || '—'}</dd>
@@ -85,11 +117,12 @@ function taskCard(t) {
           ${b.site_host ? `<dt>Vive en</dt><dd><a class="mono" href="https://${esc(b.site_host)}" target="_blank" rel="noopener">${esc(b.site_host)}</a> <span class="hint">(hoy: en construcción)</span></dd>` : ''}
           ${b.site && b.site.sections ? `<dt>Estructura</dt><dd>${b.site.sections.map((x) => esc(x.title)).join(' · ')}<br><span class="hint">Llamada a la acción: ${esc(b.site.cta || '')}</span></dd>` : ''}
           ${t.kind === 'website' ? `<dt>Cómo entregar</dt><dd class="hint">Parte de la plantilla <span class="mono">andrho-tracker-dashboard/sites</span> (React + Vite + Tailwind; <span class="mono">npm run dev</span>, <span class="mono">?vista=inicio</span>). Despliégalo en Railway y entrega su URL <span class="mono">https://…up.railway.app</span>: AndRho lo publica en la dirección del cliente.</dd>` : ''}
-          <dt>Entrega</dt><dd>${t.due_at ? fmtDate(t.due_at) : '—'}</dd>
+          <dt>Entrega</dt><dd>${t.due_at ? fmtDate(t.due_at) : '—'}</dd>`}
           ${t.delivery_url ? `<dt>Enlace</dt><dd><a href="${esc(t.delivery_url)}" target="_blank" rel="noopener">${esc(t.delivery_url)}</a></dd>` : ''}
           ${t.notes ? `<dt>Notas</dt><dd>${esc(t.notes)}</dd>` : ''}
         </dl>
       </div>`}
+      ${kitBlock(t)}
       <footer class="task-actions">
         ${t.status === 'abierta' ? '<button type="button" class="primary-btn" data-act="aceptar">Aceptar tarea</button>' : ''}
         ${t.status === 'aceptada' && mine ? `
@@ -116,6 +149,9 @@ async function renderTab(tab) {
     const id = card.dataset.task;
     const img = card.querySelector('.task-logo');
     if (img) { if (img.dataset.logo) loadLogo(img, id); else img.remove(); }
+    card.querySelectorAll('[data-asset-img]').forEach((im) => loadImage(im, im.dataset.assetImg));
+    card.querySelectorAll('[data-download]').forEach((b) => b.addEventListener('click', () =>
+      download(b.dataset.download, b.dataset.name).catch((err) => alert(err.message))));
     const act = async (body) => {
       card.querySelectorAll('button').forEach((b) => (b.disabled = true));
       try {

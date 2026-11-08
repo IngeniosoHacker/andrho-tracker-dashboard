@@ -11,6 +11,20 @@ import { TextInput, PasswordInput } from './components/ui/form/inputs.jsx'
 import { AlertIcon, BuildingIcon, LockIcon, MailIcon, SpinnerIcon } from './components/ui/icons.jsx'
 import { storeTokens, TOKEN_KEYS } from './lib/authApi.js'
 import { resolveStep } from './lib/survey.js'
+import {
+  DATA_ACCEPT,
+  INITIAL_KIT,
+  MAX_BRAND_IMAGES,
+  MAX_DATA_FILES,
+  MAX_PALETTE,
+  checkData,
+  checkImage,
+  cleanPalette,
+  describeData,
+  fileSize,
+  readPalette,
+  uploadAsset,
+} from './lib/kit.js'
 import { useDeck } from './lib/useDeck.js'
 import {
   INITIAL_ANSWERS,
@@ -60,10 +74,23 @@ const API_URL = (import.meta.env.VITE_ANDRHO_API_URL || '').replace(/\/+$/, '')
 // The cards, in order. Both paths ask their questions, then the brand, and
 // only then the suggestion (it needs all of it) and the boarding pass. The
 // quick path skips the questions its paragraph already answered (`covered`).
+// The custom (long) path asks for numbers instead of the size range (how
+// many people, how many need AndRho) and, instead of the brand card, one
+// card each for the logo, the colors and the data (lib/kit.js).
 function buildFlow(path, answers, covered) {
   const steps = questionSteps(answers).filter((s) => path === 'personalizada' || !covered.includes(s.id))
+  if (path === 'personalizada') {
+    const questions = steps.flatMap((s) => (s.id === 'companySize' ? ['people', 'access'] : [`q:${s.id}`]))
+    return ['choose', ...questions, 'logo', 'colors', 'data', 'packages', 'extras', 'account']
+  }
   return ['choose', ...(path === 'rapida' ? ['quick'] : []), ...steps.map((s) => `q:${s.id}`), 'brand', 'packages', 'extras', 'account']
 }
+
+// The survey's size range for a head count (andrho-api brand.CompanySize).
+const sizeOf = (n) => (n <= 1 ? 'solo' : n <= 10 ? '1-10' : n <= 50 ? '11-50' : n <= 200 ? '51-200' : '200+')
+
+// What the brand card would have said, for the suggestion's prompt.
+const brandChoice = (kit) => (kit.logo === 'tengo' ? 'tengo' : kit.logo === 'crear' ? 'ayuda' : kit.logo ? 'omitir' : '')
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function Check() {
@@ -75,14 +102,15 @@ function Check() {
 }
 
 // A big selectable option (setup path, brand choice).
-function Choice({ selected, onClick, title, body, badge }) {
+function Choice({ selected, onClick, title, body, badge, disabled }) {
   return (
     <button
       type="button"
       role="radio"
       aria-checked={selected}
+      disabled={disabled}
       onClick={onClick}
-      className={`flex w-full items-start justify-between gap-4 rounded-2xl border p-5 text-left transition-colors ${
+      className={`flex w-full items-start justify-between gap-4 rounded-2xl border p-5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
         selected ? 'border-[var(--window-teal)] bg-white shadow-[0_0_0_2px_var(--window-teal)]' : 'border-[var(--window-line)] bg-white/70 hover:bg-white'
       }`}
     >
@@ -102,6 +130,92 @@ function Choice({ selected, onClick, title, body, badge }) {
         {selected && <Check />}
       </span>
     </button>
+  )
+}
+
+// A whole number with − / + (people, users).
+function NumberStepper({ label, value, onChange, max, onEnter }) {
+  return (
+    <div className="mt-7 flex items-center gap-3">
+      <button type="button" className="btn-outline !h-14 !w-14 !px-0 text-2xl" onClick={() => onChange((value || 0) - 1)} disabled={(value || 0) <= 1} aria-label="Menos">
+        −
+      </button>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={1}
+        max={max}
+        aria-label={label}
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            onEnter()
+          }
+        }}
+        placeholder="0"
+        className="h-14 w-32 rounded-xl border border-[var(--color-border)] bg-[var(--color-canvas)] text-center font-display text-3xl font-bold focus:border-[var(--blue)] focus-visible:outline-none"
+      />
+      <button type="button" className="btn-outline !h-14 !w-14 !px-0 text-2xl" onClick={() => onChange((value || 0) + 1)} disabled={(value || 0) >= max} aria-label="Más">
+        +
+      </button>
+    </div>
+  )
+}
+
+// The brand's colors: read from the images or the logo, then the person
+// keeps, changes, removes or adds them.
+function PaletteEditor({ kit, setKit, busy, source }) {
+  const set = (palette) => setKit((k) => ({ ...k, palette: cleanPalette(palette) }))
+  return (
+    <fieldset className="mt-6">
+      <legend className="font-display text-lg font-bold">Tu paleta</legend>
+      <p className="text-sm text-[var(--color-muted)]">
+        {busy
+          ? 'Leyendo tus colores…'
+          : kit.palette.length
+            ? `${source === 'logo' ? 'Sacada de tu logo' : 'Sacada de tus imágenes'}. Toca un color para cambiarlo.`
+            : source === 'tengo'
+              ? 'Sube imágenes o agrega tus colores a mano.'
+              : 'Agrega tus colores.'}
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3" aria-busy={busy}>
+        {busy && <SpinnerIcon className="h-5 w-5 animate-spin" />}
+        {!busy &&
+          kit.palette.map((c, i) => (
+            <span key={i} className="relative">
+              <label className="block h-14 w-14 cursor-pointer overflow-hidden rounded-xl border border-[var(--window-line)] shadow-sm" style={{ background: c }}>
+                <span className="sr-only">Color {i + 1}</span>
+                <input
+                  type="color"
+                  value={c}
+                  className="h-0 w-0 opacity-0"
+                  onChange={(e) => set(kit.palette.map((x, j) => (j === i ? e.target.value : x)))}
+                />
+              </label>
+              <span className="mt-1 block text-center font-mono text-[10px] uppercase text-[var(--color-muted)]">{c}</span>
+              <button
+                type="button"
+                onClick={() => set(kit.palette.filter((_, j) => j !== i))}
+                aria-label={`Quitar ${c}`}
+                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-ink)] text-sm text-white"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        {!busy && kit.palette.length < MAX_PALETTE && (
+          <button
+            type="button"
+            onClick={() => set([...kit.palette, ['#00c49a', '#1f2a44', '#f4b942', '#e4572e', '#7a5cff', '#f2efe9', '#2e8b57', '#111111'].find((c) => !kit.palette.includes(c))])}
+            className="flex h-14 w-14 items-center justify-center rounded-xl border-2 border-dashed border-[var(--window-line)] text-2xl text-[var(--color-muted)] hover:bg-white"
+          >
+            +<span className="sr-only">Agregar color</span>
+          </button>
+        )}
+      </div>
+    </fieldset>
   )
 }
 
@@ -187,6 +301,16 @@ function SignupPage() {
   const [offer, setOffer] = useState(null)
   const [brand, setBrand] = useState(draft?.brand ?? { choice: '', essence: '' })
   const [logo, setLogo] = useState('')
+  // The long path's kit; files live only in memory until the account exists.
+  // A restored draft has no files, so "ya tengo" logo/data is asked again.
+  const [kit, setKit] = useState(() => {
+    const k = { ...INITIAL_KIT, ...(draft?.kit ?? {}) }
+    return { ...k, logo: k.logo === 'tengo' ? '' : k.logo, data: k.data === 'tengo' ? '' : k.data, palette: cleanPalette(k.palette) }
+  })
+  const [brandImages, setBrandImages] = useState([]) // [{ id, file, url }]
+  const [dataFiles, setDataFiles] = useState([]) // [{ id, file }]
+  const [paletteBusy, setPaletteBusy] = useState(false)
+  const [uploading, setUploading] = useState('')
   const [account, setAccount] = useState({ name: '', company: '', email: '', phone: '', ...(draft?.account ?? {}), password: '' })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -206,8 +330,8 @@ function SignupPage() {
   const needsWhatsApp = chosen.includes('whatsapp')
 
   useEffect(() => {
-    if (!done) saveDraft({ path, screen, answers, description, extracted, plan, modules, addons, brand: { choice: brand.choice, essence: brand.essence }, account: { ...account, password: '' } })
-  }, [path, screen, answers, description, extracted, plan, modules, addons, brand, account, done])
+    if (!done) saveDraft({ path, screen, answers, description, extracted, plan, modules, addons, kit, brand: { choice: brand.choice, essence: brand.essence }, account: { ...account, password: '' } })
+  }, [path, screen, answers, description, extracted, plan, modules, addons, kit, brand, account, done])
 
   // "Te puede interesar": what the plan includes, what the next one adds
   // (most needed first) and the price of the add-ons, recomputed by
@@ -251,6 +375,11 @@ function SignupPage() {
     if (screen === 'packages') return !!pkg && chosen.length > 0
     if (screen === 'extras') return offer?.key === offerKey
     if (screen === 'brand') return brand.choice !== 'tengo' || brand.essence.trim().length > 0 || !!logo
+    if (screen === 'people') return answers.teamSize >= 1
+    if (screen === 'access') return answers.accessUsers >= 1 && answers.accessUsers <= answers.teamSize
+    if (screen === 'logo') return kit.logo !== '' && (kit.logo !== 'tengo' || !!logo)
+    if (screen === 'colors') return kit.colors !== '' && (!['tengo', 'logo'].includes(kit.colors) || (kit.palette.length > 0 && !paletteBusy))
+    if (screen === 'data') return kit.data !== '' && (kit.data !== 'tengo' || dataFiles.length > 0)
     if (screen === 'account')
       return (
         account.name.trim() &&
@@ -264,10 +393,13 @@ function SignupPage() {
 
   const text = path === 'rapida' ? description : ''
 
+  // The brand as the suggestion reads it (the long path has no brand card).
+  const brandForAnalysis = path === 'personalizada' ? { choice: brandChoice(kit), essence: brand.essence } : brand
+
   async function runAnalysis() {
-    const key = JSON.stringify([buildSubmission(answers), text.trim(), brand.choice, brand.essence.trim()])
+    const key = JSON.stringify([buildSubmission(answers), text.trim(), brandForAnalysis.choice, brandForAnalysis.essence.trim()])
     if (analysis?.key === key) return analysis
-    const data = await suggestSetup(answers, text, brand)
+    const data = await suggestSetup(answers, text, brandForAnalysis)
     const next = { key, data, summary: data.summary ?? '' }
     setAnalysis(next)
     // New analysis, new defaults for the package's modules.
@@ -342,6 +474,20 @@ function SignupPage() {
     if (screen === 'extras')
       message = plan === 'galaxy' ? { tone: 'good', text: 'Tus hijos te lo agradecerán.' } : { tone: 'warn', text: 'El dinosaurio también creyó que tenía tiempo.' }
     if (screen === 'brand' && brand.choice) message = { tone: 'good', text: brand.choice === 'ayuda' ? 'Te la diseñamos.' : 'Una marca clara vende sola.' }
+    if (screen === 'people') message = peopleVerdict(answers.teamSize)
+    if (screen === 'access')
+      message =
+        answers.accessUsers === 1
+          ? { tone: 'neutral', text: 'Tú al mando. Lo demás lo hace AndRho.' }
+          : { tone: 'good', text: `${answers.accessUsers} llaves para la misma nave.` }
+    if (screen === 'logo') message = { tone: 'good', text: { tengo: 'Una marca clara vende sola.', crear: 'Te lo diseñamos.', despues: 'Te lo recordamos en tu panel.' }[kit.logo] }
+    if (screen === 'colors')
+      message = { tone: 'good', text: { tengo: 'Tus colores, en todo lo que hagamos.', logo: 'Tus colores, en todo lo que hagamos.', crear: 'Te los proponemos.', despues: 'Cuando quieras, desde tu panel.' }[kit.colors] }
+    if (screen === 'data')
+      message =
+        kit.data === 'tengo'
+          ? { tone: 'good', text: 'Tus datos no se pierden: se mudan contigo.' }
+          : { tone: 'neutral', text: kit.data === 'cero' ? 'Empezamos limpio.' : 'Cuando quieras, desde tu panel.' }
     go(1, target, message)
   }
 
@@ -384,9 +530,85 @@ function SignupPage() {
     }
   }
 
+  // The colors of some images (or the logo), as the starting palette.
+  async function paletteFrom(sources) {
+    if (!sources.length) return setKit((k) => ({ ...k, palette: [] }))
+    setPaletteBusy(true)
+    try {
+      const palette = await readPalette(sources)
+      setKit((k) => ({ ...k, palette }))
+      setError(palette.length ? '' : 'No encontramos colores en esas imágenes. Agrégalos a mano.')
+    } catch (err) {
+      setError(err.message || 'No pudimos leer los colores.')
+    }
+    setPaletteBusy(false)
+  }
+
+  function pickColors(choice) {
+    setKit((k) => ({ ...k, colors: choice, palette: choice === k.colors ? k.palette : [] }))
+    if (choice === 'logo' && logo) paletteFrom([logo])
+    if (choice === 'tengo' && brandImages.length) paletteFrom(brandImages.map((i) => i.file))
+  }
+
+  function addBrandImages(e) {
+    const files = [...e.target.files]
+    e.target.value = ''
+    const bad = files.map(checkImage).find(Boolean)
+    if (bad) return setError(bad)
+    const next = [...brandImages, ...files.map((file) => ({ id: crypto.randomUUID(), file, url: URL.createObjectURL(file) }))].slice(0, MAX_BRAND_IMAGES)
+    setBrandImages(next)
+    paletteFrom(next.map((i) => i.file))
+  }
+
+  function removeBrandImage(id) {
+    const gone = brandImages.find((i) => i.id === id)
+    if (gone) URL.revokeObjectURL(gone.url)
+    const next = brandImages.filter((i) => i.id !== id)
+    setBrandImages(next)
+    paletteFrom(next.map((i) => i.file))
+  }
+
+  function addDataFiles(e) {
+    const files = [...e.target.files]
+    e.target.value = ''
+    const bad = files.map(checkData).find(Boolean)
+    if (bad) return setError(bad)
+    setError('')
+    setDataFiles((list) => [...list, ...files.map((file) => ({ id: crypto.randomUUID(), file }))].slice(0, MAX_DATA_FILES))
+  }
+
+  // How many people: the range the analysis reads goes with it.
+  function setTeam(n) {
+    const team = Math.max(0, Math.min(100000, Math.floor(Number(n) || 0)))
+    setAnswers((a) => ({ ...a, teamSize: team, companySize: team ? sizeOf(team) : '', accessUsers: Math.min(a.accessUsers || 0, team) || a.accessUsers }))
+  }
+  const setAccess = (n) => setAnswers((a) => ({ ...a, accessUsers: Math.max(0, Math.min(a.teamSize || 1, Math.floor(Number(n) || 0))) }))
+
+  // The images of the brand and the data, once the account exists. A file
+  // that fails doesn't undo the account: the last card says so, and the
+  // panel takes it later.
+  async function uploadKit() {
+    const queue = [
+      ...(kit.colors === 'tengo' ? brandImages.map((i) => ['brand_image', i.file]) : []),
+      ...(kit.data === 'tengo' ? dataFiles.map((d) => ['data', d.file]) : []),
+    ]
+    const out = []
+    for (const [i, [kind, file]] of queue.entries()) {
+      setUploading(`Subiendo tus archivos (${i + 1} de ${queue.length})…`)
+      try {
+        out.push({ name: file.name, kind, asset: await uploadAsset(kind, file) })
+      } catch (err) {
+        out.push({ name: file.name, kind, error: err.message })
+      }
+    }
+    setUploading('')
+    return out
+  }
+
   async function submit() {
     setBusy(true)
     setError('')
+    const long = path === 'personalizada'
     const discount = claim && { percent: claim.percent, destroyed: claim.destroyed, session_id: claim.sessionId, code: generateDiscountCode(claim.percent) }
     try {
       const res = await checkout({
@@ -401,11 +623,17 @@ function SignupPage() {
         answers: buildSubmission(answers),
         description: path === 'rapida' ? description.trim() : '',
         phone: account.phone.trim(),
-        brand: brand.choice === 'omitir' ? {} : { essence: brand.essence.trim(), help: brand.choice === 'ayuda', logo: brand.choice === 'tengo' ? logo : '' },
+        brand: long
+          ? { essence: brand.essence.trim(), help: kit.logo === 'crear', logo: kit.logo === 'tengo' ? logo : '' }
+          : brand.choice === 'omitir'
+            ? {}
+            : { essence: brand.essence.trim(), help: brand.choice === 'ayuda', logo: brand.choice === 'tengo' ? logo : '' },
+        kit: long ? { logo: kit.logo, colors: kit.colors, data: kit.data, palette: ['tengo', 'logo'].includes(kit.colors) ? kit.palette : [] } : undefined,
         discount,
         visitor_id: trackerVisitorId(),
       })
       storeTokens(res)
+      if (long) res.uploads = await uploadKit()
       saveDraft(null)
       markFormDone('register')
       if (res.discount?.percent) {
@@ -470,7 +698,7 @@ function SignupPage() {
                         screen={screen}
                         step={step}
                         headingRef={headingRef}
-                        state={{ path, setPath, answers, setAnswers, description, setDescription, analysis, pkgs, plan, pickPlan, chosen, limit, toggleModule, brand, setBrand, logo, setLogo, onLogo, account, setAccount, needsWhatsApp, prefilled: extracted?.prefilled ?? [], offer: offer?.key === offerKey ? offer.data : offer?.data, loadingOffer: offer?.key !== offerKey, addons, setAddon, next }}
+                        state={{ path, setPath, answers, setAnswers, description, setDescription, analysis, pkgs, plan, pickPlan, chosen, limit, toggleModule, brand, setBrand, logo, setLogo, onLogo, account, setAccount, needsWhatsApp, prefilled: extracted?.prefilled ?? [], offer: offer?.key === offerKey ? offer.data : offer?.data, loadingOffer: offer?.key !== offerKey, addons, setAddon, next, kit, setKit, pickColors, paletteBusy, brandImages, addBrandImages, removeBrandImage, dataFiles, setDataFiles, addDataFiles, setTeam, setAccess }}
                         onSubmitKey={next}
                       />
                       {error && (
@@ -502,7 +730,7 @@ function SignupPage() {
           nextLabel={
             screen === 'account'
               ? busy
-                ? 'Creando tu cuenta…'
+                ? uploading || 'Creando tu cuenta…'
                 : 'Despegar'
               : screen === 'brand' && !brand.choice
                 ? 'Omitir'
@@ -520,12 +748,32 @@ function SignupPage() {
 
 function art(screen, step) {
   if (step) return step.art
-  return { choose: 'scan', quick: 'paper', brand: 'beacon', account: 'boarding' }[screen] ?? 'orbit'
+  return { choose: 'scan', quick: 'paper', brand: 'beacon', logo: 'beacon', colors: 'target', data: 'paper', people: 'crew', access: 'crew', account: 'boarding' }[screen] ?? 'orbit'
 }
 
 function group(screen, step) {
   if (step) return step.group
-  return { choose: 'Tu cuenta', quick: 'Tu negocio', packages: 'Tu paquete', extras: 'Tu paquete', brand: 'Tu marca', account: 'Abordaje' }[screen] ?? ''
+  return (
+    {
+      choose: 'Tu cuenta',
+      quick: 'Tu negocio',
+      people: 'Tu negocio',
+      access: 'Tu negocio',
+      packages: 'Tu paquete',
+      extras: 'Tu paquete',
+      brand: 'Tu marca',
+      logo: 'Tu marca',
+      colors: 'Tu marca',
+      data: 'Tus datos',
+      account: 'Abordaje',
+    }[screen] ?? ''
+  )
+}
+
+function peopleVerdict(n) {
+  if (n <= 10) return { tone: 'good', text: 'Los grandes también empezaron pequeños.' }
+  if (n <= 50) return { tone: 'good', text: 'Creciste. Ahora tu negocio necesita ver más lejos.' }
+  return { tone: 'warn', text: 'A esta escala, decidir a ciegas sale caro.' }
 }
 
 const H1 = 'mt-3 text-3xl font-extrabold leading-[1.02] tracking-[-0.04em] outline-none sm:text-4xl lg:text-5xl'
@@ -697,6 +945,178 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
                 <span className="text-xs text-[var(--color-muted)]">PNG, JPG o WebP, hasta 1 MB.</span>
               </div>
             )}
+          </div>
+        )}
+      </>
+    )
+  }
+
+  if (screen === 'people')
+    return (
+      <>
+        {title('¿Cuántas personas son en tu negocio?')}
+        <p className="mt-3 text-[var(--color-ink-soft)]">Contándote a ti. Con esto sabemos el tamaño de tu operación.</p>
+        <NumberStepper label="Personas" value={s.answers.teamSize} onChange={s.setTeam} max={100000} onEnter={onSubmitKey} />
+      </>
+    )
+
+  if (screen === 'access')
+    return (
+      <>
+        {title('¿Cuántas necesitan entrar a AndRho?')}
+        <p className="mt-3 text-[var(--color-ink-soft)]">
+          Tú y quienes vayan a usar el panel: ventas, inventario, cuentas. Cada uno con su propio usuario. Son {s.answers.teamSize}{' '}
+          {s.answers.teamSize === 1 ? 'persona' : 'personas'} en total.
+        </p>
+        <NumberStepper label="Usuarios" value={s.answers.accessUsers} onChange={s.setAccess} max={s.answers.teamSize || 1} onEnter={onSubmitKey} />
+        {s.answers.teamSize > 1 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[1, Math.ceil(s.answers.teamSize / 2), s.answers.teamSize]
+              .filter((n, i, all) => all.indexOf(n) === i)
+              .map((n) => (
+                <button key={n} type="button" className="btn-outline !h-9 !px-4 text-sm" onClick={() => s.setAccess(n)}>
+                  {n === 1 ? 'Solo yo' : n === s.answers.teamSize ? 'Todos' : `${n} personas`}
+                </button>
+              ))}
+          </div>
+        )}
+      </>
+    )
+
+  if (screen === 'logo') {
+    const pick = (logo) => s.setKit({ ...s.kit, logo })
+    return (
+      <>
+        {title('¿Ya tienes logo?')}
+        <p className="mt-3 text-[var(--color-ink-soft)]">Va en tu sitio, tus redes y tu panel. Los Creators arrancan con él.</p>
+        <div role="radiogroup" aria-labelledby="signup-title" className="mt-6 grid gap-3">
+          <Choice selected={s.kit.logo === 'tengo'} onClick={() => pick('tengo')} title="Sí, ya tengo" body="Súbelo y lo usamos en todo." />
+          <Choice selected={s.kit.logo === 'crear'} onClick={() => pick('crear')} title="No, créenmelo" body="Un Creator de AndRho te lo diseña a partir de lo que nos contaste." />
+          <Choice selected={s.kit.logo === 'despues'} onClick={() => pick('despues')} title="Lo subo después" body="Te queda pendiente en tu panel." />
+        </div>
+        {s.kit.logo === 'tengo' && (
+          <div className="mt-5 flex flex-wrap items-center gap-4">
+            {s.logo && <img src={s.logo} alt="Tu logo" className="h-16 w-16 rounded-xl border border-[var(--window-line)] bg-white object-contain p-1" />}
+            <label className="btn-outline !h-11 cursor-pointer">
+              {s.logo ? 'Cambiar logo' : 'Subir logo'}
+              <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={s.onLogo} />
+            </label>
+            {s.logo && (
+              <button type="button" className="text-sm font-semibold text-[var(--violet-deep)] hover:underline" onClick={() => s.setLogo('')}>
+                Quitar
+              </button>
+            )}
+            <span className="text-xs text-[var(--color-muted)]">PNG, JPG o WebP, hasta 1 MB.</span>
+          </div>
+        )}
+        {(s.kit.logo === 'tengo' || s.kit.logo === 'crear') && (
+          <div className="mt-5">
+            <Field label={s.kit.logo === 'tengo' ? 'La esencia de tu marca (opcional)' : 'Lo que te gustaría transmitir (opcional)'}>
+              <textarea
+                className={TEXTAREA}
+                rows={3}
+                maxLength={1000}
+                value={s.brand.essence}
+                onChange={(e) => s.setBrand({ ...s.brand, essence: e.target.value })}
+                placeholder="Ej.: Pan de la abuela, cálido y de barrio. Nada de lujo."
+              />
+            </Field>
+          </div>
+        )}
+      </>
+    )
+  }
+
+  if (screen === 'colors') {
+    const showPalette = s.kit.colors === 'tengo' || s.kit.colors === 'logo'
+    return (
+      <>
+        {title('¿Ya tienes tus colores?')}
+        <p className="mt-3 text-[var(--color-ink-soft)]">Los usamos en tu sitio, tus publicaciones y tus documentos.</p>
+        <div role="radiogroup" aria-labelledby="signup-title" className="mt-6 grid gap-3 sm:grid-cols-2">
+          <Choice selected={s.kit.colors === 'tengo'} onClick={() => s.pickColors('tengo')} title="Sí, ya los tengo" body="Sube fotos de tu marca (local, empaques, tarjetas, redes) y sacamos sus colores." />
+          {s.logo ? (
+            <Choice selected={s.kit.colors === 'logo'} onClick={() => s.pickColors('logo')} title="Sácalos de mi logo" body="Generamos tu paleta a partir del logo que subiste." />
+          ) : (
+            <Choice selected={false} onClick={() => {}} title="Sácalos de mi logo" body="Sube primero tu logo (en la tarjeta anterior) para usar esta opción." disabled />
+          )}
+          <Choice selected={s.kit.colors === 'crear'} onClick={() => s.pickColors('crear')} title="No, créenmelos" body="Un Creator te propone una paleta que vaya con tu marca." />
+          <Choice selected={s.kit.colors === 'despues'} onClick={() => s.pickColors('despues')} title="Los subo después" body="Te queda pendiente en tu panel." />
+        </div>
+        {s.kit.colors === 'tengo' && (
+          <div className="mt-5">
+            <div className="flex flex-wrap items-center gap-3">
+              {s.brandImages.map((img) => (
+                <span key={img.id} className="relative">
+                  <img src={img.url} alt={img.file.name} className="h-16 w-16 rounded-xl border border-[var(--window-line)] bg-white object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => s.removeBrandImage(img.id)}
+                    aria-label={`Quitar ${img.file.name}`}
+                    className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-ink)] text-sm text-white"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              {s.brandImages.length < MAX_BRAND_IMAGES && (
+                <label className="btn-outline !h-11 cursor-pointer">
+                  {s.brandImages.length ? 'Agregar imágenes' : 'Subir imágenes'}
+                  <input type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" onChange={s.addBrandImages} />
+                </label>
+              )}
+            </div>
+            <p className="mt-2 text-xs text-[var(--color-muted)]">Hasta {MAX_BRAND_IMAGES} imágenes de 5 MB. También puedes poner tus colores a mano abajo.</p>
+          </div>
+        )}
+        {showPalette && <PaletteEditor kit={s.kit} setKit={s.setKit} busy={s.paletteBusy} source={s.kit.colors} />}
+      </>
+    )
+  }
+
+  if (screen === 'data') {
+    const pick = (data) => s.setKit({ ...s.kit, data })
+    return (
+      <>
+        {title('¿Ya tienes datos de tu negocio?')}
+        <p className="mt-3 text-[var(--color-ink-soft)]">Productos, clientes, proveedores, ventas: lo que lleves hoy en Excel, otro sistema o un respaldo.</p>
+        <div role="radiogroup" aria-labelledby="signup-title" className="mt-6 grid gap-3">
+          <Choice selected={s.kit.data === 'tengo'} onClick={() => pick('tengo')} title="Sí, ya tengo" body="Súbelos como estén. AndRho los acomoda en tu ERP." />
+          <Choice selected={s.kit.data === 'cero'} onClick={() => pick('cero')} title="No, empezamos de cero" body="Tu ERP arranca limpio." />
+          <Choice selected={s.kit.data === 'despues'} onClick={() => pick('despues')} title="Los subo después" body="Te queda pendiente en tu panel." />
+        </div>
+        {s.kit.data === 'tengo' && (
+          <div className="mt-5">
+            {s.dataFiles.length > 0 && (
+              <ul className="mb-3 grid gap-2">
+                {s.dataFiles.map((d) => (
+                  <li key={d.id} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--window-line)] bg-white/80 px-4 py-2.5 text-sm">
+                    <span className="min-w-0 truncate font-semibold">{d.file.name}</span>
+                    <span className="flex shrink-0 items-center gap-3">
+                      <span className="font-mono text-xs text-[var(--color-muted)]">{fileSize(d.file.size)}</span>
+                      <button
+                        type="button"
+                        className="text-sm font-semibold text-[var(--violet-deep)] hover:underline"
+                        onClick={() => s.setDataFiles((list) => list.filter((x) => x.id !== d.id))}
+                        aria-label={`Quitar ${d.file.name}`}
+                      >
+                        Quitar
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {s.dataFiles.length < MAX_DATA_FILES && (
+              <label className="btn-outline !h-11 cursor-pointer">
+                {s.dataFiles.length ? 'Agregar archivos' : 'Subir archivos'}
+                <input type="file" multiple accept={DATA_ACCEPT} className="sr-only" onChange={s.addDataFiles} />
+              </label>
+            )}
+            <p className="mt-3 rounded-xl border border-[var(--window-teal)]/40 bg-white/70 px-4 py-3 text-sm">
+              Excel, CSV, JSON o respaldo SQL, hasta 15 MB cada uno. Productos, clientes y proveedores se cargan solos a tu ERP; lo demás lo acomoda un
+              Creator.
+            </p>
           </div>
         )}
       </>
@@ -875,6 +1295,8 @@ function Extras({ s, title }) {
         </section>
       </div>
 
+      <UsersNote s={s} plan={plan} features={features} />
+
       <section aria-label="Resumen" className="mt-6 rounded-2xl border border-[var(--window-line)] bg-white/95 p-4 text-sm">
         <dl className="grid gap-1">
           <div className="flex justify-between gap-4">
@@ -897,6 +1319,40 @@ function Extras({ s, title }) {
         </dl>
       </section>
     </>
+  )
+}
+
+// How many people need AndRho (long signup) against the users the plan
+// gives, with the extra users as the quick fix.
+function UsersNote({ s, plan, features }) {
+  const need = s.answers?.accessUsers || 0
+  const included = plan.capabilities?.users
+  if (!need || included === undefined || included < 0) return null
+  const extra = s.addons.usuario_extra ?? 0
+  const have = included + extra
+  if (need <= included)
+    return (
+      <p className="mt-5 text-sm text-[var(--color-muted)]">
+        {plan.name} incluye {included} {included === 1 ? 'usuario' : 'usuarios'}: alcanza para las {need} {need === 1 ? 'persona' : 'personas'} que necesitan AndRho.
+      </p>
+    )
+  const addon = features.find((f) => f.featureId === 'usuario_extra')
+  const missing = need - have
+  const canAdd = addon?.selectable && missing > 0 ? Math.min(missing + extra, addon.addon?.max_qty ?? 1) : 0
+  return (
+    <div role="status" className="mt-5 rounded-xl border border-[var(--violet)]/30 bg-[var(--violet)]/5 px-4 py-3 text-sm">
+      <p>
+        Dijiste que {need} personas necesitan AndRho y {plan.name} incluye {included}
+        {extra ? ` (+${extra} extra)` : ''}.{' '}
+        {missing <= 0 ? 'Con los usuarios extra ya alcanza.' : `Te faltan ${missing}.`}
+      </p>
+      {canAdd > extra && (
+        <button type="button" className="btn-outline mt-2 !h-9 !px-4" onClick={() => s.setAddon('usuario_extra', canAdd)}>
+          Agregar {canAdd - extra} {canAdd - extra === 1 ? 'usuario extra' : 'usuarios extra'}
+        </button>
+      )}
+      {missing > 0 && canAdd - extra < missing && <p className="mt-1 text-[var(--color-muted)]">Para más, mira el plan siguiente.</p>}
+    </div>
   )
 }
 
@@ -954,6 +1410,25 @@ function DoneCard({ done, name, className }) {
                 Tu plan: {formatQ(done.checkout.quote.total)} al mes.
                 {done.checkout.payment_skipped ? ' Hoy no te cobramos; te avisamos antes de activar el pago.' : ''}
               </p>
+            )}
+            {done.uploads?.length > 0 && (
+              <div className="mt-6">
+                <p className="font-semibold">Tus archivos</p>
+                <ul className="mt-2 grid gap-2">
+                  {done.uploads.map((u, i) => (
+                    <li key={i} className="rounded-xl bg-white/70 px-4 py-3 text-sm">
+                      <span className="block font-semibold">{u.name}</span>
+                      <span className={u.error ? 'text-[var(--violet-deep)]' : 'text-[var(--color-muted)]'}>
+                        {u.error
+                          ? `${u.error} Súbelo de nuevo desde Configuración en tu panel.`
+                          : u.kind === 'data'
+                            ? describeData(u.asset)
+                            : 'Recibida: sus colores van a tu paleta.'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             {done.site?.status === 'offered' && (
               <p className="mt-2 text-sm text-[var(--color-muted)]">

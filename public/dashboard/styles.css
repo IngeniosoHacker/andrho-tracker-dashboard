@@ -649,3 +649,25 @@ td.mono { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-se
 .erp-bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent-human), var(--mint)); transition: width 0.6s ease; }
 .erp-bar-mini { height: 4px; margin-top: 6px; }
 .erp-creating-detail { display: flex; justify-content: space-between; gap: 12px; margin: 10px 0 0; font-size: 12.5px; color: var(--text-secondary); }
+
+/* "Tu marca y tus datos" (views/kit.js) and a Creator task's attachments. */
+.kit-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.kit-grid h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 14px; }
+.kit-grid .hint { margin: 6px 0; }
+.kit-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.kit-upload { cursor: pointer; }
+.kit-logo { display: block; max-width: 140px; max-height: 80px; object-fit: contain; border: 1px solid var(--border); border-radius: 10px; background: #fff; padding: 6px; }
+.kit-thumbs { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.kit-thumbs img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+.kit-swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.kit-swatch { display: inline-block; width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--border-strong); }
+.kit-hex { font-size: 11px; color: var(--text-tertiary); margin-right: 6px; }
+.kit-file { padding: 8px 0; border-top: 1px solid var(--border-soft); }
+.kit-file:first-of-type { border-top: 0; }
+.kit-tables { margin: 6px 0 0; padding-left: 18px; font-size: 12.5px; }
+.kit-tables li { margin: 3px 0; }
+.task-instructions { margin: 0 0 12px; padding-left: 18px; }
+.task-instructions li { margin: 4px 0; }
+.task-files { display: grid; gap: 8px; margin: 8px 0 0; }
+.task-file { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.task-file img { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border); background: #fff; }
