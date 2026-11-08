@@ -126,6 +126,18 @@ const PLANS = [
 ]
 const PLAN_RANK = { basico: 0, crecer: 1, todo: 2 }
 
+// What it can put into software each month today. The ranges are cut at
+// the plans' prices and come from andrho-api (GET /plans "budgets", ctx);
+// this copy is only for when the catalog can't be read.
+export const FALLBACK_BUDGETS = [
+  { id: 'hasta_120', label: 'Menos de Q120' },
+  { id: '120_349', label: 'De Q120 a Q348' },
+  { id: '349_750', label: 'De Q349 a Q749' },
+  { id: '750_1200', label: 'De Q750 a Q1,199' },
+  { id: '1200_2990', label: 'De Q1,200 a Q2,989' },
+  { id: 'desde_2990', label: 'Q2,990 o más' },
+]
+
 const SATISFACTION = [
   { value: 1, label: 'Nada' },
   { value: 2, label: 'Poco' },
@@ -524,6 +536,19 @@ export const STEPS = [
     verdict: () => ({ tone: 'good', text: 'Destino fijado.' }),
   },
   {
+    id: 'budget',
+    group: 'Tu destino',
+    art: 'gauge',
+    title: '¿Cuánto puedes invertir hoy en software al mes?',
+    hint: 'Lo que tienes hoy para esto. No lo que crees que vale ni lo que pagarías más adelante.',
+    kind: 'single',
+    options: (a, ctx) => (ctx?.budgets?.length ? ctx.budgets : FALLBACK_BUDGETS).map((b) => ({ value: b.id, label: b.label })),
+    note: () => 'Con esto te recomendamos un plan que tu negocio pueda sostener. No es un cobro.',
+    ...field('budget'),
+    valid: (a) => a.budget !== '',
+    verdict: () => ({ tone: 'good', text: 'Crecer sin ahorcarte. Así se hace.' }),
+  },
+  {
     id: 'planInterest',
     group: 'Tu destino',
     art: 'fleet',
@@ -565,6 +590,7 @@ export const INITIAL_ANSWERS = {
   // The long signup asks for numbers (signup.jsx "people" and "access").
   teamSize: 0,
   accessUsers: 0,
+  budget: '',
   salesMethods: [],
   sectorAnswers: {},
   restaurantExpiry: '',

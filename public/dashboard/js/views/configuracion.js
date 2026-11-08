@@ -17,6 +17,25 @@ const textToBranches = (text) => text.split('\n').map((l) => l.trim()).filter(Bo
 // The account's website: where it lives, its state, and its SEO (Search
 // Console's verification code included). An offered site says how to
 // turn it on.
+const isOwnerNow = () => roleAtLeast('owner');
+
+// The site's levels this account can buy (or upgrade to): construction
+// once, upkeep monthly (POST /account/site/buy).
+function siteBuy(site, isOwner) {
+  const options = (site.options || []).filter((o) => !o.included);
+  if (!options.length) return '';
+  return `
+      <div class="plan-grid" style="margin-top:12px">
+        ${options.map((o) => `
+          <div class="plan-card">
+            <p class="plan-card-name">${esc(o.upgrade ? `Mejorar a ${o.label.toLowerCase()}` : o.label)}</p>
+            <p class="hint" style="margin:0 0 6px">${esc(o.detail)}</p>
+            <p class="hint" style="margin:0 0 10px">${formatQ(o.setup)} una vez + ${formatQ(o.monthly)}/mes</p>
+            ${isOwner ? `<button type="button" class="copy-btn" data-buy-site="${esc(o.id)}">Quiero este sitio</button>` : ''}
+          </div>`).join('')}
+      </div>`;
+}
+
 function siteCard(site, canEdit) {
   if (!site) return '';
   const [label, cls] = SITE_STATUS[site.status] || [site.status, ''];
@@ -29,6 +48,7 @@ function siteCard(site, canEdit) {
         <dt>Estado</dt><dd><span class="status-pill ${cls}">${esc(label)}</span></dd>
       </dl>
       ${site.offer ? `<p class="hint">${esc(site.offer)}</p>` : ''}
+      ${siteBuy(site, isOwnerNow())}
       ${canEdit && site.status !== 'offered' ? `
         <details>
           <summary class="hint" style="cursor:pointer">SEO y Google Search Console</summary>
@@ -235,6 +255,10 @@ async function render(el) {
     window.dispatchEvent(new CustomEvent('andrho:business-type', { detail: t }));
   }, 'No se pudo cambiar el tipo de negocio.')));
 
+  el.querySelectorAll('[data-buy-site]').forEach((btn) => btn.addEventListener('click', () => {
+    if (!confirm('Tu sitio se construye ahora. La construcción se paga una vez y el mantenimiento se suma a tu plan. ¿Seguimos?')) return;
+    act(() => andrhoApi('/account/site/buy', { method: 'POST', body: JSON.stringify({ level: btn.dataset.buySite }) }), 'No pudimos agregar tu sitio.');
+  }));
   el.querySelectorAll('[data-set-plan]').forEach((btn) => btn.addEventListener('click', () => act(
     () => andrhoApi('/account/plan', { method: 'PATCH', body: JSON.stringify({ plan: btn.dataset.setPlan }) }),
     'No se pudo cambiar el plan.'

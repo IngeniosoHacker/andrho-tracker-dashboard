@@ -9,7 +9,8 @@ import { CARD, DeckNav, DeckStack, Verdict } from './components/survey/Deck.jsx'
 import Field from './components/ui/form/Field.jsx'
 import { TextInput, PasswordInput } from './components/ui/form/inputs.jsx'
 import { AlertIcon, BuildingIcon, LockIcon, MailIcon, SpinnerIcon } from './components/ui/icons.jsx'
-import { storeTokens, TOKEN_KEYS } from './lib/authApi.js'
+import { apiGet, storeTokens, TOKEN_KEYS } from './lib/authApi.js'
+import { enablePush, pushState, pushSupported } from './lib/push.js'
 import { resolveStep } from './lib/survey.js'
 import {
   DATA_ACCEPT,
@@ -221,7 +222,7 @@ function PaletteEditor({ kit, setKit, busy, source }) {
 
 // One package per plan. Galaxy is dark and labelled; the smaller ones
 // list, crossed out, what stays behind. The price is the catalog's.
-function PackageCard({ pkg, selected, onSelect }) {
+function PackageCard({ pkg, selected, onSelect, overBudget }) {
   const hero = pkg.recommended
   return (
     <button
@@ -249,6 +250,11 @@ function PackageCard({ pkg, selected, onSelect }) {
         <span className={`text-sm font-normal ${hero ? 'text-white/60' : 'text-[var(--color-muted)]'}`}>/mes</span>
       </span>
       <span className={`mt-1 text-sm ${hero ? 'text-white/70' : 'text-[var(--color-ink-soft)]'}`}>{pkg.tagline}</span>
+      {overBudget && (
+        <span className="mt-2 inline-block w-fit rounded-full bg-[var(--violet)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--violet-deep)]">
+          Por encima de lo que puedes invertir hoy
+        </span>
+      )}
 
       <span className="mt-4 space-y-1.5 text-sm">
         {pkg.core.map((c) => (
@@ -315,6 +321,13 @@ function SignupPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(null)
+  // The catalog's budget ranges (cut at the plans' prices) for that question.
+  const [budgets, setBudgets] = useState([])
+  useEffect(() => {
+    apiGet('/plans')
+      .then((d) => setBudgets(d.budgets ?? []))
+      .catch(() => {})
+  }, [])
   const { verdict, transition, arrive, cardMotion, moving, showingMessage } = useDeck()
   const headingRef = useRef(null)
   const firstRender = useRef(true)
@@ -322,7 +335,7 @@ function SignupPage() {
   const qSteps = questionSteps(answers)
   const flow = buildFlow(path, answers, extracted?.covered ?? [])
   const index = Math.max(0, flow.indexOf(screen))
-  const step = screen.startsWith('q:') ? resolveStep(qSteps.find((s) => `q:${s.id}` === screen) ?? qSteps[0], answers, {}) : null
+  const step = screen.startsWith('q:') ? resolveStep(qSteps.find((s) => `q:${s.id}` === screen) ?? qSteps[0], answers, { budgets }) : null
   const pkgs = analysis?.data?.packages ?? []
   const pkg = pkgs.find((p) => p.key === plan)
   const limit = pkg?.module_limit ?? -1
@@ -402,8 +415,11 @@ function SignupPage() {
     const data = await suggestSetup(answers, text, brandForAnalysis)
     const next = { key, data, summary: data.summary ?? '' }
     setAnalysis(next)
-    // New analysis, new defaults for the package's modules.
+    // New analysis, new defaults: the package it recommends (the biggest the
+    // business can sustain, internal/afford) and its modules.
+    if (data.recommended) setPlan(data.recommended)
     setModules(null)
+    setAddons({})
     return next
   }
 
@@ -667,7 +683,7 @@ function SignupPage() {
           {!showingMessage && <DeckStack />}
           {!showingMessage &&
             (done ? (
-              <DoneCard done={done} name={account.name} className={cardMotion} />
+              <DoneCard done={done} name={account.name} email={account.email.trim()} className={cardMotion} />
             ) : (
               <article key={screen} aria-labelledby="signup-title" className={`${CARD} ${cardMotion}`}>
                 <div className={`grid min-h-0 flex-1 ${wide ? '' : 'grid-rows-[auto_1fr] md:grid-cols-[0.95fr_1.05fr] md:grid-rows-1'}`}>
@@ -848,11 +864,21 @@ function Body({ screen, step, headingRef, state: s, onSubmitKey }) {
         {title('Tu nave, en cinco tamaños')}
         <p className="mt-3 max-w-3xl text-[var(--color-ink-soft)]">
           {s.analysis?.summary ? `${s.analysis.summary} ` : ''}
-          {best?.reasons?.length ? `Por lo que nos contaste: ${best.reasons.join(' ')}` : 'Elige con cuánto despega tu negocio.'}
+          {best?.afford_reason
+            ? best.afford_reason
+            : best?.reasons?.length
+              ? `Por lo que nos contaste: ${best.reasons.join(' ')}`
+              : 'Elige con cuánto despega tu negocio.'}
         </p>
         <div role="radiogroup" aria-label="Paquetes" className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:items-stretch">
           {s.pkgs.map((p) => (
-            <PackageCard key={p.key} pkg={p} selected={s.plan === p.key} onSelect={() => s.pickPlan(p.key)} />
+            <PackageCard
+              key={p.key}
+              pkg={p}
+              selected={s.plan === p.key}
+              onSelect={() => s.pickPlan(p.key)}
+              overBudget={best?.affordability?.budget && best.affordability.plans?.some((x) => x.id === p.key && !x.fits)}
+            />
           ))}
         </div>
         {s.pkgs.length > 0 && (
@@ -1171,8 +1197,10 @@ function Extras({ s, title }) {
     )
   }
   const { plan, next_plan: next, features, quote } = o
-  const picked = quote.addons.length > 0
-  const hasSite = plan.capabilities.website || !!s.addons.sitio_web_basico
+  // The next plan's add-ons (the site is its own product, below).
+  const stepLines = quote.addons.filter((a) => !a.featureId.startsWith('sitio_'))
+  const picked = stepLines.length > 0
+  const stepTotal = stepLines.reduce((t, a) => t + a.price, 0)
   return (
     <>
       {title(`${plan.name}: lo que incluye`)}
@@ -1195,14 +1223,7 @@ function Extras({ s, title }) {
               </li>
             ))}
           </ul>
-          <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${hasSite ? 'border-[var(--window-teal)]/50 bg-[var(--window-teal)]/8' : 'border-dashed border-[var(--window-line)]'}`}>
-            <p className="font-semibold">Tu sitio web</p>
-            <p className="text-[var(--color-muted)]">
-              {hasSite
-                ? 'Incluido: tu sitio en tunegocio.web.andrho.com, hecho por Creators y listo para Google.'
-                : 'Te guardamos tu dirección tunegocio.web.andrho.com. Se construye con Despegue o con el complemento Sitio web básico.'}
-            </p>
-          </div>
+          <SiteChooser options={o.site_options ?? []} addons={s.addons} setAddon={s.setAddon} />
         </section>
 
         <section aria-labelledby="interesar">
@@ -1276,7 +1297,7 @@ function Extras({ s, title }) {
                 </button>
                 {picked && (
                   <button type="button" className="btn-outline" onClick={s.next}>
-                    Desbloquear por +{formatQ(quote.addonsTotal)}
+                    Desbloquear por +{formatQ(stepTotal)}
                   </button>
                 )}
               </div>
@@ -1316,9 +1337,61 @@ function Extras({ s, title }) {
             <dt>Total mensual</dt>
             <dd className="font-mono">{formatQ(quote.total)}</dd>
           </div>
+          {(quote.setup ?? []).map((a) => (
+            <div key={a.featureId} className="flex justify-between gap-4 text-[var(--color-ink-soft)]">
+              <dt>{a.label} · pago único</dt>
+              <dd className="font-mono">{formatQ(a.price)}</dd>
+            </div>
+          ))}
         </dl>
       </section>
     </>
+  )
+}
+
+// The website: its own product. Building it is charged once and its upkeep
+// joins the monthly total; En órbita includes it with a store (pro costs the
+// difference) and Galaxy includes pro. Options and prices: POST /plans/quote.
+function SiteChooser({ options, addons, setAddon }) {
+  if (!options.length) return null
+  const included = options.find((o) => o.included)
+  const chosen = options.find((o) => !o.included && addons[o.feature_id])
+  const pick = (featureId) => {
+    for (const o of options) if (!o.included && addons[o.feature_id]) setAddon(o.feature_id, 0)
+    if (featureId) setAddon(featureId, 1)
+  }
+  return (
+    <fieldset className="mt-4 rounded-xl border border-[var(--window-line)] px-4 py-3 text-sm">
+      <legend className="px-1 font-semibold">Tu sitio web</legend>
+      <p className="text-[var(--color-muted)]">
+        {included
+          ? `Incluido en tu plan: ${included.label.toLowerCase()} en tunegocio.web.andrho.com, construcción y mantenimiento.`
+          : 'Tu dirección tunegocio.web.andrho.com ya es tuya. Construirlo se paga una vez y el mantenimiento se suma a tu plan.'}
+      </p>
+      <div role="radiogroup" aria-label="Sitio web" className="mt-2 grid gap-1.5">
+        <label className="flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white">
+          <input type="radio" name="site" className="mt-1 accent-[var(--window-teal)]" checked={!chosen} onChange={() => pick('')} />
+          <span>{included ? 'Lo que incluye mi plan' : 'Por ahora no'}</span>
+        </label>
+        {options
+          .filter((o) => !o.included)
+          .map((o) => (
+            <label key={o.feature_id} className="flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white">
+              <input type="radio" name="site" className="mt-1 accent-[var(--window-teal)]" checked={chosen?.feature_id === o.feature_id} onChange={() => pick(o.feature_id)} />
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">
+                  {o.upgrade ? `Mejorar a ${o.label.toLowerCase()}` : o.label}
+                </span>
+                <span className="block text-[var(--color-muted)]">{o.detail}</span>
+              </span>
+              <span className="shrink-0 text-right font-mono text-xs">
+                {formatQ(o.setup)} una vez
+                <br />+{formatQ(o.monthly)}/mes
+              </span>
+            </label>
+          ))}
+      </div>
+    </fieldset>
   )
 }
 
@@ -1357,21 +1430,54 @@ function UsersNote({ s, plan, features }) {
 }
 
 // The last card: welcome, and what AndRho is setting up (polls the jobs).
-function DoneCard({ done, name, className }) {
+// Jobs still on their way (the card keeps following them).
+const WAITING = ['pendiente', 'en_proceso', 'esperando_vps', 'error']
+
+function DoneCard({ done, name, email, className }) {
   const [jobs, setJobs] = useState(done.provisioning ?? [])
+  const [push, setPush] = useState('off') // off | asking | on | denied | unavailable
+  // Follows the setup until nothing is on its way: every 4 s for two
+  // minutes, then every 15 s (an ERP takes a few minutes), up to 45 min.
   useEffect(() => {
-    let n = 0
-    const id = setInterval(async () => {
-      if (++n > 10) return clearInterval(id)
+    let stop = false
+    let timer
+    const started = Date.now()
+    const tick = async () => {
+      let list = null
       try {
         const res = await fetch(`${API_URL}/account/provisioning`, { headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEYS.access)}` } })
-        if (res.ok) setJobs((await res.json()).jobs)
+        if (res.ok) list = (await res.json()).jobs
       } catch {
         // keep the last statuses
       }
-    }, 3000)
-    return () => clearInterval(id)
+      if (stop) return
+      if (list) setJobs(list)
+      const waiting = (list ?? []).some((j) => WAITING.includes(j.status))
+      const elapsed = Date.now() - started
+      if ((list && !waiting) || elapsed > 45 * 60 * 1000) return
+      timer = setTimeout(tick, elapsed < 2 * 60 * 1000 ? 4000 : 15000)
+    }
+    timer = setTimeout(tick, 1500)
+    return () => {
+      stop = true
+      clearTimeout(timer)
+    }
   }, [])
+  useEffect(() => {
+    pushState()
+      .then(setPush)
+      .catch(() => setPush('unavailable'))
+  }, [])
+  const erp = jobs.find((j) => j.kind === 'erp')
+  const erpWaiting = erp && WAITING.includes(erp.status)
+  async function askPush() {
+    setPush('asking')
+    try {
+      setPush(await enablePush())
+    } catch {
+      setPush('off')
+    }
+  }
   const first = (name || '').trim().split(/\s+/)[0]
   return (
     <article aria-labelledby="done-title" className={`${CARD} ${className}`}>
@@ -1391,9 +1497,14 @@ function DoneCard({ done, name, className }) {
               <ul className="mt-6 grid gap-2">
                 {jobs.map((j) => (
                   <li key={j.id} className="flex items-center justify-between gap-3 rounded-xl bg-white/70 px-4 py-3 text-sm">
-                    <span>
+                    <span className="min-w-0 flex-1">
                       <span className="block font-semibold">{JOB_LABELS[j.kind] ?? j.kind}</span>
                       <span className="text-[var(--color-muted)]">{j.detail}</span>
+                      {j.status === 'en_proceso' && j.progress > 0 && (
+                        <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-[var(--window-line)]" role="progressbar" aria-valuenow={j.progress} aria-valuemin={0} aria-valuemax={100}>
+                          <span className="block h-full rounded-full bg-[var(--window-teal)] transition-[width] duration-700" style={{ width: `${j.progress}%` }} />
+                        </span>
+                      )}
                     </span>
                     <span className="flex shrink-0 items-center gap-1.5 font-mono text-xs uppercase tracking-wider">
                       {['pendiente', 'en_proceso'].includes(j.status) && <SpinnerIcon className="h-3.5 w-3.5 animate-spin" />}
@@ -1405,9 +1516,28 @@ function DoneCard({ done, name, className }) {
             ) : (
               <p className="mt-4 text-[var(--color-muted)]">Tus módulos no necesitan instalar nada: entra y empieza.</p>
             )}
+            {erpWaiting && (
+              <div className="mt-5 rounded-xl border border-[var(--window-teal)]/40 bg-white/70 px-4 py-3 text-sm">
+                <p className="font-semibold">Tu ERP tarda unos minutos. No tienes que esperar aquí.</p>
+                <p className="mt-1 text-[var(--color-muted)]">
+                  Te escribimos{email ? ` a ${email}` : ''} cuando esté listo
+                  {push === 'on' ? ' y te llega un aviso a este navegador.' : '.'}
+                </p>
+                {pushSupported() && (push === 'off' || push === 'asking') && (
+                  <button type="button" className="btn-outline mt-3 !h-10" onClick={askPush} disabled={push === 'asking'}>
+                    {push === 'asking' ? 'Activando…' : 'Avisarme también en este navegador'}
+                  </button>
+                )}
+                {push === 'denied' && <p className="mt-2 text-[var(--violet-deep)]">Tu navegador bloqueó los avisos; igual te llega el correo.</p>}
+              </div>
+            )}
+            {erp?.status === 'listo' && (
+              <p role="status" className="mt-5 rounded-xl bg-[var(--mint)]/30 px-4 py-3 text-sm font-semibold">Tu ERP ya está listo. Entra a tu panel.</p>
+            )}
             {done.checkout?.quote && (
               <p className="mt-4 text-sm text-[var(--color-muted)]">
-                Tu plan: {formatQ(done.checkout.quote.total)} al mes.
+                Tu plan: {formatQ(done.checkout.quote.total)} al mes
+                {done.checkout.quote.setupTotal ? ` y ${formatQ(done.checkout.quote.setupTotal)} una vez por la construcción de tu sitio` : ''}.
                 {done.checkout.payment_skipped ? ' Hoy no te cobramos; te avisamos antes de activar el pago.' : ''}
               </p>
             )}
