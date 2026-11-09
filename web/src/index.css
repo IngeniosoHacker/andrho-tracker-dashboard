@@ -255,3 +255,19 @@ select:focus-visible {
     transition: none !important;
   }
 }
+
+/* Precios: an opened plan card grows its detail in. */
+@keyframes plan-grow {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+.plan-grow { animation: plan-grow 220ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .plan-grow { animation: none; }
+}
+
+/* Precios: plan cards. Open = the card and its detail panel, one surface. */
+.price-card:hover { background: rgba(255, 255, 255, 0.85); }
+.price-card-open { background: #ffffff; }
+.glass-scope .price-card:hover { background: rgba(255, 255, 255, 0.11); }
+.glass-scope .price-card-open { background: rgba(20, 32, 70, 0.92); }
