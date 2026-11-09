@@ -1,6 +1,13 @@
 // Configuración: team management (invites, roles), the account's plan and
 // its brand and data (kit.js: what the signup left pending).
-import { andrhoApi, andrhoApiFetch, esc, fmtDate, roleAtLeast, openDrawer, ROLE_LABEL, PLAN_LABEL } from '../core.js';
+import { andrhoApi, andrhoApiFetch, esc, fmtDate, roleAtLeast, openDrawer, ROLE_LABEL, PLAN_LABEL, session, fetchMe } from '../core.js';
+
+// Plan, type of business or a feature changed: read the account again
+// (its features) before redrawing, and tell the sidebar.
+async function refreshMe() {
+  try { session.account = await fetchMe(); } catch {}
+  window.dispatchEvent(new Event('andrho:refresh-me'));
+}
 import { kitCard, wireKit } from './kit.js';
 
 const formatQ = (n) => `Q${Number(n || 0).toLocaleString('en-US')}`;
@@ -99,6 +106,26 @@ function businessCard(biz, canEdit) {
     </div>`;
 }
 
+// Functions the account can turn on or off ("roles" of the product): a
+// function shows up in the dashboard and in the ERP only when the plan
+// includes it and the business uses it.
+function featuresCard(canEdit) {
+  const live = (session.account.features || {}).live_sale || { available: false, enabled: false };
+  return `
+    <div class="card" id="featuresCard">
+      <h2>Funciones <span class="hint">solo ves lo que tu plan incluye y tu negocio usa</span></h2>
+      <div class="plan-grid">
+        <div class="plan-card ${live.enabled ? 'plan-card-active' : ''}" style="text-align:left">
+          <p class="plan-card-name" style="margin:0 0 4px">Venta en vivo</p>
+          <p class="hint" style="margin:0 0 12px">Lives de Facebook: aparta con el primer comentario, confirma por Messenger y arma tus envíos.</p>
+          ${!live.available ? '<p class="hint" style="margin:0">Viene desde el plan Plataforma.</p>'
+            : canEdit ? `<button type="button" class="copy-btn" data-feature="live_sale" data-enabled="${live.enabled ? '0' : '1'}">${live.enabled ? 'Apagar' : 'Activar'}</button>`
+            : `<p class="hint" style="margin:0">${live.enabled ? 'Activada' : 'Apagada'}</p>`}
+        </div>
+      </div>
+    </div>`;
+}
+
 async function render(el) {
   el.innerHTML = '<p class="loading-state">cargando…</p>';
   const [usersData, planData, erp, prov, biz, catalog, siteData, kitData] = await Promise.all([
@@ -142,6 +169,8 @@ async function render(el) {
     </div>
 
     ${biz ? businessCard(biz, roleAtLeast('admin')) : ''}
+
+    ${featuresCard(roleAtLeast('admin'))}
 
     ${kitCard(kitData, roleAtLeast('admin'))}
 
@@ -253,14 +282,23 @@ async function render(el) {
     const t = btn.dataset.setType;
     await andrhoApi('/account/business-type', { method: 'PUT', body: JSON.stringify({ business_type: t }) });
     window.dispatchEvent(new CustomEvent('andrho:business-type', { detail: t }));
+    await refreshMe();
   }, 'No se pudo cambiar el tipo de negocio.')));
+
+  el.querySelectorAll('[data-feature]').forEach((btn) => btn.addEventListener('click', () => act(async () => {
+    const on = btn.dataset.enabled === '1';
+    if (!on && !confirm('¿Apagar la venta en vivo? Se oculta en AndRho y en tu ERP; tus lives y tarjetas se guardan.')) return;
+    const res = await andrhoApi(`/account/features/${btn.dataset.feature}`, { method: 'PUT', body: JSON.stringify({ enabled: on }) });
+    session.account.features = res.features;
+    await refreshMe();
+  }, 'No se pudo cambiar la función.')));
 
   el.querySelectorAll('[data-buy-site]').forEach((btn) => btn.addEventListener('click', () => {
     if (!confirm('Tu sitio se construye ahora. La construcción se paga una vez y el mantenimiento se suma a tu plan. ¿Seguimos?')) return;
     act(() => andrhoApi('/account/site/buy', { method: 'POST', body: JSON.stringify({ level: btn.dataset.buySite }) }), 'No pudimos agregar tu sitio.');
   }));
   el.querySelectorAll('[data-set-plan]').forEach((btn) => btn.addEventListener('click', () => act(
-    () => andrhoApi('/account/plan', { method: 'PATCH', body: JSON.stringify({ plan: btn.dataset.setPlan }) }),
+    async () => { await andrhoApi('/account/plan', { method: 'PATCH', body: JSON.stringify({ plan: btn.dataset.setPlan }) }); await refreshMe(); },
     'No se pudo cambiar el plan.'
   )));
 }

@@ -59,6 +59,11 @@ export default {
     this.el = el;
     const status = await andrhoApi('/live/status');
     this.status = status;
+    if (status.plan_allows && !status.enabled) {
+      el.innerHTML = emptyState('La venta en vivo está apagada',
+        'Actívala en <a href="#/configuracion">Configuración › Funciones</a> si vendes por lives de Facebook.', '🎥');
+      return;
+    }
     if (!status.plan_allows) {
       el.innerHTML = emptyState('La venta en vivo viene desde el plan Plataforma',
         'AndRho aparta con el primer comentario, le pregunta al comprador por Messenger con botones Sí/No, arma tus tarjetas de envío y publica lo que no se vendió. <a href="#/configuracion">Ver planes</a>', '🎥');
@@ -389,6 +394,13 @@ export default {
           <div class="live-card-preview"><p class="live-card-logo">${esc((session.account && session.account.companyName) || 'Tu logo')}</p><p data-preview></p></div>
           ${admin ? '<button type="submit">Guardar</button>' : ''}
         </form>
+        <form class="card invite-form" id="wordForm">
+          <h3 style="margin:0">Lo que no se vendió</h3>
+          <label>Palabra para pedir <input name="claim_word" maxlength="20" value="${esc(s.claim_word || 'mío')}" ${dis}></label>
+          <p class="hint" style="margin:-6px 0 0">En tus publicaciones de lo no vendido, quien comente esta palabra primero se lo lleva. No importan mayúsculas ni tildes: “Mío”, “mio” y “MÍO!” cuentan igual. Los demás comentarios se ignoran.</p>
+          <p class="live-word-preview">Comenta «<span data-word></span>» si lo quieres.</p>
+          ${admin ? '<button type="submit">Guardar</button>' : ''}
+        </form>
         <form class="card invite-form" id="loyaltyForm">
           <h3 style="margin:0">Clientes frecuentes</h3>
           <label class="live-check"><input type="checkbox" name="loyalty_enabled" ${s.loyalty_enabled === '1' ? 'checked' : ''} ${dis}> Premiar a quien más me compra</label>
@@ -410,6 +422,12 @@ export default {
       try { await andrhoApi('/live/settings', { method: 'PUT', body: JSON.stringify(pick(form)) }); btn.textContent = 'Guardado'; setTimeout(() => { btn.textContent = 'Guardar'; }, 1500); } catch (err) { alert(apiMsg(err)); }
       btn.disabled = false;
     });
+    const word = panel.querySelector('[name=claim_word]');
+    const wordPrev = panel.querySelector('[data-word]');
+    const paintWord = () => { const w = word.value.trim() || 'mío'; wordPrev.textContent = w.charAt(0).toUpperCase() + w.slice(1); };
+    word.addEventListener('input', paintWord);
+    paintWord();
+    save(panel.querySelector('#wordForm'), (f) => ({ claim_word: f.claim_word.value.trim() || 'mío' }));
     save(panel.querySelector('#cardForm'), (f) => ({ card_message: f.card_message.value, card_show_logo: f.card_show_logo.checked ? '1' : '0' }));
     save(panel.querySelector('#loyaltyForm'), (f) => ({ loyalty_enabled: f.loyalty_enabled.checked ? '1' : '0', loyalty_min: String(f.loyalty_min.value), loyalty_discount: String(f.loyalty_discount.value) }));
   }

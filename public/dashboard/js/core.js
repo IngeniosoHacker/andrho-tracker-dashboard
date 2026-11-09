@@ -41,6 +41,12 @@ export function roleAtLeast(min) {
 
 // AndRho's own staff (not a customer role): 'admin' sees AndRho's internal
 // metrics, 'creator' builds customer sites. Comes from /auth/me.
+// Whether the account has a feature on (plan + use), e.g. 'live_sale'.
+export function hasFeature(key) {
+  const f = session.account && session.account.features && session.account.features[key];
+  return Boolean(f && f.enabled);
+}
+
 export function isStaff(kind) {
   const staff = session.account && session.account.staffRole;
   if (!staff) return false;
@@ -110,7 +116,10 @@ export async function fetchMe() {
     siteId: data.site_id,
     companyName: data.company_name,
     plan: data.plan,
-    businessType: data.business_type || ''
+    businessType: data.business_type || '',
+    // { live_sale: { available, enabled } }: what the plan includes and
+    // the business uses. Sections tied to a feature hide without it.
+    features: data.features || {}
   };
 }
 

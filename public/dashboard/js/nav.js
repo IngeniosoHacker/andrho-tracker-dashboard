@@ -26,7 +26,8 @@ export const ICONS = {
 
 export const NAV = [
   { key: 'inicio', label: 'Inicio', section: 'inicio' },
-  { key: 'envivo', label: 'En vivo', section: 'envivo' },
+  // Only for accounts with live sales on (core.js hasFeature).
+  { key: 'envivo', label: 'En vivo', section: 'envivo', feature: 'live_sale' },
   { key: 'web', label: 'Web', section: 'web' },
   { key: 'social', label: 'Social', section: 'social' },
   { key: 'inventario', label: 'Inventario', section: 'inventario' },

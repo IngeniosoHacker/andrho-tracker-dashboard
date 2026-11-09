@@ -4,7 +4,7 @@
 // the section's summary, notifications and suggestions.
 import {
   session, getAccessToken, fetchMe, tryRefresh, clearTokensAndRedirect, logout,
-  esc, isStaff, ROLE_LABEL, closeDrawer, parseRoute, withPanel, andrhoApi
+  esc, isStaff, hasFeature, ROLE_LABEL, closeDrawer, parseRoute, withPanel, andrhoApi
 } from './core.js';
 import { STAFF_NAV, FOOTER_NAV, ICONS, findNav, orderedNav } from './nav.js';
 import { loadInsights } from './insights.js';
@@ -52,7 +52,7 @@ function navItem(n) {
 function drawSidebar() {
   const staff = STAFF_NAV.filter((n) => isStaff(n.staff));
   els.nav.innerHTML = `
-    ${orderedNav(session.account.businessType).map(navItem).join('')}
+    ${orderedNav(session.account.businessType).filter((n) => !n.feature || hasFeature(n.feature)).map(navItem).join('')}
     ${staff.length ? `<p class="side-group">AndRho</p>${staff.map(navItem).join('')}` : ''}
     <div class="side-spacer"></div>
     ${FOOTER_NAV.map(navItem).join('')}
@@ -71,7 +71,7 @@ let currentKey = null;
 async function route() {
   let { key, sub } = parseRoute();
   const nav = findNav(key);
-  if (!VIEWS[key] || !nav || (nav.staff && !isStaff(nav.staff))) {
+  if (!VIEWS[key] || !nav || (nav.staff && !isStaff(nav.staff)) || (nav.feature && !hasFeature(nav.feature))) {
     key = 'inicio'; sub = '';
   }
   const view = VIEWS[key];
@@ -145,6 +145,12 @@ els.insightsToggle.addEventListener('click', () => document.body.classList.toggl
 setupThemeToggle(document.getElementById('themeToggle'), () => { currentKey = null; route(); });
 // A view asks to be drawn again (e.g. the ERP became ready: views/erp.js).
 window.addEventListener('andrho:reload', () => { currentKey = null; route(); });
+// Plan, type of business or a feature changed (Configuración): read the
+// account again, so the sidebar shows only what it has.
+window.addEventListener('andrho:refresh-me', () => {
+  drawSidebar();
+  markActive(currentKey);
+});
 // The type of business changed (Configuración): new sidebar order.
 window.addEventListener('andrho:business-type', (e) => {
   session.account.businessType = e.detail || '';
