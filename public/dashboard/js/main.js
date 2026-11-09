@@ -24,8 +24,10 @@ import tokens from './views/tokens.js';
 import creators from './views/creators.js';
 import andrho from './views/andrho.js';
 import configuracion from './views/configuracion.js';
+import envivo from './views/envivo.js';
+import { setupLocate } from './locate.js';
 
-const VIEWS = { inicio, web, social, inventario, clientes, prospectos, sucursales, usuarios, resumen, tokens, configuracion, creators, andrho };
+const VIEWS = { inicio, envivo, web, social, inventario, clientes, prospectos, sucursales, usuarios, resumen, tokens, configuracion, creators, andrho };
 
 const els = {
   sidebar: document.getElementById('sidebar'),
@@ -129,6 +131,7 @@ async function boot() {
   drawSidebar();
   setupPresence();
   setupErpButton(document.getElementById('erpLaunch'));
+  setupLocate(document.getElementById('locate'));
   // A Creator (not an admin) lands on their tasks.
   if (!window.location.hash && a.staffRole === 'creator') history.replaceState(null, '', '#/creators');
   window.addEventListener('hashchange', route);

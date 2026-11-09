@@ -178,8 +178,8 @@ export function staticLandingHtml() {
   <p>Conecta y entiende tu negocio. AndRho es el centro de control que unifica tu ERP, tu marketing y tu equipo, lo analiza con modelos estadísticos y, con inteligencia artificial, te lo traduce en decisiones, no en más pestañas. Así que relájate: la plataforma se adapta a tu operación.</p>
   <p>AndRho está en beta abierta. <a href="/signup.html">Continuar</a> · <a href="/#progreso">Avance en vivo</a> · <a href="/articulos/">Artículos</a></p>
   <section>
-    <h2>Relájate</h2>
-    <p>Encárgate de ${esc(ACTIVITIES.slice(0, -1).join(', '))} mientras la plataforma hace toda la parte complicada.</p>
+    <h2>Relájate: vende en vivo por Facebook e Instagram</h2>
+    <p>Tú haces el live. AndRho aparta con el primer comentario, confirma por Messenger y arma tus envíos. <a href="/vende-en-vivo/">Vende en vivo con AndRho</a></p>
   </section>
   <section>
     <h2>Cómo funciona AndRho</h2>

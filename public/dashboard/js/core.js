@@ -82,6 +82,7 @@ export async function andrhoApiFetch(path, opts) {
   if (!res.ok) {
     const err = new Error((data && data.error) || res.statusText);
     err.status = res.status;
+    err.data = data;
     throw err;
   }
   return data;
@@ -277,7 +278,8 @@ export function wireTabs(nav, onSelect) {
 // Routing: "#/web/sesiones" -> { key: 'web', sub: 'sesiones' }
 // ---------------------------------------------------------------------
 export function parseRoute() {
-  const [key, sub] = window.location.hash.replace(/^#\/?/, '').split('/');
+  // "#/envivo/organizar?meta=ok": the query is the view's to read.
+  const [key, sub] = window.location.hash.replace(/^#\/?/, '').split('?')[0].split('/');
   return { key: key || 'inicio', sub: sub || '' };
 }
 
