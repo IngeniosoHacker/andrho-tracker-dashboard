@@ -1386,7 +1386,8 @@ function SiteChooser({ options, addons, setAddon }) {
               </span>
               <span className="shrink-0 text-right font-mono text-xs">
                 {formatQ(o.setup)} una vez
-                <br />+{formatQ(o.monthly)}/mes
+                <br />
+                {o.monthly > 0 ? `+${formatQ(o.monthly)}/mes` : 'mismo mantenimiento'}
               </span>
             </label>
           ))}

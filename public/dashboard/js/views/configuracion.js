@@ -30,7 +30,7 @@ function siteBuy(site, isOwner) {
           <div class="plan-card">
             <p class="plan-card-name">${esc(o.upgrade ? `Mejorar a ${o.label.toLowerCase()}` : o.label)}</p>
             <p class="hint" style="margin:0 0 6px">${esc(o.detail)}</p>
-            <p class="hint" style="margin:0 0 10px">${formatQ(o.setup)} una vez + ${formatQ(o.monthly)}/mes</p>
+            <p class="hint" style="margin:0 0 10px">${formatQ(o.setup)} una vez${o.monthly > 0 ? ` + ${formatQ(o.monthly)}/mes` : ', mismo mantenimiento'}</p>
             ${isOwner ? `<button type="button" class="copy-btn" data-buy-site="${esc(o.id)}">Quiero este sitio</button>` : ''}
           </div>`).join('')}
       </div>`;

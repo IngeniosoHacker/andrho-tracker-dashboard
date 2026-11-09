@@ -150,7 +150,14 @@ function PlanDetail({ plan, plans, sites }) {
                 {state === 'covered' && <p className="mt-1">Ya cubierto por lo que trae tu plan</p>}
                 {state === 'buy' && (
                   <p className="mt-1">
-                    <strong>{money(setup)}</strong> una vez + <strong>{money(monthly)}/mes</strong>
+                    <strong>{money(setup)}</strong> una vez
+                    {monthly > 0 ? (
+                      <>
+                        {' '}+ <strong>{money(monthly)}/mes</strong>
+                      </>
+                    ) : (
+                      <span className="block">y el mismo mantenimiento</span>
+                    )}
                     {includedSiteRank(plan) > 0 && (
                       <span className="block text-[var(--color-ink-soft)]">Pagas solo la diferencia</span>
                     )}
@@ -178,6 +185,11 @@ function SiteKinds({ plans, sites }) {
       <h3 id="sitios-title" className="text-xl font-extrabold tracking-tight sm:text-2xl">
         Tres tipos de sitio web, hechos por Creators
       </h3>
+      {sites.every((l) => l.monthly === sites[0]?.monthly) && (
+        <p className="mt-1 text-sm text-[var(--color-ink-soft)]">
+          El mantenimiento es el mismo para los tres: {money(sites[0].monthly)}/mes. Solo cambia la construcción.
+        </p>
+      )}
       <ul className="mt-3 grid gap-2 sm:grid-cols-3 sm:gap-3">
         {sites.map((level, i) => {
           const kind = SITE_KINDS[level.id] ?? { name: level.label, adds: [level.detail].filter(Boolean) }

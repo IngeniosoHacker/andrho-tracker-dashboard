@@ -24,9 +24,9 @@ const FALLBACK = {
   site_levels: [
     { id: 'basico', label: 'Sitio web + SEO básico', setup: 1500, monthly: 150,
       detail: 'Tu sitio en <nombre>.web.andrho.com, hecho por Creators y listo para Google.' },
-    { id: 'tienda', label: 'Sitio web con tienda en línea', setup: 2500, monthly: 250,
+    { id: 'tienda', label: 'Sitio web con tienda en línea', setup: 2500, monthly: 150,
       detail: 'Tu sitio y tu tienda: tus productos se venden en línea y aparecen en Google.' },
-    { id: 'pro', label: 'Sitio pro', setup: 4000, monthly: 400,
+    { id: 'pro', label: 'Sitio pro', setup: 4000, monthly: 150,
       detail: 'Tienda, una página por sucursal y por servicio, y blog o landings de Creators.' },
   ],
 }
