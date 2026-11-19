@@ -126,6 +126,23 @@ function featuresCard(canEdit) {
     </div>`;
 }
 
+// Each user links their own WhatsApp to AndRho's number: they send a code
+// from it, and from then on AndRho knows them there with their role.
+function whatsappCard(wa) {
+  if (!wa) return '';
+  return `
+    <div class="card" id="waCard">
+      <h2>Tu WhatsApp <span class="hint">habla con AndRho desde tu WhatsApp, con los permisos de tu rol</span></h2>
+      ${wa.linked ? `
+        <p style="margin:0 0 12px">Vinculado: <span class="mono">${esc(wa.phone)}</span>${wa.verified_at ? ` · desde ${fmtDate(wa.verified_at)}` : ''}</p>
+        <button type="button" class="danger-link" id="waUnlink">Desvincular</button>`
+      : !wa.enabled ? '<p class="hint" style="margin:0">El WhatsApp de AndRho todavía no está activo. Te avisamos cuando lo esté.</p>'
+      : `<p class="hint" style="margin:0 0 12px">Te damos un código; mándalo desde tu WhatsApp al número de AndRho. Vence en 15 minutos.</p>
+        <button type="button" class="copy-btn" id="waLink">Vincular mi WhatsApp</button>
+        <div id="waCode" hidden style="margin-top:12px"></div>`}
+    </div>`;
+}
+
 async function render(el) {
   el.innerHTML = '<p class="loading-state">cargando…</p>';
   const [usersData, planData, erp, prov, biz, catalog, siteData, kitData] = await Promise.all([
@@ -137,6 +154,7 @@ async function render(el) {
     andrhoApi('/account/site').catch(() => ({ site: null })),
     andrhoApi('/account/assets').catch(() => null)
   ]);
+  const wa = await andrhoApi('/account/me/whatsapp').catch(() => null);
   const canManageTeam = roleAtLeast('admin');
   const isOwner = roleAtLeast('owner');
 
@@ -167,6 +185,8 @@ async function render(el) {
         </tbody>
       </table>
     </div>
+
+    ${whatsappCard(wa)}
 
     ${biz ? businessCard(biz, roleAtLeast('admin')) : ''}
 
@@ -264,6 +284,29 @@ async function render(el) {
   };
 
   wireKit(el, kitData, () => render(el));
+
+  const waLink = el.querySelector('#waLink');
+  if (waLink) waLink.addEventListener('click', async () => {
+    waLink.disabled = true;
+    const box = el.querySelector('#waCode');
+    try {
+      const r = await andrhoApi('/account/me/whatsapp/link', { method: 'POST' });
+      box.innerHTML = `
+        <p style="margin:0 0 8px">Manda este mensaje${r.number ? ` al <span class="mono">+${esc(r.number)}</span>` : ''}:</p>
+        <p class="mono" style="font-size:1.1em;margin:0 0 12px">${esc(r.text)}</p>
+        ${r.link ? `<a class="copy-btn" href="${esc(r.link)}" target="_blank" rel="noopener">Abrir WhatsApp</a>` : ''}
+        <p class="hint" style="margin:12px 0 0">Cuando AndRho te conteste, vuelve aquí y recarga.</p>`;
+      box.hidden = false;
+    } catch (err) {
+      alert((err.data && err.data.message) || err.message || 'No se pudo generar el código.');
+      waLink.disabled = false;
+    }
+  });
+  const waUnlink = el.querySelector('#waUnlink');
+  if (waUnlink) waUnlink.addEventListener('click', () => {
+    if (!confirm('¿Desvincular tu WhatsApp de AndRho?')) return;
+    act(() => andrhoApi('/account/me/whatsapp', { method: 'DELETE' }), 'No se pudo desvincular.');
+  });
 
   const inviteBtn = el.querySelector('#inviteBtn');
   if (inviteBtn) inviteBtn.addEventListener('click', openInviteDrawer);
