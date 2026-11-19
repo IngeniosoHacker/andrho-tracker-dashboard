@@ -4,7 +4,7 @@
 // program. The ERP (Odoo, module andrho_live_sale) is the operational side.
 import {
   andrhoApi, esc, fmtMoney, fmtNum, fmtDate, tabStrip, wireTabs, setSubRoute, roleAtLeast, emptyState,
-  chart, barChartOptions, cssVar, session
+  chart, barChartOptions, cssVar, session, hasFeature
 } from '../core.js';
 
 const TABS = [
@@ -12,8 +12,13 @@ const TABS = [
   { key: 'vivo', label: 'En vivo' },
   { key: 'historial', label: 'Historial' },
   { key: 'tarjetas', label: 'Tarjetas de envío' },
+  { key: 'personas', label: 'Clientes y prospectos' },
   { key: 'ajustes', label: 'Ajustes' }
 ];
+
+const KIND = { customer: ['Cliente', 'status-terminada'], prospect: ['Prospecto', 'status-sugerida'] };
+const SOURCE = { comment: 'Nombró un artículo', comment_other: 'Comentó', message: 'Escribió a tu Página', reaction: 'Reaccionó' };
+const CHANNEL = { whatsapp: 'WhatsApp', messenger: 'Messenger' };
 
 const LINE_STATE = {
   available: ['Disponible', ''],
@@ -150,6 +155,7 @@ export default {
       else if (tab === 'vivo') await this.onAir(panel);
       else if (tab === 'historial') await this.history(panel);
       else if (tab === 'tarjetas') await this.cards(panel);
+      else if (tab === 'personas') await this.people(panel);
       else await this.settings(panel);
     } catch (err) {
       panel.innerHTML = err.status === 404
@@ -346,6 +352,54 @@ export default {
     }
   },
 
+  // --- Clientes y prospectos ---------------------------------------------------
+  // Who bought (named an item) and who only interacted, per live; their
+  // preferred channel and how many prospects became customers. People who
+  // only watch a live aren't available from Meta.
+  async people(panel) {
+    if (!hasFeature('live_crm')) {
+      panel.innerHTML = emptyState('Clientes y prospectos está apagado', 'Actívalo en Ajustes para que cada live alimente tus contactos.', '👥');
+      return;
+    }
+    const [c, { lives }] = await Promise.all([andrhoApi('/live/contacts'), andrhoApi('/live/sessions')]);
+    const withSession = lives.filter((l) => l.session_id);
+    const pct = (x) => `${Math.round((x || 0) * 100)}%`;
+    panel.innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-card"><p class="kpi-label">Clientes</p><p class="kpi-value">${fmtNum(c.customers)}</p></div>
+        <div class="kpi-card"><p class="kpi-label">Prospectos</p><p class="kpi-value">${fmtNum(c.prospects)}</p></div>
+        <div class="kpi-card"><p class="kpi-label">Prospectos que compraron</p><p class="kpi-value ai">${pct(c.conversion)}</p><p class="kpi-sub">${fmtNum(c.converted)} de ${fmtNum(c.converted + c.prospects)}</p></div>
+        <div class="kpi-card"><p class="kpi-label">Prefieren</p><p class="kpi-value">${fmtNum((c.channels || {}).whatsapp || 0)} <span class="hint">WhatsApp</span> · ${fmtNum((c.channels || {}).messenger || 0)} <span class="hint">Messenger</span></p></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="section-head"><h3 style="margin:0">Por live</h3>
+          ${withSession.length ? `<select id="peopleLive" aria-label="Live">${withSession.map((l) => `<option value="${esc(l.session_id)}">${esc(l.name)}</option>`).join('')}</select>` : ''}
+        </div>
+        <div id="peopleOfLive">${withSession.length ? '<p class="loading-state">cargando…</p>' : '<p class="empty-state">Cuando hagas tu primer live, aquí ves quién compró y quién solo comentó.</p>'}</div>
+      </div>
+      <div class="card"><h3 style="margin-top:0">Todos</h3>${this.peopleTable(c.contacts, false)}</div>
+      <p class="hint">Quien solo mira tu live sin comentar no aparece: Facebook no lo comparte. En tu ERP los ves con las etiquetas “Cliente” y “Prospecto”.</p>`;
+    const sel = panel.querySelector('#peopleLive');
+    const load = async () => {
+      const box = panel.querySelector('#peopleOfLive');
+      try {
+        const d = await andrhoApi(`/live/sessions/${encodeURIComponent(sel.value)}/people`);
+        box.innerHTML = `<p class="hint" style="margin:0 0 8px">${fmtNum(d.customers)} clientes · ${fmtNum(d.prospects)} prospectos</p>${this.peopleTable(d.people, true)}`;
+      } catch (err) { box.innerHTML = `<p class="empty-state">${esc(apiMsg(err))}</p>`; }
+    };
+    if (sel) { sel.addEventListener('change', load); load(); }
+  },
+
+  peopleTable(rows, withItems) {
+    if (!rows || !rows.length) return '<p class="empty-state">Nadie todavía.</p>';
+    return `<table><thead><tr><th>Nombre</th><th>Tipo</th><th>Cómo llegó</th>${withItems ? '<th>Artículos</th>' : '<th class="num">Compras</th>'}<th>Medio preferido</th><th>Aviso de datos</th></tr></thead><tbody>
+      ${rows.map((p) => `<tr><td>${esc(p.name)}</td><td>${pill(KIND, p.kind)}${p.converted_at ? ' <span class="hint">antes prospecto</span>' : ''}</td><td>${esc(SOURCE[p.source] || '')}</td>
+        ${withItems ? `<td>${(p.items || []).map((i) => esc(i.live_name)).join(', ') || '—'}</td>` : `<td class="num">${fmtNum(p.purchase_count)}</td>`}
+        <td>${esc(CHANNEL[p.preferred_channel] || '—')}${p.has_whatsapp ? ' <span class="hint">· escribió por WhatsApp</span>' : ''}</td>
+        <td>${p.consent_at ? `${esc(CHANNEL[p.consent_channel] || '')} · <span class="mono">${fmtDate(new Date(p.consent_at.replace(' ', 'T') + 'Z'))}</span>` : '—'}</td></tr>`).join('')}
+    </tbody></table>`;
+  },
+
   // --- Tarjetas -------------------------------------------------------------
   async cards(panel) {
     const { cards } = await andrhoApi('/live/cards');
@@ -401,6 +455,18 @@ export default {
           <p class="live-word-preview">Comenta «<span data-word></span>» si lo quieres.</p>
           ${admin ? '<button type="submit">Guardar</button>' : ''}
         </form>
+        <form class="card invite-form" id="crmForm">
+          <h3 style="margin:0">Clientes y prospectos</h3>
+          <label class="live-check"><input type="checkbox" name="live_crm" ${hasFeature('live_crm') ? 'checked' : ''} ${dis}> Guardar en mis contactos a quien compra y a quien comenta</label>
+          <label class="live-check"><input type="checkbox" name="capture_reactions" ${s.capture_reactions === '1' ? 'checked' : ''} ${dis}> Contar también a quien solo reacciona</label>
+          <p class="hint" style="margin:-6px 0 0">A quien reacciona no se le puede escribir; solo queda su nombre.</p>
+          <label>Tu política de privacidad <input name="privacy_url" type="url" placeholder="https://…" value="${esc(s.privacy_url || '')}" ${dis}></label>
+          <p class="hint" style="margin:-6px 0 0">Se enlaza al cerrar cada confirmación. El primer mensaje ya avisa que los datos se guardan solo para gestionar el pedido.</p>
+          ${(session.account.features || {}).live_whatsapp && session.account.features.live_whatsapp.available ? `
+          <label class="live-check"><input type="checkbox" name="live_whatsapp" ${hasFeature('live_whatsapp') ? 'checked' : ''} ${dis}> Botón “Chatear por WhatsApp” (en prueba)</label>
+          <p class="hint" style="margin:-6px 0 0">En prueba usa el número de AndRho. Tu propio número llega cuando Meta apruebe a AndRho.</p>` : ''}
+          ${admin ? '<button type="submit">Guardar</button>' : ''}
+        </form>
         <form class="card invite-form" id="loyaltyForm">
           <h3 style="margin:0">Clientes frecuentes</h3>
           <label class="live-check"><input type="checkbox" name="loyalty_enabled" ${s.loyalty_enabled === '1' ? 'checked' : ''} ${dis}> Premiar a quien más me compra</label>
@@ -429,6 +495,24 @@ export default {
     paintWord();
     save(panel.querySelector('#wordForm'), (f) => ({ claim_word: f.claim_word.value.trim() || 'mío' }));
     save(panel.querySelector('#cardForm'), (f) => ({ card_message: f.card_message.value, card_show_logo: f.card_show_logo.checked ? '1' : '0' }));
+    const crm = panel.querySelector('#crmForm');
+    crm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = crm.querySelector('button[type=submit]');
+      btn.disabled = true;
+      try {
+        await andrhoApi('/live/settings', { method: 'PUT', body: JSON.stringify({ capture_reactions: crm.capture_reactions.checked ? '1' : '0', privacy_url: crm.privacy_url.value.trim() }) });
+        const flags = [['live_crm', crm.live_crm.checked]];
+        if (crm.live_whatsapp) flags.push(['live_whatsapp', crm.live_whatsapp.checked]);
+        for (const [f, on] of flags) {
+          if (hasFeature(f) === on) continue;
+          const r = await andrhoApi(`/account/features/${f}`, { method: 'PUT', body: JSON.stringify({ enabled: on }) });
+          session.account.features = r.features;
+        }
+        btn.textContent = 'Guardado'; setTimeout(() => { btn.textContent = 'Guardar'; }, 1500);
+      } catch (err) { alert(apiMsg(err)); }
+      btn.disabled = false;
+    });
     save(panel.querySelector('#loyaltyForm'), (f) => ({ loyalty_enabled: f.loyalty_enabled.checked ? '1' : '0', loyalty_min: String(f.loyalty_min.value), loyalty_discount: String(f.loyalty_discount.value) }));
   }
 };
