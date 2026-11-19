@@ -22,7 +22,7 @@ function ArticlesPage() {
             Lee mientras <span className="text-[var(--window-teal)]">despegamos</span>
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-snug">
-            Datos, software libre, ERP y marketing para pymes en Guatemala, desde lo que aprendemos construyendo AndRho.
+            Datos, software libre, ERP y marketing para negocios de todo tamaño en Guatemala, desde lo que aprendemos construyendo AndRho.
           </p>
           <ul className="mt-10 grid gap-5 md:grid-cols-2">
             {articles.map((a) => (

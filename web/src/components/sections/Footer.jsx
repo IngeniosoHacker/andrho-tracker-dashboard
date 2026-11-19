@@ -68,7 +68,7 @@ export default function Footer() {
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm text-white/55">
-              Análisis de datos con inteligencia artificial para pymes en Guatemala: sitio web, redes, Odoo, hardware y
+              Análisis de datos con inteligencia artificial para negocios de todo tipo y tamaño: sitio web, redes, Odoo, hardware y
               Creators en una sola cuenta.
             </p>
           </div>

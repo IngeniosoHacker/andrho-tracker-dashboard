@@ -2,7 +2,7 @@ import LiveDemo from '../landing/LiveDemo.jsx'
 
 // Window view, opens the "relájate" group. Since 2026-11-09 it leads with
 // live sales (founder/marketing.md): most of December's buyers sell through
-// Facebook and Instagram lives. The rest of the site stays for the pymes.
+// Facebook and Instagram lives. The rest of the site speaks to every kind and size of business.
 export default function Relajate() {
   return (
     <div className="grid items-center gap-6 p-6 sm:p-10 md:grid-cols-[1fr_1fr] md:gap-12 md:p-14 lg:p-16">

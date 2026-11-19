@@ -14,9 +14,9 @@ export const SITE = {
   url: 'https://andrho.com',
   name: 'AndRho',
   locale: 'es_GT',
-  title: 'AndRho: análisis de datos con IA para pymes en Guatemala',
+  title: 'AndRho: análisis de datos con IA para negocios de todo tipo y tamaño',
   description:
-    'AndRho unifica los datos de tu ERP y tu marketing, los analiza con modelos estadísticos y la IA te los traduce en decisiones claras. Sitio web, redes, Odoo y Creators en una sola cuenta.',
+    'Para negocios de todo tipo y tamaño, del emprendimiento a la empresa con varias sucursales. AndRho unifica tu ERP y tu marketing, los analiza con estadística y la IA te los traduce en decisiones claras.',
   ogImage: 'https://andrho.com/images/og/andrho-og.png',
   instagram: 'https://www.instagram.com/andrho.app/',
   instagramHandle: '@andrho.app',
@@ -28,7 +28,7 @@ export const SITE = {
 export const FAQ = [
   {
     q: '¿Qué es AndRho?',
-    a: 'AndRho es una plataforma de análisis de datos para pymes en Guatemala. Unifica la información de las distintas áreas de tu empresa — principalmente el ERP y el marketing —, la analiza de forma constante con modelos estadísticos y matemáticos, y usa inteligencia artificial para interpretar los resultados y explicártelos en lenguaje claro.',
+    a: 'AndRho es una plataforma de análisis de datos que se adapta a negocios de cualquier tipo y tamaño, desde quien vende por redes hasta empresas con varias sucursales o varias empresas. Unifica la información de las distintas áreas de tu empresa — principalmente el ERP y el marketing —, la analiza de forma constante con modelos estadísticos y matemáticos, y usa inteligencia artificial para interpretar los resultados y explicártelos en lenguaje claro.',
   },
   {
     q: '¿Tengo que cambiar mi ERP o los sistemas que ya uso?',
@@ -36,7 +36,7 @@ export const FAQ = [
   },
   {
     q: '¿Para qué tipo de negocios es AndRho?',
-    a: 'Para pequeñas y medianas empresas de Guatemala: comercios y retail, restaurantes, empresas de servicios, manufactura, logística y salud.',
+    a: 'Para cualquier tipo y tamaño de negocio. AndRho se configura según tu giro y tu escala: emprendimientos que venden por redes, comercios y retail, restaurantes, servicios, construcción, manufactura, logística y salud, y empresas con varias sucursales, cientos de usuarios o varias empresas. Los planes crecen contigo, de una sucursal a ilimitadas.',
   },
   {
     q: '¿AndRho usa agentes de inteligencia artificial?',
@@ -127,6 +127,10 @@ export function jsonLd() {
     areaServed: { '@type': 'Country', name: 'Guatemala' },
     description: SITE.description,
   }
+  const audience = {
+    '@type': 'BusinessAudience',
+    audienceType: 'Negocios de cualquier tipo y tamaño: emprendimientos, comercios, restaurantes, servicios, construcción, manufactura, logística, salud y empresas con varias sucursales o varias empresas',
+  }
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -147,7 +151,9 @@ export function jsonLd() {
         operatingSystem: 'Web',
         inLanguage: 'es',
         description: SITE.description,
+        audience,
         featureList: [
+          'Se adapta a negocios de cualquier tipo y tamaño, con planes de una sucursal a ilimitadas',
           'Unificación de los datos del ERP y del marketing en un solo panel',
           'Análisis constante con modelos estadísticos y matemáticos',
           'Interpretación de resultados en lenguaje claro con inteligencia artificial',
@@ -174,8 +180,8 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 export function staticLandingHtml() {
   return `
 <main class="seo-fallback">
-  <h1>AndRho: análisis de datos con inteligencia artificial para pymes en Guatemala</h1>
-  <p>Conecta y entiende tu negocio. AndRho es el centro de control que unifica tu ERP, tu marketing y tu equipo, lo analiza con modelos estadísticos y, con inteligencia artificial, te lo traduce en decisiones, no en más pestañas. Así que relájate: la plataforma se adapta a tu operación.</p>
+  <h1>AndRho: análisis de datos con inteligencia artificial para negocios de todo tipo y tamaño</h1>
+  <p>Conecta y entiende tu negocio. AndRho es el centro de control que unifica tu ERP, tu marketing y tu equipo, lo analiza con modelos estadísticos y, con inteligencia artificial, te lo traduce en decisiones, no en más pestañas. Así que relájate: la plataforma se adapta a tu operación, sea un emprendimiento o una empresa con varias sucursales.</p>
   <p>AndRho está en beta abierta. <a href="/signup.html">Continuar</a> · <a href="/#progreso">Avance en vivo</a> · <a href="/articulos/">Artículos</a></p>
   <section>
     <h2>Relájate: vende en vivo por Facebook e Instagram</h2>

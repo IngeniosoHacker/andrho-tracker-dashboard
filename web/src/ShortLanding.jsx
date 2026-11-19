@@ -98,7 +98,7 @@ export default function ShortLanding() {
             Qué es AndRho
           </h2>
           <p className="mt-3 leading-relaxed text-[var(--color-ink-soft)]">
-            Un centro de control para pymes: junta los datos de tu ERP y tu marketing, los analiza con modelos estadísticos y
+            Un centro de control para negocios de cualquier tipo y tamaño: junta los datos de tu ERP y tu marketing, los analiza con modelos estadísticos y
             la inteligencia artificial te explica en lenguaje claro qué está pasando y qué conviene hacer. Nada se ejecuta sin
             tu aprobación.
           </p>

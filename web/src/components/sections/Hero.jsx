@@ -37,7 +37,7 @@ export default function Hero({ morph: t, titleRef, wordRefs }) {
           <span ref={titleRef} aria-hidden="true" className="inline-block whitespace-nowrap" style={{ visibility: moving ? 'hidden' : 'visible' }}>
             <ScrambleLogo paused={moving} />
           </span>
-          <span className="sr-only">AndRho: análisis de datos con inteligencia artificial para pymes en Guatemala</span>
+          <span className="sr-only">AndRho: análisis de datos con inteligencia artificial para negocios de todo tipo y tamaño</span>
         </h1>
 
         <p style={rest} className="mt-10 font-display text-3xl font-semibold tracking-tight text-[var(--color-ink)] sm:text-4xl">

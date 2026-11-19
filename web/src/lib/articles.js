@@ -222,9 +222,9 @@ function headTags({ title, description, url, type, jsonLd }) {
   ].join('\n')
 }
 
-const INDEX_TITLE = 'Artículos de AndRho | Tecnología, datos y software libre para pymes'
+const INDEX_TITLE = 'Artículos de AndRho | Tecnología, datos y software libre para tu negocio'
 const INDEX_DESCRIPTION =
-  'Guías y opinión del equipo de AndRho sobre tecnología para pymes en Guatemala: datos, software libre, ERP y marketing.'
+  'Guías y opinión del equipo de AndRho sobre tecnología para negocios de todo tipo y tamaño en Guatemala: datos, software libre, ERP y marketing.'
 
 // "## Preguntas frecuentes" followed by "### question" + paragraphs becomes
 // a FAQPage in the article's JSON-LD: search engines and AI assistants quote

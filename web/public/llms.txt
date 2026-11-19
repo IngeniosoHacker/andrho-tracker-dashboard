@@ -1,10 +1,10 @@
 # AndRho
 
-> AndRho es una plataforma de análisis de datos para pequeñas y medianas empresas (pymes) en Guatemala. Unifica los datos de las distintas áreas de la empresa —principalmente el ERP y el marketing—, los analiza de forma constante con modelos estadísticos y matemáticos, y usa inteligencia artificial para interpretar los resultados y explicarlos en lenguaje claro.
+> AndRho es una plataforma de análisis de datos para negocios de cualquier tipo y tamaño en Guatemala, desde emprendimientos que venden por redes hasta empresas con varias sucursales o varias empresas. Unifica los datos de las distintas áreas de la empresa —principalmente el ERP y el marketing—, los analiza de forma constante con modelos estadísticos y matemáticos, y usa inteligencia artificial para interpretar los resultados y explicarlos en lenguaje claro.
 
 Con una sola cuenta de AndRho, el negocio también puede pedir el desarrollo de su sitio web, el manejo de sus redes sociales, la implementación de Odoo como ERP y la adquisición de hardware especializado (puntos de venta, lectores, impresoras, sensores).
 
-AndRho no usa agentes autónomos de IA. El análisis lo hacen modelos estadísticos y matemáticos; la inteligencia artificial actúa como traductora entre esos resultados y el usuario final, y también permite hacer cambios visuales dentro del sistema. AndRho se adapta a la operación de cada negocio: se conecta a las herramientas que la empresa ya usa en lugar de obligarla a migrar. Está pensado para comercios y retail, restaurantes, empresas de servicios, manufactura, logística y salud.
+AndRho no usa agentes autónomos de IA. El análisis lo hacen modelos estadísticos y matemáticos; la inteligencia artificial actúa como traductora entre esos resultados y el usuario final, y también permite hacer cambios visuales dentro del sistema. AndRho se adapta a la operación de cada negocio: se conecta a las herramientas que la empresa ya usa en lugar de obligarla a migrar. No es solo para pymes: se configura según el giro y la escala de cada negocio (comercios y retail, restaurantes, servicios, construcción, manufactura, logística, salud, venta en vivo por redes), y sus planes van de una sucursal y un usuario a sucursales y usuarios ilimitados.
 
 ## Qué hace
 
@@ -31,7 +31,7 @@ Los Creators son diseñadores y programadores suscritos a AndRho. Las tareas nac
 
 - [Inicio](https://andrho.com/): qué es AndRho y cómo funciona.
 - [Continuar](https://andrho.com/signup.html): crear tu cuenta; gratis mientras dure la beta.
-- [Artículos](https://andrho.com/articulos/): guías y opinión sobre tecnología para pymes.
+- [Artículos](https://andrho.com/articulos/): guías y opinión sobre tecnología para negocios de todo tipo y tamaño.
 - [Por qué el software libre le conviene a tu empresa](https://andrho.com/articulos/software-libre.html)
 
 ## Software para cada negocio
