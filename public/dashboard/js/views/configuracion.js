@@ -1,6 +1,6 @@
 // Configuración: team management (invites, roles), the account's plan and
 // its brand and data (kit.js: what the signup left pending).
-import { andrhoApi, andrhoApiFetch, esc, fmtDate, roleAtLeast, openDrawer, ROLE_LABEL, PLAN_LABEL, session, fetchMe } from '../core.js';
+import { andrhoApi, andrhoApiFetch, esc, fmtDate, roleAtLeast, hasFeature, openDrawer, ROLE_LABEL, PLAN_LABEL, session, fetchMe } from '../core.js';
 
 // Plan, type of business or a feature changed: read the account again
 // (its features) before redrawing, and tell the sidebar.
@@ -111,6 +111,7 @@ function businessCard(biz, canEdit) {
 // includes it and the business uses it.
 function featuresCard(canEdit) {
   const live = (session.account.features || {}).live_sale || { available: false, enabled: false };
+  const wf = (session.account.features || {}).workforce || { available: false, enabled: false };
   return `
     <div class="card" id="featuresCard">
       <h2>Funciones <span class="hint">solo ves lo que tu plan incluye y tu negocio usa</span></h2>
@@ -121,6 +122,13 @@ function featuresCard(canEdit) {
           ${!live.available ? '<p class="hint" style="margin:0">Viene desde el plan Plataforma.</p>'
             : canEdit ? `<button type="button" class="copy-btn" data-feature="live_sale" data-enabled="${live.enabled ? '0' : '1'}">${live.enabled ? 'Apagar' : 'Activar'}</button>`
             : `<p class="hint" style="margin:0">${live.enabled ? 'Activada' : 'Apagada'}</p>`}
+        </div>
+        <div class="plan-card ${wf.enabled ? 'plan-card-active' : ''}" style="text-align:left">
+          <p class="plan-card-name" style="margin:0 0 4px">Personal en obra</p>
+          <p class="hint" style="margin:0 0 12px">Tus supervisores dan de alta al personal y reportan cuadrillas por WhatsApp, desde la obra.</p>
+          ${!wf.available ? '<p class="hint" style="margin:0">Viene en los planes En órbita y Galaxy.</p>'
+            : canEdit ? `<button type="button" class="copy-btn" data-feature="workforce" data-enabled="${wf.enabled ? '0' : '1'}">${wf.enabled ? 'Apagar' : 'Activar'}</button>`
+            : `<p class="hint" style="margin:0">${wf.enabled ? 'Activado' : 'Apagado'}</p>`}
         </div>
       </div>
     </div>`;
@@ -174,7 +182,7 @@ async function render(el) {
               <td>
                 ${canManageTeam && u.role !== 'owner' ? `
                   <select class="role-select" data-user-id="${esc(u.id)}" aria-label="Rol de ${esc(u.email)}">
-                    ${['viewer', 'editor', 'admin'].map((r) => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${esc(ROLE_LABEL[r])}</option>`).join('')}
+                    ${[...(hasFeature('workforce') ? ['supervisor'] : []), 'viewer', 'editor', 'admin'].map((r) => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${esc(ROLE_LABEL[r])}</option>`).join('')}
                   </select>
                 ` : esc(ROLE_LABEL[u.role] || u.role)}
               </td>
@@ -330,7 +338,10 @@ async function render(el) {
 
   el.querySelectorAll('[data-feature]').forEach((btn) => btn.addEventListener('click', () => act(async () => {
     const on = btn.dataset.enabled === '1';
-    if (!on && !confirm('¿Apagar la venta en vivo? Se oculta en AndRho y en tu ERP; tus lives y tarjetas se guardan.')) return;
+    const offMsg = btn.dataset.feature === 'workforce'
+      ? '¿Apagar Personal en obra? Se oculta en AndRho y tus supervisores ya no pueden reportar por WhatsApp; tu personal sigue en tu ERP.'
+      : '¿Apagar la venta en vivo? Se oculta en AndRho y en tu ERP; tus lives y tarjetas se guardan.';
+    if (!on && !confirm(offMsg)) return;
     const res = await andrhoApi(`/account/features/${btn.dataset.feature}`, { method: 'PUT', body: JSON.stringify({ enabled: on }) });
     session.account.features = res.features;
     await refreshMe();
@@ -356,6 +367,7 @@ function openInviteDrawer() {
       <label>Rol
         <select name="role">
           <option value="viewer">Solo lectura</option>
+          ${hasFeature('workforce') ? '<option value="supervisor">Supervisor de obra (solo su personal)</option>' : ''}
           <option value="editor">Editor</option>
           <option value="admin">Administrador</option>
         </select>
