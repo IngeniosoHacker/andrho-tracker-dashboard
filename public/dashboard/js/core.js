@@ -10,7 +10,8 @@
 
 const LS_ACCESS = 'andrho_access_token';
 const LS_REFRESH = 'andrho_refresh_token';
-const ROLE_RANK = { viewer: 1, editor: 2, admin: 3, owner: 4 };
+// supervisor is outside the ranking: only Personal (andrho-api roles.go).
+const ROLE_RANK = { supervisor: 0, viewer: 1, editor: 2, admin: 3, owner: 4 };
 
 // Injected server-side by src/server.js from the ANDRHO_API_URL env var.
 export const ANDRHO_API_URL = (window.ANDRHO_API_URL || '').replace(/\/+$/, '');
@@ -185,7 +186,10 @@ export function fmtMoney(n, currency) {
   return Number(n).toLocaleString('es', { style: 'currency', currency: currency || 'GTQ', maximumFractionDigits: 2 });
 }
 
-export const ROLE_LABEL = { owner: 'Dueño', admin: 'Administrador', editor: 'Editor', viewer: 'Solo lectura' };
+export const ROLE_LABEL = { owner: 'Dueño', admin: 'Administrador', editor: 'Editor', viewer: 'Solo lectura', supervisor: 'Supervisor de obra' };
+
+// A supervisor only manages the staff of their work sites.
+export function isSupervisor() { return Boolean(session.account && session.account.role === 'supervisor'); }
 // Plan names only; prices and limits come from andrho-api's GET /plans.
 export const PLAN_LABEL = { base: 'Base', plataforma: 'Plataforma', despegue: 'Despegue', en_orbita: 'En órbita', galaxy: 'Galaxy', galactico: 'Galaxy' };
 

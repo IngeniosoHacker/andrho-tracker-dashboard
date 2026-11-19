@@ -20,6 +20,7 @@ export const ICONS = {
   config: icon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
   logout: icon('<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h10"/>'),
   panel: icon('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>'),
+  personal: icon('<path d="M4 15a8 8 0 0 1 16 0"/><path d="M2.5 15h19"/><path d="M12 7v3"/><path d="M8 21h8"/><path d="M12 15v6"/>'),
   envivo: icon('<circle cx="12" cy="12" r="2.5"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/>'),
   search: icon('<circle cx="11" cy="11" r="6.5"/><path d="M20.5 20.5L16 16"/>')
 };
@@ -28,6 +29,8 @@ export const NAV = [
   { key: 'inicio', label: 'Inicio', section: 'inicio' },
   // Only for accounts with live sales on (core.js hasFeature).
   { key: 'envivo', label: 'En vivo', section: 'envivo', feature: 'live_sale' },
+  // Personal en obra (En órbita, Galaxy): staff by work site, by WhatsApp.
+  { key: 'personal', label: 'Personal', section: 'personal', feature: 'workforce' },
   { key: 'web', label: 'Web', section: 'web' },
   { key: 'social', label: 'Social', section: 'social' },
   { key: 'inventario', label: 'Inventario', section: 'inventario' },
@@ -60,7 +63,8 @@ export const SECTION_ORDER = {
   servicios: ['inicio', 'prospectos', 'clientes', 'web', 'social', 'resumen', 'inventario', 'sucursales', 'usuarios'],
   restaurantes: ['inicio', 'inventario', 'clientes', 'sucursales', 'web', 'social', 'resumen', 'prospectos', 'usuarios'],
   ventas: ['inicio', 'inventario', 'clientes', 'web', 'social', 'sucursales', 'prospectos', 'resumen', 'usuarios', 'envivo'],
-  en_vivo: ['inicio', 'envivo', 'inventario', 'clientes', 'social', 'resumen', 'usuarios', 'web', 'sucursales', 'prospectos']
+  en_vivo: ['inicio', 'envivo', 'inventario', 'clientes', 'social', 'resumen', 'usuarios', 'web', 'sucursales', 'prospectos'],
+  construccion: ['inicio', 'personal', 'usuarios', 'inventario', 'resumen', 'sucursales', 'web', 'social', 'clientes', 'prospectos']
 };
 
 export function orderedNav(businessType) {

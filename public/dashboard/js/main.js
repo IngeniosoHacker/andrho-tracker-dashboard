@@ -4,7 +4,7 @@
 // the section's summary, notifications and suggestions.
 import {
   session, getAccessToken, fetchMe, tryRefresh, clearTokensAndRedirect, logout,
-  esc, isStaff, hasFeature, ROLE_LABEL, closeDrawer, parseRoute, withPanel, andrhoApi
+  esc, isStaff, isSupervisor, hasFeature, ROLE_LABEL, closeDrawer, parseRoute, withPanel, andrhoApi
 } from './core.js';
 import { STAFF_NAV, FOOTER_NAV, ICONS, findNav, orderedNav } from './nav.js';
 import { loadInsights } from './insights.js';
@@ -25,9 +25,10 @@ import creators from './views/creators.js';
 import andrho from './views/andrho.js';
 import configuracion from './views/configuracion.js';
 import envivo from './views/envivo.js';
+import personal from './views/personal.js';
 import { setupLocate } from './locate.js';
 
-const VIEWS = { inicio, envivo, web, social, inventario, clientes, prospectos, sucursales, usuarios, resumen, tokens, configuracion, creators, andrho };
+const VIEWS = { inicio, envivo, personal, web, social, inventario, clientes, prospectos, sucursales, usuarios, resumen, tokens, configuracion, creators, andrho };
 
 const els = {
   sidebar: document.getElementById('sidebar'),
@@ -50,6 +51,11 @@ function navItem(n) {
 }
 
 function drawSidebar() {
+  if (isSupervisor()) {
+    // Supervisors: only Personal (andrho-api lets them reach nothing else).
+    els.nav.innerHTML = navItem(findNav('personal'));
+    return;
+  }
   const staff = STAFF_NAV.filter((n) => isStaff(n.staff));
   els.nav.innerHTML = `
     ${orderedNav(session.account.businessType).filter((n) => !n.feature || hasFeature(n.feature)).map(navItem).join('')}
@@ -74,6 +80,7 @@ async function route() {
   if (!VIEWS[key] || !nav || (nav.staff && !isStaff(nav.staff)) || (nav.feature && !hasFeature(nav.feature))) {
     key = 'inicio'; sub = '';
   }
+  if (isSupervisor() && key !== 'personal') { key = 'personal'; sub = ''; }
   const view = VIEWS[key];
   document.body.classList.remove('nav-open');
   closeDrawer();
@@ -90,7 +97,7 @@ async function route() {
   currentKey = key;
   els.view.innerHTML = '';
   document.getElementById('lastActivity').textContent = '';
-  loadInsights(nav.section || key, view.title);
+  if (!isSupervisor()) loadInsights((findNav(key) || {}).section || key, view.title);
   await withPanel(els.view, (el) => view.render(el, { key, sub }));
 }
 
@@ -129,6 +136,16 @@ async function boot() {
   if (a.role) { els.role.textContent = ROLE_LABEL[a.role] || a.role; els.role.hidden = false; }
 
   drawSidebar();
+  if (isSupervisor()) {
+    // Nothing of the ERP, the team or the insights: only their sites.
+    for (const id of ['erpLaunch', 'locate', 'insightsToggle', 'myStatus', 'statusDot']) {
+      const node = document.getElementById(id);
+      if (node) node.hidden = true;
+    }
+    window.addEventListener('hashchange', route);
+    await route();
+    return;
+  }
   setupPresence();
   setupErpButton(document.getElementById('erpLaunch'));
   setupLocate(document.getElementById('locate'));
